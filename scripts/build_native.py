@@ -39,7 +39,7 @@ if not source.exists():
 assert subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()==commit
 if win and not(a.trace_heidi or a.stable_heidi_order):run([sys.executable,'scripts/patch_smr_platform.py',source])
 if a.trace_heidi:run([sys.executable,'scripts/trace_smr_heidi.py',source])
-if a.stable_heidi_order:run([sys.executable,'scripts/patch_smr_order.py',source])
+if a.stable_heidi_order or not a.smr_diagnostic:run([sys.executable,'scripts/patch_smr_order.py',source])
 smrbuild=BUILD/('smr-diagnostic-build'if a.smr_diagnostic else'smr-build');install=BUILD/('smr-diagnostic-install'if a.smr_diagnostic else'smr')
 cmake=['cmake','-S',source,'-B',smrbuild,'-G','Ninja'if win else'Unix Makefiles','-DCMAKE_BUILD_TYPE=Release',f'-DCMAKE_INSTALL_PREFIX={install}','-DSMR_BLAS_BACKEND=none','-DBUILD_WITH_MIMALLOC=OFF','-DSMR_HAS_MARCH_X86_64_V3=FALSE','-DSMR_HAS_MARCH_ARMV85A=FALSE']
 if win:
@@ -103,10 +103,12 @@ with tarfile.open(sources/'SMR-1.4.3-complete-source.tar.gz','w:gz')as archive:
   if not base.exists():continue
   for f in base.rglob('*'):
    relative=f.relative_to(base)
-   if '.git'in relative.parts or any(part.endswith('-build')for part in relative.parts):continue
+   if any(part in {'.git','.claude'}for part in relative.parts) or any(part.endswith('-build')for part in relative.parts):continue
    if f.is_file()and not f.is_symlink():archive.add(f,arcname=Path(label)/relative)
 shutil.copy2(ROOT/'scripts/patch_smr_platform.py',sources/'SMR_windows_port.py')
-(notices/'external_tools.json').write_text(json.dumps({'SMR':{'version':'1.4.3','commit':commit,'build_arguments':[str(x)for x in cmake],'complete_source_archive':'SMR-1.4.3-complete-source.tar.gz'},'PLINK':{'version':'1.9.0','commit':plink_commit,'source_url':plink_source_url,'source_sha256':hashlib.sha256(plink_source.read_bytes()).hexdigest(),'binary_sha256':expected_hash}},indent=2))
+shutil.copy2(ROOT/'scripts/patch_smr_order.py',sources/'SMR_deterministic_order.py')
+applied=['patch_smr_order.py']+(['patch_smr_platform.py']if win else[])
+(notices/'external_tools.json').write_text(json.dumps({'SMR':{'version':'1.4.3','commit':commit,'build_arguments':[str(x)for x in cmake],'supplied_license':'GNU GPL version 2; upstream startup banner inconsistently says MIT','applied_patches':[{'script':name,'sha256':hashlib.sha256((ROOT/'scripts'/name).read_bytes()).hexdigest(),'date':'2026-10-21'}for name in applied],'complete_source_archive':'SMR-1.4.3-complete-source.tar.gz','source_exclusions':['.git version-control data','.claude editor integrations','dependency build output directories']},'PLINK':{'version':'1.9.0','commit':plink_commit,'source_url':plink_source_url,'source_sha256':hashlib.sha256(plink_source.read_bytes()).hexdigest(),'binary_sha256':expected_hash}},indent=2))
 if win:
  # Record the exact installed MSYS2 package owning each distributed DLL.
  from collect_msys_sources import collect_msys_sources
@@ -119,9 +121,16 @@ for language in ['zh-CN','en']:
  run([conda,'run','--no-capture-output','-p',RUNTIME,'python','scripts/assemble.py','--runtime',RUNTIME,'--platform',a.platform,'--language',language,'--course',course,'--output',out,'--smr',smr,'--plink',plink,'--runtime-archive',runtime_archive])
  if not win:
   for dll in smr.parent.glob('*.dylib'):shutil.copy2(dll,out/'resources/course/tools'/a.platform/dll.name)
- shutil.copytree(notices,out/'resources/licenses',dirs_exist_ok=True)
+ license_folder=out/'resources/licenses';license_folder.mkdir(exist_ok=True)
+ # Keep long upstream recipe paths inside an archive so Explorer can unpack the course in a deep download folder.
+ with zipfile.ZipFile(license_folder/'component-notices.zip','w',zipfile.ZIP_DEFLATED)as archive:
+  for file in sorted(notices.rglob('*')):
+   if file.is_file():archive.write(file,file.relative_to(notices).as_posix())
+ for file in notices.iterdir():
+  if file.is_file():shutil.copy2(file,license_folder/file.name)
+ (license_folder/'README.txt').write_text('Component licence texts and build recipes are in component-notices.zip. Paths in the JSON indexes refer to members of that archive. Source archives are provided in the same course release. The project licences do not replace component-specific terms.\n')
  for name in ['LICENSE','LICENSE-CONTENT.md','THIRD_PARTY_NOTICES.md','DATA_LICENSES.tsv']:
-  shutil.copy2(ROOT/name,out/'resources/licenses'/name)
+  shutil.copy2(ROOT/name,license_folder/name)
 # Sources are separate download assets; they never become student work files.
 source_release=ROOT/'.artifacts/sources';source_release.mkdir(parents=True,exist_ok=True)
 source_index=[]

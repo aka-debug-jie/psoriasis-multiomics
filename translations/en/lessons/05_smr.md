@@ -14,7 +14,7 @@ The observed results with Linux SMR 1.4.3 are:
 
 | Gene | SMR beta | SMR P | HEIDI P |
 |---|---:|---:|---:|
-| ERAP2 | 0.0254694 | 0.06074163 | 0.2480520 |
+| ERAP2 | 0.0254694 | 0.06074163 | 0.2423640 |
 | LIPA | 0.0106345 | 0.7502885 | 0.2011178 |
 
 Neither gene meets the combined rule: neither SMR test reaches the association threshold, and neither HEIDI test detects heterogeneity. In the [two-dimensional plot](../results/05_smr/SMR_HEIDI.png), a larger x value indicates a stronger SMR association, and a larger y value indicates stronger evidence of HEIDI heterogeneity; “larger is better” does not apply to both axes. Missing HEIDI values remain NA.
@@ -26,3 +26,6 @@ Exercises and answers:
 1. How should you interpret significant SMR P and very small HEIDI P? **Answer:** An expression–disease association is detected, but the regional effects are heterogeneous; under the rule used in this example, this does not count as support for a shared signal.
 2. What might change if `heidi_ld_upper` is changed from 0.9 to 0.8? **Answer:** The set of variants included in HEIDI may change. Compare the variant count and P values; do not choose parameters based on significance.
 3. Can `p_HEIDI=NA` be counted as P>0.01? **Answer:** No. First check the number of instruments, regional coverage, alleles, and program output.
+
+The course SMR build orders exactly tied |Z| values by input index so that the same representative variants are retained across systems. See the [tie-order comparison](../notes/smr-portability.html).
+

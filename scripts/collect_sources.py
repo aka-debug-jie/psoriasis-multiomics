@@ -3,6 +3,7 @@ from pathlib import Path
 import argparse,json,hashlib,urllib.request,urllib.error,urllib.parse,tarfile,concurrent.futures,subprocess,shutil,re,threading
 from collect_component_metadata import collect,sha256_file,safe_part
 from conda_recipe_sources import recipe_sources
+from collect_frontend_notices import collect_frontend
 p=argparse.ArgumentParser();input_group=p.add_mutually_exclusive_group(required=True);input_group.add_argument('--runtime',type=Path);input_group.add_argument('--metadata',type=Path,help='Previously collected components.json; retain its notices directory as --output');p.add_argument('--output',type=Path,required=True);p.add_argument('--sources',type=Path,required=True);a=p.parse_args()
 a.sources.mkdir(parents=True,exist_ok=True)
 if a.metadata:
@@ -34,7 +35,7 @@ base_r={'base','compiler','datasets','graphics','grDevices','grid','methods','pa
 R_SOURCE='https://cran.r-project.org/src/base/R-4/R-4.4.2.tar.gz'
 def process(c):
  sources=[]
- for field in ('sources','source_offer','source_offers','collection_error'):
+ for field in ('sources','source_offer','source_offers','binary_source_offers','collection_error'):
   c.pop(field,None)
  try:
   name,version=c['name'],c['version']
@@ -72,6 +73,9 @@ def process(c):
      urls=item.get('url',[])
      if isinstance(urls,str):urls=[urls]
      urls=[u for u in urls if isinstance(u,str)and u.startswith(('https://','http://'))and '{{'not in u and '${{'not in u]
+     if urls and name in {'vc','vc14_runtime','vcomp14','ucrt'}:
+      c.setdefault('binary_source_offers',[]).append({'urls':urls,'sha256':item.get('sha256'),'kind':'Microsoft binary provenance; installer is not an open-source archive'})
+      continue
      if urls:
       filename=Path(urllib.parse.urlsplit(urls[0]).path).name or 'source.tar.gz'
       entry=first(urls,a.sources/'conda'/(safe_part(name)+'-'+safe_part(version))/filename)
@@ -89,11 +93,23 @@ def process(c):
  return c
 # R core is shared by its standard-library components.
 core=acquire(R_SOURCE,a.sources/'R-4.4.2.tar.gz')
+shutil.copytree(ROOT/'licenses',a.output/'standard-licences',dirs_exist_ok=True)
 for path in ([a.runtime/'R/COPYING',a.runtime/'lib/R/COPYING']if a.runtime else[]):
  if path.exists():
   (a.output/'r-core').mkdir(exist_ok=True);shutil.copy2(path,a.output/'r-core/COPYING')
 with concurrent.futures.ThreadPoolExecutor(max_workers=6)as pool:
  manifest['components']=list(pool.map(process,manifest['components']))
+frontend=collect_frontend(a.output,a.sources,acquire)
+manifest['frontend_notice_index']='npm-components.json'
+manifest['additional_frontend_sources']=[]
+for item in json.loads((ROOT/'config/frontend_source_archives.json').read_text()):
+ entry=dict(item)
+ try:
+  entry.update(acquire(item['url'],a.sources/'frontend-upstream'/item['archive']))
+  entry['status']='captured'
+ except Exception as error:
+  entry.update(status='collection_incomplete',error=str(error))
+ manifest['additional_frontend_sources'].append(entry)
 manifest['r_core_source']=core
 manifest['review_status']='pending_manual_review'
 (a.output/'components.json').write_text(json.dumps(manifest,indent=2)+'\n')
@@ -105,8 +121,15 @@ the same GitHub release. `components.json` lists the upstream source URLs, versi
 checksums, and any unresolved collection items. An archived file is not itself a
 licence approval; the release review must resolve each required item before publication.
 
+`npm-components.json` supplies individual frontend notices where the Jupyter
+catalogue omits their text. See `standard-licences/ELKJS_SOURCE_ACCESS.md` for
+elkjs and its ELK Java sources, and `standard-licences/WINDOWS_RUNTIME_NOTICE.md`
+for the separate Microsoft runtime terms. Microsoft installer payloads are
+provenance references, not open-source archives distributed by this project.
+
+This product includes software developed by the Delft University of Technology.
 Rtsne includes software developed by Laurens van der Maaten. See its retained
 licence for the complete attribution and conditions. Original course licensing
 does not replace licences of R, Python, Jupyter, R packages, or external tools.
 ''')
-print('Collected component sources; unresolved:',sum(c['source_status']=='collection_incomplete'for c in manifest['components']),flush=True)
+print('Collected component sources; unresolved:',sum(c['source_status']=='collection_incomplete'for c in manifest['components']),'frontend notices unresolved:',sum(c['status']!='captured'for c in frontend['packages']),flush=True)

@@ -1,4 +1,4 @@
-"""Test a deterministic order for exactly tied |Z| values; thresholds are unchanged."""
+"""Resolve exactly tied |Z| values by input index; thresholds are unchanged."""
 from pathlib import Path
 import sys
 
@@ -10,5 +10,6 @@ new = '''auto cmp = [&](int a, int b) {
       return za == zb ? a < b : za > zb;
     };'''
 assert source.count(old) == 1, 'Expected the pinned SMR comparator exactly once'
-path.write_text(source.replace(old, new))
+notice = '// Modified 2026-10-21 by the psoriasis-multiomics course: deterministic input-index ordering for exact |Z| ties.\n'
+path.write_text(notice + source.replace(old, new))
 print('Exactly tied |Z| values now follow their original input indices.')

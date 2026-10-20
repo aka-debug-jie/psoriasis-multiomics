@@ -49,3 +49,7 @@ f=root/'src/perf_timer.cpp';s=f.read_text().replace('#include <sys/resource.h>',
   return usage.ru_maxrss * 1024;
 #endif''');f.write_text(s)
 f=root/'CMakeLists.txt';s=f.read_text();s+='\nif(WIN32)\n target_link_libraries(smr psapi ws2_32)\nendif()\n';f.write_text(s)
+for relative in ['src/mmap_read.hpp','src/mmap_read.cpp','src/perf_timer.cpp','CMakeLists.txt']:
+ f=root/relative
+ prefix='#'if f.suffix=='.txt'else'//'
+ f.write_text(prefix+' Modified 2026-10-21 by the psoriasis-multiomics course: Windows Unicode I/O, memory reporting and system-library linkage.\n'+f.read_text())

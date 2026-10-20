@@ -18,7 +18,7 @@ tools=res/'course/tools'/a.platform;tools.mkdir(parents=True,exist_ok=True)
 rows=[]
 for name,src in [('smr',a.smr),('plink',a.plink)]:
  dst=tools/(name+('.exe'if win else''));shutil.copy2(src,dst);dst.chmod(0o755)
- rows.append({'tool':name,'platform':osname,'arch':arch,'version':'1.4.3'if name=='smr'else'1.9.0','url':'','sha256':hashlib.sha256(dst.read_bytes()).hexdigest(),'origin':'native_build_pinned_source'if name=='smr'else'official_binary','path':str(dst.relative_to(res/'course')).replace('\\','/')})
+ rows.append({'tool':name,'platform':osname,'arch':arch,'version':'1.4.3'if name=='smr'else'1.9.0','url':'','sha256':hashlib.sha256(dst.read_bytes()).hexdigest(),'origin':'native_build_with_documented_patches'if name=='smr'else'official_binary','path':str(dst.relative_to(res/'course')).replace('\\','/')})
 with(res/'course/tools/manifest.tsv').open('w',newline='',encoding='utf-8')as f:
  w=csv.DictWriter(f,fieldnames=list(rows[0]),delimiter='\t');w.writeheader();w.writerows(rows)
 # Include locally linked DLLs required by the Windows build.

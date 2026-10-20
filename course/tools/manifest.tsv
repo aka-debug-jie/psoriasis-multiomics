@@ -1,9 +1,9 @@
 tool	platform	arch	version	url	sha256	origin	path
 plink	linux	x86_64	1.9.0	https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20260927.zip	47ce3069a1349128bdc5193aa8af33ec20dc99ece920843c80453c34eea1a062	official_binary	tools/linux/plink
-smr	linux	x86_64	1.4.3		deb37d4556ce5c5af12040e21602ac28d9f0e1fe394cdec0fe689650f8081064	compiled_official_source	tools/linux/smr
 plink	windows	x86_64	1.9.0	https://s3.amazonaws.com/plink1-assets/plink_win64_20260927.zip	efc55270aba7216e4fcebdf781ee04e9fa556c2fe5be1f71c836ba73930a6b6b	official_binary	tools/windows/plink.exe
-smr	windows	x86_64	1.3.1	https://yanglab.westlake.edu.cn/software/smr/download/smr-1.3.1-win-x86_64.zip	NA	official_download_pending	tools/windows/smr.exe
 plink	macos	x86_64	1.9.0	https://s3.amazonaws.com/plink1-assets/plink_mac_20260927.zip	13a7fc9b908d0feb968d0835108b7fa5416fe27f44cad9bb7a0887676a644c40	official_binary_downloaded_not_executed	tools/macos/plink
-smr	macos	arm64	1.4.3	https://yanglab.westlake.edu.cn/software/smr/download/smr-1.4.3-macOS-arm64.zip	NA	official_listing_not_downloaded	tools/macos-arm64/smr
-smr	macos	x86_64	1.03	https://yanglab.westlake.edu.cn/software/smr/download/smr-1.03-macOS-x86_64.zip	NA	official_listing_not_downloaded	tools/macos-x86_64/smr
 plink	macos	arm64	1.9.0	https://s3.amazonaws.com/plink1-assets/plink_mac_20260927.zip	13a7fc9b908d0feb968d0835108b7fa5416fe27f44cad9bb7a0887676a644c40	official_binary_downloaded_not_executed	tools/macos/plink
+smr	linux	x86_64	1.4.3	https://github.com/JianYang-Lab/SMR/tree/eedb1a62ba4c66ab0b09acd0205876955a803f18	NA	source_build_with_documented_patches_required	tools/linux/smr
+smr	windows	x86_64	1.4.3	https://github.com/JianYang-Lab/SMR/tree/eedb1a62ba4c66ab0b09acd0205876955a803f18	NA	source_build_with_documented_patches_required	tools/windows-x64/smr.exe
+smr	macos	x86_64	1.4.3	https://github.com/JianYang-Lab/SMR/tree/eedb1a62ba4c66ab0b09acd0205876955a803f18	NA	source_build_with_documented_patches_required	tools/macos-intel/smr
+smr	macos	arm64	1.4.3	https://github.com/JianYang-Lab/SMR/tree/eedb1a62ba4c66ab0b09acd0205876955a803f18	NA	source_build_with_documented_patches_required	tools/macos-arm64/smr

@@ -6,7 +6,7 @@ This repository brings together an independent reconstruction of the research re
 
 ## Choose an entry point
 
-- **Online course:** [Open the course website](https://aka-debug-jie.github.io/psoriasis-multiomics/). Use this link after the site is published.
+- **Online course:** [Open the course website](https://aka-debug-jie.github.io/psoriasis-multiomics/).
 - **Student package:** [Release page](https://github.com/aka-debug-jie/psoriasis-multiomics/releases). The v4 packages are being prepared and are undergoing native-platform acceptance; downloads are not ready yet.
 - **Research source:** Start with [research/execute.R](research/execute.R) and the analysis materials under [research/](research/). This is the independent research reconstruction, separate from the teaching examples.
 
@@ -30,7 +30,7 @@ The course has 13 chapters, numbered 00–12, covering the methods from project 
 | 11 | MR of related diseases |
 | 12 | Integrated evidence |
 
-Chinese course sources are in [course/notebooks/](course/notebooks/); English notebook translations are in [translations/en/notebooks/](translations/en/notebooks/). The rendered course and student bundles will be linked from the course website and Releases page when published.
+Chinese course sources are in [course/notebooks/](course/notebooks/); English notebook translations are in [translations/en/notebooks/](translations/en/notebooks/). The rendered course is available on the course website. Student bundles will appear on the Releases page after native validation.
 
 ## First run
 
@@ -57,10 +57,12 @@ The course keeps its PGS and Cox examples separate from those research analyses.
 ## Source layout
 
 - [research/](research/): independent research code and selected aggregate results; raw inputs are acquired separately.
-- [course/notebooks/](course/notebooks/): original course notebook sources and rendered lessons.
+- [course/notebooks/](course/notebooks/): original course notebook sources.
 - [translations/en/notebooks/](translations/en/notebooks/): English notebook translations.
 - [course/COURSE.md](course/COURSE.md): course guide and data-source notes.
 
 ## Licensing
 
 The project's original code is under the [MIT License](LICENSE). Original course explanations, exercises, and figures are under [CC BY 4.0](LICENSE-CONTENT.md). Third-party data, code, screenshots, articles, and bundled software retain their own terms; the project licenses do not replace those terms. See the course [source list](course/data/sources.tsv) and the relevant notices shipped with each package.
+
+This product includes software developed by the Delft University of Technology.

@@ -63,12 +63,13 @@ class MakeEnvironmentTests(unittest.TestCase):
             "CONDA_PREFIX": "/user/conda",
             "TEACHING_SMR": "/user/smr",
             "TEACHING_PLINK": "/user/plink",
+            "JUPYTER_ALLOW_INSECURE_WRITES": "True",
             "PATH": "/user/bin:/user/tools",
         }
         with patch.dict(os.environ, global_values):
             env, _ = self.launch.make_environment()
 
-        for name in set(global_values) - {"PATH"}:
+        for name in set(global_values) - {"PATH", "JUPYTER_ALLOW_INSECURE_WRITES"}:
             self.assertNotIn(name, env)
         self.assertNotIn("/user/", env["PATH"])
         self.assertEqual(
@@ -76,6 +77,7 @@ class MakeEnvironmentTests(unittest.TestCase):
             os.pathsep.join((str(self.runtime / "bin"), "/usr/bin:/bin:/usr/sbin:/sbin")),
         )
         self.assertEqual(env["PYTHONNOUSERSITE"], "1")
+        self.assertEqual(env["JUPYTER_ALLOW_INSECURE_WRITES"], "False")
         self.assertEqual(env["TEACHING_LIBRARY"], str(self.runtime / "course-library"))
 
     def test_kernel_json_has_r_arguments_and_isolates_library(self):

@@ -8,7 +8,7 @@ if target.exists():raise FileExistsError('Choose a new build directory; existing
 shutil.copytree(source,target,dirs_exist_ok=True,ignore=shutil.ignore_patterns('*.ipynb','*.nb.html','__pycache__','.ipynb_checkpoints','notebook_templates'))
 if a.language=='en':
  overlay=ROOT/'translations/en'
- for name in ['notebooks','lessons']:
+ for name in ['notebooks','lessons','notes']:
   shutil.copytree(overlay/name,target/name,dirs_exist_ok=True)
  shutil.copytree(overlay/'assets',target/'notebooks/assets',dirs_exist_ok=True)
  shutil.copy2(overlay/'COURSE.md',target/'COURSE.md')
@@ -41,6 +41,17 @@ for file in target.rglob('*'):
  text=text.replace('课程资源','resources').replace('本课目录','chapter-folder' if a.language=='en' else '本课目录')
  file.write_text(text,encoding='utf-8')
 (target/'language.txt').write_text(a.language+'\n')
+from nbconvert.filters.markdown_mistune import markdown2html_mistune
+for note in (target/'notes').glob('*.md'):
+ body=markdown2html_mistune(note.read_text())
+ note.with_suffix('.html').write_text(
+  '<!doctype html><html lang="'+a.language+'"><meta charset="utf-8">'
+  '<meta name="viewport" content="width=device-width,initial-scale=1">'
+  '<title>SMR · Course method notes</title><style>'
+  'body{font-family:system-ui,sans-serif;max-width:960px;margin:40px auto;padding:0 20px;line-height:1.8;color:#23342f}'
+  'h1,h2{color:#185e4b}pre,table{display:block;overflow:auto}pre{padding:16px;background:#f0f5f2}'
+  'td,th{padding:8px 14px;border-bottom:1px solid #dce7e1;text-align:left}a{color:#17684f}'
+  '</style><main>'+body+'</main></html>',encoding='utf-8')
 import csv,hashlib
 with(target/'data/manifest.tsv').open('w',newline='',encoding='utf-8')as handle:
  writer=csv.DictWriter(handle,['path','bytes','sha256'],delimiter='\t');writer.writeheader()

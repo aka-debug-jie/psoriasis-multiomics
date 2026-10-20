@@ -1,5 +1,5 @@
 {
-  "asset": "course-data-v4.zip",
-  "bytes": 96024280,
-  "sha256": "cd7adab79e64b4402f61abb9b5070d6c619f3aa51d40c39bfd73557fab1125d8"
+  "asset": "course-data-v4-deterministic.zip",
+  "bytes": 96025389,
+  "sha256": "d1cdf82f01736bc07a64e35c6f4c201aa3de7955d863ed9366c92aca3236ed5d"
 }

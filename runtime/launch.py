@@ -47,6 +47,7 @@ def make_environment():
         TEACHING_LIBRARY=str(lib),TEACHING_NOTEBOOK_OUTPUT='../work/results',
         JUPYTER_PATH=str(config),JUPYTER_DATA_DIR=str(config),JUPYTER_CONFIG_DIR=str(WORK/'jupyter-config'),
         JUPYTER_RUNTIME_DIR=str(WORK/'jupyter-runtime'),IPYTHONDIR=str(WORK/'ipython'),
+        JUPYTER_ALLOW_INSECURE_WRITES='False',
         PYTHONNOUSERSITE='1',OMP_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2',MKL_NUM_THREADS='2',
         TMPDIR=tempfile.gettempdir() if win else '/tmp',TEMP=tempfile.gettempdir() if win else '/tmp',TMP=tempfile.gettempdir() if win else '/tmp')
     # Never consult a student's globally installed R or Python.
@@ -118,8 +119,10 @@ def main():
                 except OSError:time.sleep(.25)
             else:raise RuntimeError(tr('课堂启动超时，请查看 resources/work/server.log。','Server startup timed out. See resources/work/server.log.'))
             temp_state=WORK/('server-'+secrets.token_hex(6)+'.tmp')
-            temp_state.write_text(json.dumps({'base':base,'url':url,'token':token,'root':str(RES),'pid':process.pid}),encoding='utf-8')
-            if os.name!='nt':temp_state.chmod(0o600)
+            os.environ['JUPYTER_ALLOW_INSECURE_WRITES']='False'
+            from jupyter_core.paths import secure_write
+            with secure_write(str(temp_state)) as state_file:
+                json.dump({'base':base,'url':url,'token':token,'root':str(RES),'pid':process.pid},state_file)
             os.replace(temp_state,state_path)
             lock.close()
             if not args.no_browser:webbrowser.open(url)

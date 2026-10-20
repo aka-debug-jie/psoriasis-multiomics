@@ -1,0 +1,16 @@
+[
+  {
+    "component": "elkjs",
+    "version": "0.9.3",
+    "url": "https://github.com/kieler/elkjs/archive/a8304cf79fde75bc2ab1a89d28320f53f8637436.tar.gz",
+    "archive": "elkjs-0.9.3-source.tar.gz",
+    "scope": "Exact npm gitHead; includes JavaScript wrapper, own Java sources and build.gradle"
+  },
+  {
+    "component": "ELK",
+    "version": "upstream snapshot at PR955 merge",
+    "url": "https://github.com/eclipse-elk/elk/archive/7ca51784e42a24201f29bc13e458728b6fc61cdc.tar.gz",
+    "archive": "ELK-documented-change-source.tar.gz",
+    "scope": "ELK source tree containing the additional change explicitly listed in elkjs 0.9.3 release notes; upstream does not pin the worker binary to an exact ELK commit"
+  }
+]

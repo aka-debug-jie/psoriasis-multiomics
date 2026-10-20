@@ -61,6 +61,8 @@ SMR 选取最强的合格eQTL，用表达效应和疾病效应构造关联检验
 
 本课还安排了从ESD转换为BESD的格式练习。转换会将SNP按坐标重新排序，而HEIDI在LD并列时的剪枝结果可能受顺序影响。因此，主分析直接使用随包固定的BESD输入，格式转换的结果另行保存。
 
+本课的 SMR 对完全并列的 |Z| 按输入索引排序，使各系统保留相同的代表位点。修改与原版对照见[并列位点说明](../notes/smr-portability.html)。
+
 ### 05.1｜准备外部工具和输出位置
 
 本课使用课程内置的SMR程序。tool_path() 根据操作系统定位可执行文件，run_tool() 负责向程序传递参数。
@@ -175,7 +177,7 @@ print(comparison[c("probeID", "topSNP_teaching", "b_SMR_teaching", "p_SMR_teachi
 
 course_table(comparison, columns=c("probeID","p_SMR_teaching","p_HEIDI_teaching","nominal_SMR_and_HEIDI_rule"))
 ```
-> 默认参数参考结果：ERAP2 的 SMR P=0.06074、HEIDI P=0.2481；LIPA 的 SMR P=0.7503、HEIDI P=0.2011。两者均未满足 SMR<0.05 且 HEIDI>0.01 的组合条件。HEIDI 未检出异质性，本身不能补足表达与疾病的关联证据。
+> 默认参数参考结果：ERAP2 的 SMR P=0.06074、HEIDI P=0.2424；LIPA 的 SMR P=0.7503、HEIDI P=0.2011。两者均未满足 SMR<0.05 且 HEIDI>0.01 的组合条件。HEIDI 未检出异质性，本身不能补足表达与疾病的关联证据。
 
 ### 05.6｜比较不同工具版本的结果
 
@@ -191,7 +193,7 @@ within_tolerance <- all(vapply(fields, function(k) {
     b <- comparison[[paste0(k, "_reference")]]
     all(abs(a - b) <= 1e-10 + 1e-08 * abs(b))
 }, logical(1)))
-version_check <- data.frame(platform = .Platform$OS.type, valid_P_and_topSNP = TRUE, decision_matches_reference = identical(comparison$nominal_SMR_and_HEIDI_rule, c(FALSE,FALSE)), numeric_matches_Linux_1_4_3 = within_tolerance, 
+version_check <- data.frame(platform = .Platform$OS.type, valid_P_and_topSNP = TRUE, decision_matches_reference = identical(comparison$nominal_SMR_and_HEIDI_rule, c(FALSE,FALSE)), numeric_matches_course_reference = within_tolerance, 
     status = if (within_tolerance) "matched_reference" else "computed_with_reference_difference")
 write_tsv(version_check, file.path(out, "version_comparison.tsv"))
 if (isTRUE(getOption("teaching.reference", FALSE))) stopifnot(within_tolerance)

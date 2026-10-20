@@ -1,0 +1,1479 @@
+{
+  "scope": "Exact-version upstream notices for packages whose npm distribution omits a notice file",
+  "packages": [
+    {
+      "name": "@jupyter/react-components",
+      "version": "0.16.6",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab-contrib/jupyter-ui-toolkit/efd5e8880b14fa62071193e4ad4406d78706d911/LICENSE",
+          "sha256": "6ec2d5d8aa9ea9bba384e53bdb7d401721a861bbafb5dce9e0a4de5ebdcd71fc"
+        },
+        {
+          "name": "NOTICES",
+          "url": "https://raw.githubusercontent.com/jupyterlab-contrib/jupyter-ui-toolkit/efd5e8880b14fa62071193e4ad4406d78706d911/NOTICES",
+          "sha256": "8ba348b42b38c8aeb45c17aac4a724d8b8d9078ecc42bc045c98be61c530409b"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab-contrib/jupyter-ui-toolkit/tree/efd5e8880b14fa62071193e4ad4406d78706d911"
+    },
+    {
+      "name": "@jupyter/web-components",
+      "version": "0.16.6",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab-contrib/jupyter-ui-toolkit/efd5e8880b14fa62071193e4ad4406d78706d911/LICENSE",
+          "sha256": "6ec2d5d8aa9ea9bba384e53bdb7d401721a861bbafb5dce9e0a4de5ebdcd71fc"
+        },
+        {
+          "name": "NOTICES",
+          "url": "https://raw.githubusercontent.com/jupyterlab-contrib/jupyter-ui-toolkit/efd5e8880b14fa62071193e4ad4406d78706d911/NOTICES",
+          "sha256": "8ba348b42b38c8aeb45c17aac4a724d8b8d9078ecc42bc045c98be61c530409b"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab-contrib/jupyter-ui-toolkit/tree/efd5e8880b14fa62071193e4ad4406d78706d911"
+    },
+    {
+      "name": "@jupyter/ydoc",
+      "version": "4.0.0",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyter-server/jupyter_ydoc/d52fdf9024f65903ec38c7f471af3bf223b24abc/LICENSE",
+          "sha256": "76aa61b056e19e5ccf2bb56591ceba65cee0ecf4be7b57659f4ec65c85691424"
+        }
+      ],
+      "repository": "https://github.com/jupyter-server/jupyter_ydoc/tree/d52fdf9024f65903ec38c7f471af3bf223b24abc"
+    },
+    {
+      "name": "@jupyterlab/application",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/application-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/apputils",
+      "version": "4.7.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/apputils-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/attachments",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/audio-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/cell-toolbar",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/cell-toolbar-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/cells",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/celltags-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/codeeditor",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/codemirror",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/codemirror-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/completer",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/completer-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/console",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/console-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/coreutils",
+      "version": "6.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/csvviewer",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/csvviewer-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/debugger",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/debugger-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/docmanager",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/docmanager-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/docregistry",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/documentsearch",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/documentsearch-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/extensionmanager",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/extensionmanager-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/filebrowser",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/filebrowser-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/fileeditor",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/fileeditor-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/help-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/htmlviewer",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/htmlviewer-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/hub-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/imageviewer",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/imageviewer-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/inspector",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/inspector-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/javascript-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/json-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/launcher",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/launcher-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/logconsole",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/logconsole-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/lsp",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/lsp-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/mainmenu",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/mainmenu-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/markdownviewer",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/markdownviewer-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/markedparser-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/mathjax-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/mermaid",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/mermaid-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/metadataform",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/metadataform-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/nbformat",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/notebook",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/notebook-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/observables",
+      "version": "5.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/outputarea",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/pdf-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/pluginmanager",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/pluginmanager-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/property-inspector",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/rendermime",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/rendermime-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/rendermime-interfaces",
+      "version": "3.14.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/running",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/running-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/services",
+      "version": "7.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/services-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/settingeditor",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/settingeditor-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/settingregistry",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/shortcuts-extension",
+      "version": "5.4.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/statedb",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/statusbar",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/statusbar-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/terminal",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/terminal-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/theme-dark-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/theme-dark-high-contrast-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/theme-light-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/toc",
+      "version": "6.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/toc-extension",
+      "version": "6.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/tooltip",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/tooltip-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/translation",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/translation-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/ui-components",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/ui-components-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/vega5-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/video-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/workspaces",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@jupyterlab/workspaces-extension",
+      "version": "4.6.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/jupyterlab/384bff3af6598b3a6348df58fe34450914b49c41/LICENSE",
+          "sha256": "56b2e89eae0571033d778a9790872f17ee219c723b826399052522ddb94b2853"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/jupyterlab/tree/384bff3af6598b3a6348df58fe34450914b49c41"
+    },
+    {
+      "name": "@lumino/algorithm",
+      "version": "2.0.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/application",
+      "version": "2.4.9",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/cb531bfa5c408cf510764c1b33d2c544176e4839/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/cb531bfa5c408cf510764c1b33d2c544176e4839"
+    },
+    {
+      "name": "@lumino/commands",
+      "version": "2.3.3",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/coreutils",
+      "version": "2.2.2",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/datagrid",
+      "version": "2.5.7",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/cb531bfa5c408cf510764c1b33d2c544176e4839/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/cb531bfa5c408cf510764c1b33d2c544176e4839"
+    },
+    {
+      "name": "@lumino/disposable",
+      "version": "2.1.5",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/domutils",
+      "version": "2.0.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/dragdrop",
+      "version": "2.1.8",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/1cc7050687224764b0f6309962079409e8698d46/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/1cc7050687224764b0f6309962079409e8698d46"
+    },
+    {
+      "name": "@lumino/keyboard",
+      "version": "2.0.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/messaging",
+      "version": "2.0.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/polling",
+      "version": "2.1.5",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/properties",
+      "version": "2.0.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/signaling",
+      "version": "2.1.5",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/virtualdom",
+      "version": "2.0.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/17321dd0210371c376a3d60efce743e9742524be/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/17321dd0210371c376a3d60efce743e9742524be"
+    },
+    {
+      "name": "@lumino/widgets",
+      "version": "2.8.0",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/jupyterlab/lumino/cb531bfa5c408cf510764c1b33d2c544176e4839/LICENSE",
+          "sha256": "b0da99e8c73e7fdad117622971e6d16379fd01b5d0b60589de7133b6fec59422"
+        }
+      ],
+      "repository": "https://github.com/jupyterlab/lumino/tree/cb531bfa5c408cf510764c1b33d2c544176e4839"
+    },
+    {
+      "name": "@microsoft/fast-element",
+      "version": "1.12.0",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/Microsoft/fast/a29696c6c5e90d0e5e6121146628c188d95736d0/LICENSE",
+          "sha256": "efd3e2455191853bb2fb22f794e521f9097f4e95c9327c2a34be53fb172a2d5a"
+        }
+      ],
+      "repository": "https://github.com/Microsoft/fast/tree/a29696c6c5e90d0e5e6121146628c188d95736d0"
+    },
+    {
+      "name": "@microsoft/fast-foundation",
+      "version": "2.49.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/Microsoft/fast/71481316c92e3689a4a0c243831693d9938474f8/LICENSE",
+          "sha256": "efd3e2455191853bb2fb22f794e521f9097f4e95c9327c2a34be53fb172a2d5a"
+        }
+      ],
+      "repository": "https://github.com/Microsoft/fast/tree/71481316c92e3689a4a0c243831693d9938474f8"
+    },
+    {
+      "name": "@microsoft/fast-web-utilities",
+      "version": "5.4.1",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/Microsoft/fast/c49a98f7f1bd8e167b0b7a96a181990f9a675f34/LICENSE",
+          "sha256": "efd3e2455191853bb2fb22f794e521f9097f4e95c9327c2a34be53fb172a2d5a"
+        }
+      ],
+      "repository": "https://github.com/Microsoft/fast/tree/c49a98f7f1bd8e167b0b7a96a181990f9a675f34"
+    },
+    {
+      "name": "json-schema-merge-allof",
+      "version": "0.8.1",
+      "notices": [
+        {
+          "name": "LICENSE-with-attribution.txt",
+          "local_file": "licenses/json-schema-merge-allof-0.8.1.txt",
+          "sha256": "6c53b6da384e95689c3288416f2cdb649bb0c04a18271d6f834b3c11f502f122"
+        }
+      ],
+      "repository": "https://github.com/mokkabonna/json-schema-merge-allof/tree/24a6be01020d231131d42e116eeec871db373289"
+    },
+    {
+      "name": "vega-util",
+      "version": "1.17.4",
+      "notices": [
+        {
+          "name": "LICENSE",
+          "url": "https://raw.githubusercontent.com/vega/vega/fe508bbd2973445a35a8730701eaca45339233a8/LICENSE",
+          "sha256": "63727832aaf62004a2b249c933e327f3c90caf49e41a72f4bf436edf632cbda8"
+        }
+      ],
+      "repository": "https://github.com/vega/vega/tree/fe508bbd2973445a35a8730701eaca45339233a8"
+    }
+  ]
+}

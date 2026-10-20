@@ -61,6 +61,8 @@ SMR selects the strongest eligible eQTL and uses its expression and disease effe
 
 This lesson also includes a format exercise that converts ESD to BESD. Conversion reorders SNPs by genomic position, and the order can affect HEIDI pruning when LD values are tied. Therefore, the primary analysis directly uses the BESD subset that preserves the fixed reference order, while the converted output is saved separately.
 
+The course SMR build orders exactly tied |Z| values by input index so that the same representative variants are retained across systems. See the [tie-order comparison](../notes/smr-portability.html).
+
 ### 05.1 | Set up the external tool and output location
 
 This lesson uses the SMR program bundled with the course. `tool_path()` locates the executable for the operating system, and `run_tool()` passes arguments to the program.
@@ -180,7 +182,7 @@ print(comparison[c("probeID", "topSNP_teaching", "b_SMR_teaching", "p_SMR_teachi
 course_table(comparison, columns=c("probeID","p_SMR_teaching","p_HEIDI_teaching","nominal_SMR_and_HEIDI_rule"))
 ```
 
-> Default reference: ERAP2 has SMR P=0.06074 and HEIDI P=0.2481; LIPA has SMR P=0.7503 and HEIDI P=0.2011. Neither passes the combined SMR<0.05 / HEIDI>0.01 rule. A non-significant HEIDI test alone is not positive evidence of an expression–disease association.
+> Default reference: ERAP2 has SMR P=0.06074 and HEIDI P=0.2424; LIPA has SMR P=0.7503 and HEIDI P=0.2011. Neither passes the combined SMR<0.05 / HEIDI>0.01 rule. A non-significant HEIDI test alone is not positive evidence of an expression–disease association.
 
 ### 05.6 | Compare results across tool versions
 
@@ -196,7 +198,7 @@ within_tolerance <- all(vapply(fields, function(k) {
     b <- comparison[[paste0(k, "_reference")]]
     all(abs(a - b) <= 1e-10 + 1e-08 * abs(b))
 }, logical(1)))
-version_check <- data.frame(platform = .Platform$OS.type, valid_P_and_topSNP = TRUE, decision_matches_reference = identical(comparison$nominal_SMR_and_HEIDI_rule, c(FALSE,FALSE)), numeric_matches_Linux_1_4_3 = within_tolerance, 
+version_check <- data.frame(platform = .Platform$OS.type, valid_P_and_topSNP = TRUE, decision_matches_reference = identical(comparison$nominal_SMR_and_HEIDI_rule, c(FALSE,FALSE)), numeric_matches_course_reference = within_tolerance, 
     status = if (within_tolerance) "matched_reference" else "computed_with_reference_difference")
 write_tsv(version_check, file.path(out, "version_comparison.tsv"))
 if (isTRUE(getOption("teaching.reference", FALSE))) stopifnot(within_tolerance)

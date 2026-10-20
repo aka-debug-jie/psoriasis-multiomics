@@ -8,6 +8,47 @@ from scripts.collect_component_metadata import collect
 
 
 class ComponentMetadataTests(unittest.TestCase):
+    def test_records_runtime_dll_hashes_only_for_selected_conda_packages(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime = root / "runtime"
+            output = root / "metadata-output"
+            metadata = runtime / "conda-meta"
+            metadata.mkdir(parents=True)
+            selected = ("vc14_runtime", "vcomp14", "ucrt")
+            expected = {}
+            for name in (*selected, "demo"):
+                relative = f"Library/bin/{name}.dll"
+                binary = runtime / relative
+                binary.parent.mkdir(parents=True, exist_ok=True)
+                content = f"fixture binary for {name}".encode()
+                binary.write_bytes(content)
+                if name in selected:
+                    expected[name] = {
+                        "path": relative,
+                        "bytes": len(content),
+                        "sha256": hashlib.sha256(content).hexdigest(),
+                    }
+                (metadata / f"{name}.json").write_text(
+                    json.dumps(
+                        {
+                            "name": name,
+                            "version": "1.0",
+                            "build": "0",
+                            "files": [relative, "Library/bin/readme.txt", "missing.dll"],
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+
+            manifest = collect(runtime, output)
+            components = {item["name"]: item for item in manifest["components"] if item["ecosystem"] == "conda"}
+            self.assertEqual(set(components), {*selected, "demo"})
+            for name in selected:
+                self.assertEqual(components[name]["binary_files"], [expected[name]])
+            self.assertNotIn("binary_files", components["demo"])
+            self.assertNotIn(str(runtime), json.dumps(manifest))
+
     def test_collects_three_ecosystems_notices_and_jupyter_file_without_leaking_paths(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -6,7 +6,7 @@
 
 ## 选择入口
 
-- **在线课程：**[课程网站](https://aka-debug-jie.github.io/psoriasis-multiomics/)。网站发布后再使用此链接。
+- **在线课程：**[中文课程网站](https://aka-debug-jie.github.io/psoriasis-multiomics/zh/)。打开即可阅读讲解、代码和运行结果。
 - **学生课程包：**[Releases 页面](https://github.com/aka-debug-jie/psoriasis-multiomics/releases)。v4 课程包正在准备并进行原生系统验收，暂未提供下载。
 - **科研源码：**从 [research/execute.R](research/execute.R) 开始，分析材料位于 [research/](research/)。这是独立的科研重建，与课程教学示例分开。
 
@@ -56,11 +56,13 @@ Windows 双击 **Run course.bat**，Mac 双击 **Run course.command**。只想�
 
 ## 文件结构
 
-- [research/](research/)：独立科研代码、输入、记录与结果。
-- [course/notebooks/](course/notebooks/)：中文课程 Notebook 源文件和渲染页面。
+- [research/](research/)：独立科研代码与汇总结果；原始输入需另行获取。
+- [course/notebooks/](course/notebooks/)：中文课程 Notebook 源文件。
 - [translations/en/notebooks/](translations/en/notebooks/)：英文 Notebook 译文。
 - [course/COURSE.md](course/COURSE.md)：课程说明与数据来源记录。
 
 ## 许可
 
 项目原创代码采用 [MIT License](LICENSE)。原创课程说明、练习和图件采用 [CC BY 4.0](LICENSE-CONTENT.md)。第三方数据、代码、截图、文章和随附软件仍遵守各自许可；项目许可不会替代这些条款。请参阅课程[数据来源清单](course/data/sources.tsv)以及各课程包随附的相关声明。
+
+This product includes software developed by the Delft University of Technology.

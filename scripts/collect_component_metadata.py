@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from pathlib import PurePosixPath
 import re
 import shutil
 import sys
@@ -15,6 +16,7 @@ from typing import Any, Iterable
 from urllib.parse import urlsplit
 
 NOTICE_NAMES = ("license", "licence", "copying", "notice")
+BINARY_PACKAGES = {"vc14_runtime", "vcomp14", "ucrt"}
 R_FIELDS = (
     "Package",
     "Version",
@@ -198,19 +200,37 @@ def conda_components(runtime: Path, output: Path) -> list[dict[str, Any]]:
                         notices.extend(
                             copy_tree_files(metadata_source, output, directory / metadata_subdir)
                         )
-        components.append(
-            {
-                "ecosystem": "conda",
-                "name": name,
-                "version": version,
-                "build": build,
-                "license": safe_metadata_value(record.get("license")),
-                "artifact_url": local_url(record.get("url")),
-                "artifact_sha256": record.get("sha256"),
-                "notices": notices,
-                "source_status": "unreviewed",
-            }
-        )
+        component = {
+            "ecosystem": "conda",
+            "name": name,
+            "version": version,
+            "build": build,
+            "license": safe_metadata_value(record.get("license")),
+            "artifact_url": local_url(record.get("url")),
+            "artifact_sha256": record.get("sha256"),
+            "notices": notices,
+            "source_status": "unreviewed",
+        }
+        if name in BINARY_PACKAGES:
+            binary_files = []
+            for listed_path in record.get("files", []):
+                if "\\" in listed_path or ":" in listed_path:
+                    continue
+                relative = PurePosixPath(listed_path)
+                if relative.is_absolute() or ".." in relative.parts or relative.suffix.lower() != ".dll":
+                    continue
+                binary = runtime.joinpath(*relative.parts)
+                if has_symlink_component(binary) or not binary.is_file():
+                    continue
+                binary_files.append(
+                    {
+                        "path": relative.as_posix(),
+                        "bytes": binary.stat().st_size,
+                        "sha256": sha256_file(binary),
+                    }
+                )
+            component["binary_files"] = binary_files
+        components.append(component)
     return components
 
 

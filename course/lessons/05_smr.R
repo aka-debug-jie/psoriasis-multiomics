@@ -85,10 +85,10 @@ within_tolerance<-all(vapply(fields,function(k) {
  all(abs(a-b)<=1e-10+1e-8*abs(b))
 },logical(1)))
 version_check<-data.frame(platform=.Platform$OS.type,valid_P_and_decisions=TRUE,
- numeric_matches_Linux_1_4_3=within_tolerance,
- status=if(.Platform$OS.type=='windows')'windows_version_review_required' else if(within_tolerance)'matched' else 'mismatch')
+ numeric_matches_course_reference=within_tolerance,
+ status=if(within_tolerance)'matched_reference' else 'computed_with_reference_difference')
 write_tsv(version_check,file.path(out,'version_comparison.tsv'))
-if(.Platform$OS.type!='windows')stopifnot(within_tolerance)
+stopifnot(within_tolerance)
 plotdata<-data.frame(gene=c('ERAP2','LIPA'),
  SMR=c(raw$p_SMR[match('ENSG00000164308',raw$probeID)],raw$p_SMR[match('ENSG00000107798',raw$probeID)]),
  HEIDI=c(raw$p_HEIDI[match('ENSG00000164308',raw$probeID)],raw$p_HEIDI[match('ENSG00000107798',raw$probeID)]))
