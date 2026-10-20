@@ -22,11 +22,11 @@ The 17 × 22 design defines 374 prespecified tests. BH adjustment is first calcu
 plan <- freeze_instruments(exposures, ld, max_abs_r = .95)
 fit <- analyse_outcome(plan, y, ld)
 
-# 先对完整 374 项校正
+# First adjust within the complete 374-test family
 all_results$BH_original_family_374 <-
   p.adjust(all_results$p, method = "BH", n = 374)
 
-# 再取 7 候选，并单独保留探索性 154 项校正
+# Then select seven candidates and retain the exploratory 154-test adjustment separately
 candidate_results <- all_results[all_results$uniprot %in% formal_ids, ]
 candidate_results$BH_candidate_family_exploratory <-
   p.adjust(candidate_results$p, method = "BH", n = 154)

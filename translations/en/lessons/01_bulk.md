@@ -18,12 +18,12 @@ The analysis compares lesional psoriatic skin with normal skin. A gene is called
 ## Key code
 
 ```r
-# 检查计数并移除全零基因
+# Check counts and remove all-zero genes
 stopifnot(all(counts >= 0), all(counts == floor(counts)))
 keep <- rowSums(counts) > 0
 y <- edgeR::DGEList(counts[keep, , drop = FALSE], group = group)
 
-# TMM、voom、线性模型和经验贝叶斯检验
+# TMM, voom, linear modeling, and empirical Bayes testing
 y <- edgeR::calcNormFactors(y, method = "TMM")
 design <- model.matrix(~ group)
 v <- limma::voom(y, design)

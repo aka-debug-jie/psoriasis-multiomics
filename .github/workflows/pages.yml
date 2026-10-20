@@ -2,7 +2,9 @@ name: Publish course site
 on:
   workflow_dispatch:
 permissions:
-  contents: read
+  # GitHub requires push access to read draft release assets. Return to read
+  # after v4.0.0 is published; this workflow is only dispatched manually.
+  contents: write
   pages: write
   id-token: write
 concurrency:
