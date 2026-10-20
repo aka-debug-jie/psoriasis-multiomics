@@ -1,0 +1,41 @@
+{
+  "binary": "research/tools/smr-local/install/bin/smr",
+  "gwas": "research/data/processed/smr_gwas/mvp_full.ma",
+  "LD_prefix": "research/data/processed/LD/EUR",
+  "gene_info": "research/data/metadata/Homo_sapiens.gene_info.gz",
+  "parameters": {
+    "peqtl_smr": 5e-08,
+    "heidi_skip_threshold": 1,
+    "peqtl_heidi": 0.0015654,
+    "heidi_ld_upper": 0.9,
+    "heidi_ld_lower": 0.05,
+    "cis_window_kb": 2000,
+    "frequency_difference": 0.2,
+    "frequency_exclusion_fraction": 0.05,
+    "threads": 4
+  },
+  "parameter_basis": "Top eQTL threshold from paper; other listed values are explicit SMR 1.4.3 reconstruction defaults. HEIDI attempted for every eligible SMR result.",
+  "LD_coverage": "1000G Phase3 EUR maintained by IEU; MAF>1% biallelic SNP panel, not all rare variants",
+  "datasets": {
+    "eQTLGen_Blood": {
+      "prefix": "research/data/processed/eQTLGen/cis-eQTLs-full_eQTLGen_AF_incl_nr_formatted_20191212.new.txt_besd-dense",
+      "build": "GRCh37",
+      "version": "20191212_per_effect_N_beta_SE_conversion"
+    },
+    "GTEx_Skin_Not_Sun_Exposed_Suprapubic": {
+      "prefix": "research/data/processed/GTEx_v8/Skin_Not_Sun_Exposed_Suprapubic/Skin_Not_Sun_Exposed_Suprapubic",
+      "build": "GRCh37",
+      "version": "GTEx_v8_full_cis_BESD_not_lite"
+    },
+    "GTEx_Skin_Sun_Exposed_Lower_leg": {
+      "prefix": "research/data/processed/GTEx_v8/Skin_Sun_Exposed_Lower_leg/Skin_Sun_Exposed_Lower_leg",
+      "build": "GRCh37",
+      "version": "GTEx_v8_full_cis_BESD_not_lite"
+    },
+    "GTEx_Whole_Blood": {
+      "prefix": "research/data/processed/GTEx_v8/Whole_Blood/Whole_Blood",
+      "build": "GRCh37",
+      "version": "GTEx_v8_full_cis_BESD_not_lite"
+    }
+  }
+}

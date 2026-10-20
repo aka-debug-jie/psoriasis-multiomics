@@ -1,0 +1,22 @@
+{
+  "random_seed": 20261016,
+  "sc_de": {
+    "checkpoint": "research/results/sc_embedding/seurat_checkpoint.rds",
+    "embedding_manifest": "research/results/sc_embedding/run.json",
+    "features": "research/data/processed/sc_analysis/features.tsv",
+    "annotation": "research/config/sc_cluster_labels.tsv",
+    "annotation_evidence": "research/records/advance_20261017/annotation_extra_evidence.tsv",
+    "author_targets": "research/references/author_main_table1.tsv",
+    "test": "Wilcoxon_normal_approximation_tie_corrected_continuity_corrected_Presto_1.1.0",
+    "features_tested": "all_27678_postQC_expressed_geneIDs_no_prefilter",
+    "unknown_in_type_vs_rest": true,
+    "p_adjust": "BH_within_each_contrast_over_all_feature_rows",
+    "constant_gene": "retain_NA_p_and_FDR_include_in_BH_n",
+    "fc": "Seurat_5.3_log2((sum(expm1(lognormalized))+1)/n)_difference",
+    "fdr": 0.05,
+    "abs_log2fc": 0.25,
+    "candidate_origin": "author_reference_only_no_formal_discovery_list",
+    "pseudobulk_min_cells": 10,
+    "pseudobulk_note": "Counts aggregated per biological donor and broad cell type; downstream donor-level analysis is a separate extension"
+  }
+}

@@ -1,0 +1,280 @@
+---
+title: "04 | Sensitivity analysis: instrument strength, direction, and MR assumptions"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+What assumptions do significant MR results depend on, and which choices are they sensitive to? This lesson checks instrument strength, MHC location, LD selection, Steiger direction, and estimates from multiple instruments. Each addresses a different question: instrument strength reflects the precision of the exposure association, LD selection affects how repeated information is handled, Steiger compares variance explained to assess direction, and MR methods make different assumptions about instrument validity and pleiotropy.
+
+You will produce comparison tables for instrument strength, direction checks, and several MR methods.
+
+The default code takes about 37 seconds on the test machine, excluding reading and hands-on time. See [Chapter 0](00_start.ipynb) for the test-machine configuration.
+
+### Prepare the lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('04', root=root)
+data.frame(lesson = "04", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Lesson parameters
+
+The defaults are `strict_r2=0.1`, prevalence scenarios of 1%, 2%, 3%, and 5%, and 1,000 bootstrap repetitions. Prevalence is used in the Steiger liability-scale conversion; the bootstrap count affects resampling precision and runtime.
+
+```{r parameters}
+settings <- list(strict_r2 = 0.1, prevalence = c(0.01, 0.02, 0.03, 0.05), nboot = 1000L)
+settings
+```
+
+Full script with default parameters: [04_sensitivity.R](../lessons/04_sensitivity.R).
+
+The values in the text come from an example run with R 4.4.2; code cells show the results from your run. Beginners should start with the defaults. Save a separate copy of results when doing exercises so you can compare the effect of changing parameters.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [exposures.tsv](../data/genetics/exposures.tsv) | Exposure effects, SE, F statistics, and coordinates for the full family; 30 MHC proteins were excluded based on coding-gene location before the family was defined. |
+| [steiger_effects.tsv](../data/genetics/steiger_effects.tsv) | Effects, frequencies, and sources for nine selected instruments; use four population-prevalence scenarios. |
+| [multi_instrument_harmonized_instruments.tsv](../data/genetics/multi_instrument_harmonized_instruments.tsv) | Harmonized multi-instrument input already processed with P<5×10⁻⁶, r²<0.1, and a 10 Mb window; distinguishes cis from cis+trans. |
+| [method_seeds.tsv](../data/genetics/method_seeds.tsv) | Fixed random seeds for each source/protein/instrument-mode combination. |
+
+### Method notes
+
+This lesson examines the same set of genetic associations from different angles. A row in the exposure table is a source, protein, and variant combination; the multi-instrument table also uses `mode` to distinguish cis from cis+trans. Protein beta retains the source scale, disease beta is a log-OR, and F and R² are unitless.
+
+F is approximated by `(beta_X/SE_X)^2`. Excluding MHC coding genes and flagging instrument SNP locations are separate checks. The default strict LD branch targets r²≤0.1, so the function receives sqrt(0.1). Steiger compares the variance in protein levels explained by the variant with the variance explained on the disease liability scale. The case fraction is not a substitute for population prevalence K; the default scenarios compare 1%, 2%, 3%, and 5%. The multi-instrument section calculates IVW, weighted median, weighted mode, and MR-Egger: the median requires more than half of the valid weight, the mode relies on the largest consistent group, and Egger additionally depends on assumptions such as InSIDE. Using more methods does not automatically remove bias; interpret them alongside instrument count, direction, and uncertainty.
+
+### 04.1 | Recalculate instrument strength and inspect location
+
+Load a fixed version of public MR-method functions, recalculate F from exposure beta/SE, and flag instruments in the 25–34 Mb region on chromosome 6. Coding-gene location was used to define the 2,709-protein testing family. The instrument-location flag here does not change that family.
+
+```{r l04_s01}
+source("R/common.R")
+source("R/genetics.R")
+source("R/vendor/mr.R")
+source("R/vendor/mr_mode.R")
+source("R/vendor/add_rsq.R")
+out <- lesson_output("04_sensitivity")
+x <- read_tsv("data/genetics/exposures.tsv")
+ld <- load_ld()
+x$F_recalculated <- (x$beta/x$se_exposure)^2
+x$in_MHC_region <- x$chr == 6 & x$pos >= 2.5e+07 & x$pos <= 3.4e+07
+write_tsv(x[, c("cohort", "uniprot", "gene", "rsid", "build", "F_recalculated", "in_MHC_region")], 
+    file.path(out, "instrument_strength_MHC.tsv"))
+
+summary(x$F_recalculated)
+```
+
+The table contains 3,802 exposure-source records. F is an approximate measure of the strength of each exposure association; it cannot by itself establish that an instrument has no pleiotropic effects.
+
+<details><summary>Expand: what does a large F tell us?</summary>
+
+F is approximately the squared ratio of an effect to its SE and reflects the strength of the exposure association relative to its estimation error. It does not check whether a variant affects disease through other pathways. Read `F_recalculated` and `in_MHC_region` separately: one describes strength, the other instrument location.
+
+</details>
+
+### 04.2 | Compare two LD rules and dispersion
+
+<details><summary>Expand: how should results be compared after stricter filtering?</summary>
+
+Align the `main` and `strict` rows by protein, then compare instrument coverage, beta, and SE. Q describes how dispersed instrument effects are around the pooled estimate and should be interpreted with its degrees of freedom. In this workflow, `se_mre` can inflate the SE to account for dispersion. Fewer instruments may widen intervals; do not judge which result is more credible solely by whether P crosses 0.05.
+
+</details>
+
+Use the same exposure and MVP inputs, changing only the upper limit for |r| allowed during instrument selection. Each branch harmonizes alleles and calculates generalized IVW in the same way; results also retain Q, degrees of freedom, and the dispersion-adjusted standard error.
+
+This step takes about 15 seconds on the test machine. If you see `[*]`, computation is in progress; wait for it to finish before running the next cell.
+
+```{r l04_s02}
+branches <- list(main = 0.95, strict = sqrt(settings$strict_r2))
+comparisons <- list()
+for (b in names(branches)) {
+    plan <- freeze_instruments(x, ld, branches[[b]])
+    fit <- analyse_outcome(plan, read_tsv("data/genetics/mvp.tsv"), ld)$results
+    fit$branch <- b
+    comparisons[[b]] <- fit
+}
+write_tsv(do.call(rbind, comparisons), file.path(out, "LD_and_dispersion.tsv"))
+
+course_table(do.call(rbind,comparisons), columns=c("gene","branch","beta","se","se_mre","p","Q"))
+```
+
+> Reference results with the default settings: the primary and strict branches can estimate 2,096 and 2,091 proteins, respectively. Use the code cell output for the current run. A stricter LD rule may reduce instrument counts and protein coverage, so compare changes protein by protein; the total number of significant results gives only part of the picture.
+
+### 04.3 | Calculate Steiger results under explicit prevalence scenarios
+
+<details><summary>Expand: does forward mean the direction has been proven?</summary>
+
+Here, `forward` records only whether `R2_exposure > R2_outcome`; no direction-test P value is calculated. Each row represents one instrument, one K, and one exposure-R² algorithm. Changing K checks sensitivity to the disease-liability conversion. Measurement error, scale, and sample-size approximations can still affect the comparison.
+
+</details>
+
+Protein R² is estimated in two ways. The disease liability-scale correlation is converted from log-OR, allele frequency, and K. The loop calculates every combination of four K values and two estimation methods. Cohort sample sizes are approximations and may differ from the number of participants contributing to each protein estimate.
+
+```{r l04_s03}
+s <- read_tsv("data/genetics/steiger_effects.tsv")
+N <- c(Iceland = 35892, `UKB-PPP` = 46218, Fenland_Olink_substitute_485 = 485)
+s$N <- unname(N[s$cohort])
+direction <- list()
+j <- 0L
+for (K in settings$prevalence) for (method in c("standardized_effect", "bse_N")) {
+    rY <- get_r_from_lor(s$beta_outcome, s$eaf_outcome, 15635, 429252, K, model = "logit", 
+        correction = FALSE)
+    r2X <- if (method == "standardized_effect") 
+        2 * s$eaf_exposure * (1 - s$eaf_exposure) * s$beta_exposure^2
+    else (s$beta_exposure/s$se_exposure)^2/((s$beta_exposure/s$se_exposure)^2 + s$N - 2)
+    j <- j + 1L
+    direction[[j]] <- data.frame(instrument_id = s$instrument_id, gene = s$gene, K = K, method = method, 
+        R2_exposure = r2X, R2_outcome = rY^2, forward = ifelse(is.finite(r2X) & r2X >= 0 & 
+            r2X < 1, r2X > rY^2, NA))
+}
+write_tsv(do.call(rbind, direction), file.path(out, "steiger_grid.tsv"))
+
+course_table(do.call(rbind,direction), columns=c("gene","K","method","R2_exposure","R2_outcome","forward"))
+```
+
+> Reference result with default settings: the nine instruments produce 72 combinations, all marked forward. Under this lesson's inputs and approximations, each R²_exposure is greater than R²_outcome; use the code cell output for the current run.
+
+### 04.4 | Prepare the multi-instrument comparison and random seeds
+
+The multi-instrument comparison starts from a table that has already been clumped and allele-harmonized. It analyzes cis and cis+trans instruments separately by source. Each group has a fixed seed; the default is 1,000 bootstrap repetitions so methods involving random resampling, such as median and mode estimates, can reproduce the same result.
+
+```{r l04_s04}
+d <- read_tsv("data/genetics/multi_instrument_harmonized_instruments.tsv")
+seeds <- read_tsv("data/genetics/method_seeds.tsv")
+parameters <- default_parameters()
+parameters$nboot <- settings$nboot
+rows <- list()
+j <- 0L
+
+course_table(d, columns=c("gene","cohort","mode","rsid","beta","beta_outcome_aligned"))
+```
+
+In `d`, cohort, uniprot, mode, and rsid identify the instruments used in each comparison. Groups with too few instruments are retained, and the reason is recorded in the results.
+
+### 04.5 | Calculate four methods and retain groups that cannot be estimated
+
+With the default `nboot=1000`, calculate estimates separately for each source, protein, and instrument mode. A single instrument uses the Wald ratio. This workflow requires at least three instruments to run the median, mode, and Egger methods. Each method returns its own SE and P value, preserving its test definition.
+
+This step takes about 18 seconds on the test machine. If you see `[*]`, computation is in progress; wait for it to finish before running the next cell.
+
+```{r l04_s05}
+rows <- list(); j <- 0L
+for (i in seq_len(nrow(seeds))) {
+    a <- seeds[i, ]
+    v <- d[d$cohort == a$cohort & d$uniprot == a$uniprot & d$mode == a$mode, ]
+    if (!nrow(v)) 
+        next
+    for (method in c("IVW", "weighted_median", "weighted_mode", "MR_Egger")) {
+        j <- j + 1L
+        r <- data.frame(cohort = a$cohort, uniprot = a$uniprot, gene = v$gene[1], mode = a$mode, 
+            method = method, nsnp = nrow(v), seed = a$seed)
+        if (nrow(v) < 3 && method != "IVW") {
+            r$status <- "requires_at_least_three_IVs"
+            rows[[j]] <- r
+            next
+        }
+        set.seed(a$seed)
+        if (nrow(v) == 1) {
+            fit <- list(b = v$beta_outcome_aligned/v$beta, se = v$se/abs(v$beta))
+            fit$pval <- 2 * pnorm(-abs(fit$b/fit$se))
+            r$method <- "single_IV_Wald"
+        }
+        else {
+            fun <- switch(method, IVW = mr_ivw, weighted_median = mr_weighted_median, weighted_mode = mr_weighted_mode, 
+                MR_Egger = mr_egger_regression)
+            fit <- fun(v$beta, v$beta_outcome_aligned, v$se_for_analysis, v$se, parameters = parameters)
+        }
+        for (k in intersect(c("b", "se", "pval", "Q", "Q_df", "Q_pval", "b_i", "se_i", "pval_i"), 
+            names(fit))) r[[k]] <- fit[[k]]
+        r$status <- if (is.finite(fit$b)) 
+            "computed"
+        else "unavailable"
+        rows[[j]] <- r
+    }
+}
+result <- as.data.frame(data.table::rbindlist(rows, fill = TRUE))
+```
+
+### Inspect estimates from different methods
+
+First read `cohort`, `mode`, and `nsnp` to identify the instrument group being compared, then read `status`. Interpret `b`, `se`, and `pval` only when an estimate was computed. Each row is an estimate from one method, not a new SNP record.
+
+<details><summary>Expand: why can the four methods give different results?</summary>
+
+IVW combines information across instruments; weighted median requires valid instruments to contribute more than half of the weight; weighted mode relies on the largest consistent group; Egger allows an intercept and depends on conditions such as InSIDE, the independence of instrument strength and direct effects. These assumptions differ, so comparing direction and precision can reveal sensitivity. With few instruments, methods can also be unstable; do not use a majority vote of significant methods to claim causality.
+
+</details>
+
+```{r sensitivity_summary}
+write_tsv(result, file.path(out, "multi_instrument_methods.tsv"))
+
+course_table(result, n=12, columns=c("gene","cohort","mode","method","nsnp","status","b","se","pval"))
+```
+
+> Reference result with default settings: the methods table has 88 rows: 55 estimates were computed and 33 were not run because there were too few instruments. Read non-estimable groups together with their status; do not interpret them as estimates near zero. Use the code cell output for the current run.
+
+### 04.6 | Inspect changes in estimates and intervals
+
+The plot shows successfully computed groups with at least three instruments, faceted by source and instrument mode. For ease of comparison, all horizontal intervals are drawn as beta±1.96×SE; P values in the table still come from each estimator. Tests for methods such as Egger and mode may use different distributions, so consult the method-results table as well.
+
+```{r l04_s06}
+p <- ggplot2::ggplot(result[result$status == "computed" & result$nsnp >= 3, ], ggplot2::aes(b, 
+    gene, colour = method)) + ggplot2::geom_vline(xintercept = 0, linetype = 2, colour = "grey65") + 
+    ggplot2::geom_pointrange(ggplot2::aes(xmin = b - 1.96 * se, xmax = b + 1.96 * se), position = ggplot2::position_dodge(0.6)) + 
+    ggplot2::facet_grid(cohort ~ mode, scales = "free_y") + ggplot2::labs(x = "MR log odds ratio (+/- 1.96 SE)", 
+    y = NULL, colour = "Method", title = "What changes across MR assumptions?") + theme_course()
+save_plot(p, out, "method_comparison", 11, 9)
+print(table(result$status))
+```
+
+> Reference result with default settings: for TNFAIP3/Iceland/cis_trans, the Egger estimate is about −0.467 with SE about 0.0924. Its normal-approximation interval does not cross zero, but the method's P value is about 0.124. Use the code cell output for the current run. This example shows why the displayed interval and each method's own test result must be read separately.
+
+*Colors distinguish estimation methods and the x axis shows the MR log-OR. Horizontal lines are normal-approximation display intervals of beta±1.96×SE; they are not 95% confidence intervals for every method's test. Read Egger or mode P values from the methods table; do not infer P<0.05 from whether a plotted interval crosses zero.*
+
+See the original example output in [results/04_sensitivity/](../results/04_sensitivity/).
+
+### Exercises and reference answers
+
+First predict which columns will change with population prevalence K. Then set `prevalence` to `c(0.01, 0.05)`, rerun the parameter cell and the direction comparison from 04.3. Compare R² and `forward` for the same instrument and algorithm, and explain which step changed. Use the questions below to check your understanding of the LD rule and non-estimable cases.
+
+1. **Why is the strict-branch parameter sqrt(0.1), rather than 0.1?**
+
+   <details><summary>Reference answer</summary>
+   
+   The function compares |r|, while the design threshold is r²≤0.1, so convert by taking the square root. Passing 0.1 directly would instead use r²≤0.01.
+   
+   </details>
+
+2. **What exactly changes when K moves from 1% to 5%?**
+
+   <details><summary>Reference answer</summary>
+   
+   It changes the conversion to the binary-disease liability-scale correlation, which in turn changes disease R² and the Steiger direction comparison. It does not change the original GWAS effects or the number of disease cases in the actual cohorts.
+   
+   </details>
+
+3. **How should you investigate NA for an Egger group?**
+
+   <details><summary>Reference answer</summary>
+   
+   First inspect `nsnp` and `status` to check whether the group meets this workflow's three-instrument requirement. Then check effects/SEs and the estimator output. Do not replace NA with beta=0 or P=1.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](04_sensitivity.Rmd)
+
+This run's results are saved under `resources/work/results/chapter-folder/`. After changing a parameter, resume from the affected step.

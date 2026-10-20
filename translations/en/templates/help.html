@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Run and Shut Down</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #20312d; background: #f4f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.7; }
+    main { width: min(740px, calc(100% - 32px)); margin: 48px auto; padding: 30px; border: 1px solid #dce7e2; border-radius: 16px; background: white; }
+    h1 { margin-top: 0; font-size: 1.8rem; }
+    h2 { margin-top: 28px; font-size: 1.15rem; }
+    p { color: #435750; }
+    a { color: #17684f; }
+    code { padding: 2px 5px; border-radius: 5px; background: #edf2ef; }
+    @media (max-width: 560px) { main { margin: 20px auto; padding: 22px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Run and Shut Down</h1>
+  <p>Return to the extracted course package folder and open the launcher for your computer: use <code>.bat</code> on Windows or <code>.command</code> on Mac. The course uses its bundled environment, so you do not need to install additional software to get started.</p>
+
+  <h2>Opening on a Mac for the first time</h2>
+  <p>The first time you open it, macOS may ask you to confirm that you want to run it. Follow the system prompt to open it; you do not need to install software or disable or change system security settings.</p>
+
+  <h2>Finish your session</h2>
+  <p>On the Jupyter page, choose <strong>File → Shut Down</strong> to stop the service. You can also switch back to the run window opened when you started the course and press <strong>Ctrl+C</strong>.</p>
+
+  <h2>Practice files</h2>
+  <p>Results generated while running the course are saved in <code>课程资源/work/results/</code>. Press Ctrl+S on Windows or Cmd+S on Mac to save a Notebook; its code and saved outputs will remain when you reopen it. Saved outputs do not mean that the R kernel still retains its variables.</p>
+  <p>To practice again from the original, after initialization run <code>course_fresh_notebook('01')</code> to create a new copy of Chapter 1, then open it from the file list on the left. This does not overwrite existing work.</p>
+  <p>After completing an analysis, run <code>course_snapshot('baseline', settings)</code> to save this lesson’s results and parameters. Snapshots are stored in <code>课程资源/work/snapshots/</code>; each new save creates a new directory.</p>
+  <p>For interface instructions and troubleshooting examples, see <a href="course/notebooks/00_start.nb.html">Chapter 0</a>.</p>
+  <p>If you encounter an unfamiliar symbol while reading code, see the <a href="course/notebooks/assets/reading_guide.html">R Code Quick Guide</a>. Open the “Expand” sections in each chapter as needed, and continue to run code cells in page order.</p>
+  <p><a href="../查看课程.html">Back to Course Portal</a></p>
+<h2>Before your first run</h2>
+<p>Extract the complete package to a local writable folder. Windows automatically uses a short per-user runtime cache when the course location is too deep. Your notebooks and results stay in the course folder. The bundled R 4.4.2 is used even if another R or Python is installed.</p>
+<h2>If startup stops</h2>
+<ul><li><code>ARCH</code>: choose the package for the correct processor.</li><li><code>PATH</code> or <code>CACHE</code>: move the complete folder to a short local path such as <code>D:\course</code>.</li><li><code>WRITE</code>: move it to a folder you can write to.</li><li><code>SPACE</code>: free space on the indicated drive and retry.</li><li><code>PACKAGE</code>: download and extract a fresh copy into a new folder; keep your previous work.</li><li><code>BUSY</code>: allow the other startup window to finish, then reopen the launcher.</li></ul>
+<p>After an interrupted first preparation, open the launcher again. For an error report, include the course version, operating system and error code. Remove personal paths and tokens; do not send the entire work folder.</p>
+
+</main>
+</body>
+</html>

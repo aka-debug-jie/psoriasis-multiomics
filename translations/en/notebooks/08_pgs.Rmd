@@ -1,0 +1,248 @@
+---
+title: "08 | Build an IL7R Protein Score from Genetic Variants"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics Course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+In this lesson, we combine genetic variant effect weights with individual genotypes to calculate an IL7R protein score. Genotype data come from 503 individuals of European ancestry in 1000 Genomes Phase 3. The weights come from IL7R protein cis loci in the same UKB-PPP exposure study. After filtering for P<5×10⁻⁸, clear effect-allele direction, and presence in the reference genotypes, two IL7R loci remain. A separate set of genome-wide variants is used to calculate genetic principal components and inspect population structure.
+
+This lesson produces a genetic score, principal components, and a score validation table.
+
+The default code for this chapter takes about 3 seconds on the test machine, excluding reading and hands-on work. See [Chapter 0](00_start.ipynb) for the test machine configuration.
+
+### Prepare for this lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('08', root=root)
+data.frame(lesson = "08", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Parameters for this lesson
+
+The default upper limit for LD r² between score variants is 0.01. Genome-wide PCs are calculated separately from 5,000 variants, with the first 5 principal components retained by default.
+
+```{r parameters}
+settings <- list(max_score_r2 = 0.01, n_pcs = 5L)
+settings
+```
+
+Full script with the default parameters: [08_pgs.R](../lessons/08_pgs.R).
+
+The values in the text come from an example run under R 4.4.2; cells show the results from the current session. We recommend completing one run with the default parameters, then saving results from adjusted parameters separately for comparison.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [IL7R_source_cis_loci.tsv](../data/pgs/IL7R_source_cis_loci.tsv) | IL7R protein cis association loci, including effect allele, other allele, effect size, and significance; filtered using rules including P<5×10⁻⁸. |
+| [EUR_teaching.bim](../data/pgs/EUR_teaching.bim) | Variant index for the 1000 Genomes Phase 3 EUR genotype reference, with chromosome, variant ID, position, and two alleles; used to confirm score variants are present. |
+| [EUR_teaching.bed](../data/pgs/EUR_teaching.bed) | Main PLINK binary genotype data; together with EUR_teaching.bim and EUR_teaching.fam, covers 503 individuals of European ancestry and their score-variant dosages. |
+| [EUR_teaching.bim](../data/pgs/EUR_teaching.bim) | PLINK genotype variant index, read with the bed and fam files. |
+| [EUR_teaching.fam](../data/pgs/EUR_teaching.fam) | PLINK individual index, read with the bed and bim files; this lesson includes 503 individuals of European ancestry. |
+| [pc_variants.txt](../data/pgs/pc_variants.txt) | List of 5,000 genome-wide LD-pruned SNPs for checking population structure, used separately from the two score variants. |
+| [sample_populations.tsv](../data/pgs/sample_populations.tsv) | Mapping of individuals to reference population labels, used to color the PC plot. |
+
+### Method overview
+
+Each row in the weight table represents one variant. Each row in the dosage matrix represents one person, and each column one variant. Dosage records the number of copies of a specified allele; the weight records the protein effect for each additional copy of that allele. Multiplying the two and summing across variants gives an individual score. This lesson practices constructing a score and checking the calculation.
+
+Score variants must meet the preset significance threshold, have a clearly defined effect-allele direction, be available in the reference data, and have LD r²<0.01 between the two variants; this LD threshold is the default setting. For each person, multiply the effect-allele dosage (0, 1, or 2) at each variant by its corresponding IL7R protein effect, then sum the products: score=sum(dose*beta protein). Only samples with complete dosages at both variants enter the score calculation. The results are standardized to show the distribution, and PLINK's sum is used to check the numerical calculation.
+
+Population structure is analyzed separately using 5,000 genome-wide LD-pruned SNPs to calculate the first five genetic principal components by default. These SNPs are not used in the protein score. The protein score represents a weighted genetic prediction signal for the protein at the selected loci; it is not a clinical protein measurement or a disease-risk probability.
+
+### 08.1 | Read the data and select score variants
+
+Check the phenotype and study source for the weights, confirm allele direction, and verify that each variant is present in the reference genotypes. The output table retains the selection results for each variant so you can inspect why it was included.
+
+<details><summary>Expand: Does dosage 0 mean that the gene is absent?</summary>
+
+Values 0, 1, and 2 indicate the number of copies of the specified effect allele at the locus; 0 is still a valid genotype. When reading `w`, check `SNP`, `A1`, and `weight` together, because changing the counted allele changes the meaning of the dosage. A missing dosage means there is no observation; it must not be replaced with 0.
+
+</details>
+
+```{r l08_s01}
+source("R/common.R")
+source("R/genetics.R")
+out <- lesson_output("08_pgs")
+plink <- tool_path("plink")
+x <- read_tsv("data/pgs/IL7R_source_cis_loci.tsv")
+bim <- read.table("data/pgs/EUR_teaching.bim", col.names = c("chr", "rsid", "cm", "pos", "A1", 
+    "A2"))
+x$valid_alleles <- mapply(function(a, b) is.finite(allele_sign(a, b, a, b)), x$EA, x$OA)
+x$reference_available <- x$variant %in% bim$rsid
+x$eligible <- x$neg_log10_p > -log10(5e-08) & x$valid_alleles & x$reference_available
+write_tsv(x, file.path(out, "source_locus_selection.tsv"))
+w <- x[x$eligible, c("variant", "EA", "beta")]
+names(w) <- c("SNP", "A1", "weight")
+stopifnot(nrow(w) == 2L)
+write_tsv(w, file.path(out, "weights.tsv"))
+writeLines(w$SNP, file.path(out, "score_variants.txt"))
+
+course_table(w)
+```
+
+This example uses IL7R protein effect sizes as weights, and the default selection is required to contain exactly two variants. Disease effect sizes are not used in the score.
+
+### 08.2 | Check correlation between the variants
+
+Extract dosages for the two selected variants from the reference genotypes and calculate the squared correlation using complete observations. Also flag individuals with data at both variants for the subsequent score calculation.
+
+```{r l08_s02}
+run_tool(plink, c("--bfile", "data/pgs/EUR_teaching", "--extract", file.path(out, "score_variants.txt"), 
+    "--recode", "A", "--recode-allele", file.path(out, "weights.tsv"), "--keep-allele-order", 
+    "--out", file.path(out, "genotypes"), "--threads", "2", "--memory", "1500"), file.path(out, 
+    "genotypes_console.log"))
+g <- read.table(file.path(out, "genotypes.raw"), header = TRUE, check.names = FALSE)
+dosage <- as.matrix(g[, paste(w$SNP, w$A1, sep = "_"), drop = FALSE])
+complete <- complete.cases(dosage)
+r2 <- cor(dosage[, 1], dosage[, 2], use = "complete.obs")^2
+stopifnot(r2 < settings$max_score_r2)
+write_tsv(data.frame(variants = ncol(dosage), people = nrow(dosage), complete = sum(complete), 
+    r2 = r2), file.path(out, "input_summary.tsv"))
+
+data.frame(people=nrow(dosage),complete=sum(complete),r2=r2)
+```
+
+The default setting requires r²<0.01. The input summary records the number of individuals, the number with complete data, and the observed r².
+
+<details><summary>Expand: Does changing the LD limit automatically remove a variant?</summary>
+
+This section first calculates `r2` for the two already selected variants, then `stopifnot()` checks whether it is below `settings$max_score_r2`. It does not select variants again. Setting the limit too strictly may stop the check; review the observed r² and selection criteria rather than removing the check to let the analysis continue.
+
+</details>
+
+### 08.3 | Calculate and validate the weighted score for each person
+
+For individuals with complete dosages at both variants, multiply each dosage by the corresponding protein effect and sum the products. Then calculate the standardized score. PLINK independently calculates the sum for the same individuals to check the R calculation.
+
+<details><summary>Expand: How does matrix multiplication produce each person's score?</summary>
+
+`dosage %*% w$weight` calculates, for each row, “the first dosage times the first weight, plus the second dosage times the second weight.” The column order must match the order of the weights. After running, read `PGS`, `PGS_z`, and `PLINK_sum` by `IID`. `PGS_z` is centered on the mean and scaled by the standard deviation for this set of individuals; it represents relative position, not protein concentration. Agreement between the two software sums checks the calculation implementation only.
+
+</details>
+
+```{r l08_s03}
+pgs <- as.numeric(dosage[complete, , drop = FALSE] %*% w$weight)
+score <- data.frame(FID = g$FID[complete], IID = g$IID[complete], PGS = pgs, PGS_z = as.numeric(scale(pgs)))
+write.table(score[, c("FID", "IID")], file.path(out, "complete_people.txt"), row.names = FALSE, 
+    col.names = FALSE, quote = FALSE)
+run_tool(plink, c("--bfile", "data/pgs/EUR_teaching", "--keep", file.path(out, "complete_people.txt"), 
+    "--score", file.path(out, "weights.tsv"), "1", "2", "3", "header", "sum", "--out", file.path(out, 
+        "plink_score"), "--threads", "2", "--memory", "1500"), file.path(out, "score_console.log"))
+check <- read.table(file.path(out, "plink_score.profile"), header = TRUE)
+score$PLINK_sum <- check$SCORESUM[match(score$IID, check$IID)]
+stopifnot(max(abs(score$PGS - score$PLINK_sum)) < 1e-05)
+write_tsv(score, file.path(out, "individual_pgs.tsv"))
+
+course_table(score)
+```
+
+All 503 people in this batch have complete dosages at both score variants; the PLINK check compares the calculated value for the same score.
+
+*The histogram x-axis is the standardized IL7R protein score and the y-axis is the number of individuals. It shows the score distribution at two cis loci for 503 EUR individuals; it does not represent disease risk.*
+
+### 08.4 | Calculate population-structure PCs from a separate set of variants
+
+By default, the population-structure check uses the separately listed genome-wide LD-pruned SNPs to calculate the first five principal components, then matches individuals to reference population labels.
+
+```{r l08_s04}
+run_tool(plink, c("--bfile", "data/pgs/EUR_teaching", "--extract", "data/pgs/pc_variants.txt", 
+    "--pca", as.character(settings$n_pcs), "header", "tabs", "--out", file.path(out, "ancestry"), "--threads", "2", 
+    "--memory", "1500"), file.path(out, "pca_console.log"))
+pc <- read.table(file.path(out, "ancestry.eigenvec"), header = TRUE)
+meta <- read_tsv("data/pgs/sample_populations.tsv")
+pc$population <- meta$pop[match(pc$IID, meta$sample)]
+write_tsv(pc, file.path(out, "genetic_pcs.tsv"))
+
+course_table(pc)
+```
+
+These 5,000 variants are used to inspect genetic structure; they are not included in the protein score at the two loci.
+
+<details><summary>Expand: Can the PC plot prove that the score predicts disease?</summary>
+
+Each row in `pc` is still one person. PC1 and PC2 are coordinates summarizing genome-wide variation and have no disease-probability units. `match()` uses individual IDs to find their corresponding population labels; see [matching by identifier](assets/reading_guide.html#matching). This lesson has neither disease outcomes nor measured protein values for these individuals, so the 1000 Genomes analysis cannot validate disease or protein prediction performance.
+
+</details>
+
+### 08.5 | Plot the score and principal components
+
+The two plots show the individual score distribution and population structure, respectively. The PC plot uses PC1 and PC2 and colors points by reference population.
+
+```{r l08_s05}
+p <- ggplot2::ggplot(score, ggplot2::aes(PGS_z)) + ggplot2::geom_histogram(bins = 25, fill = "#197D8D", 
+    colour = "white") + ggplot2::labs(x = "Standardized IL7R protein score", y = "Individuals", 
+    title = "A target-specific protein score", subtitle = "1000 Genomes Phase 3 EUR; two cis variants; actual genotype dosages") + 
+    theme_course()
+save_plot(p, out, "protein_score", 7, 4.5)
+```
+
+Next, inspect the genetic PCs calculated from the separate variant set.
+
+```{r l08_pcs_plot}
+p <- ggplot2::ggplot(pc, ggplot2::aes(PC1, PC2, colour = population)) + ggplot2::geom_point(size = 1.4, 
+    alpha = 0.8) + ggplot2::labs(title = "Genetic structure from 5000 genome-wide variants", 
+    colour = "Population") + theme_course()
+save_plot(p, out, "ancestry_pcs", 7, 5)
+```
+
+The histogram shows the distribution of IL7R scores in the sample, and the PC plot shows population structure; the latter cannot be used to evaluate score performance.
+
+*The axes show PC1 and PC2 from genome-wide data, and color marks the reference population. The plot is for inspecting genetic structure and does not represent IL7R score performance.*
+
+### 08.6 | Summarize sample size and validation error
+
+Summarize the number of people with scores, the r² between the two variants, and the maximum absolute difference between the R and PLINK sums.
+
+```{r l08_s06}
+print(data.frame(people = nrow(score), r2 = r2, max_R_PLINK_difference = max(abs(score$PGS - 
+    score$PLINK_sum))))
+```
+
+The maximum absolute difference indicates whether the two calculations agree within the precision of the output.
+
+See the original example output in [results/08_pgs/](../results/08_pgs/).
+
+### Exercises and answer key
+
+First predict whether individual `PGS` will change if `n_pcs` is changed from 5 to 3. Run the modified parameter cell, then rerun from 08.4 onward. Check the number of principal-component columns and compare them with the previously saved score table. Explain the different roles of the score variants and PC variants. Keep `n_pcs` at 2 or higher to continue plotting the existing PC1–PC2 graph.
+
+1. **If the variant-selection threshold is changed to P<1×10⁻⁶, what needs to be checked again?**
+
+   <details><summary>Answer key</summary>
+   
+   This threshold is written in the variant-selection code. After changing it, recheck the selected variants, effect-allele direction, availability in the reference data, LD between variants, and the number of individuals with complete scores. The script requires exactly two score variants; if the number selected changes, it will stop, and the score setup should be reassessed.
+   
+   </details>
+
+2. **Which quantities are multiplied and combined to calculate an individual's score in this lesson?**
+
+   <details><summary>Answer key</summary>
+   
+   At each variant, multiply the effect-allele dosage (0/1/2) by that variant's IL7R protein effect size, then sum across variants.
+   
+   </details>
+
+3. **Why can't these scores be joined by row with the lung cancer survival lesson data?**
+
+   <details><summary>Answer key</summary>
+   
+   The two real datasets come from different populations, and their individuals and outcomes also differ. The same row number does not identify the same participant, so they cannot be joined by row.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source file](08_pgs.Rmd)
+
+Results from the current session are saved in `课程资源/work/results/本课目录/`. After changing upstream parameters, rerun the relevant steps and subsequent cells.

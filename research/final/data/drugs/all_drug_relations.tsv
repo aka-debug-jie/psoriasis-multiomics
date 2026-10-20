@@ -1,0 +1,61 @@
+molecule_chembl_id	target_chembl_id	target_name	target_type	organism	uniprot	component_relation	action_type	mechanism	relation	candidate
+CHEMBL1131	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P28702	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL1131	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P13631	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL1131	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P48443	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL1131	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P10826	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL1131	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P10276	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL1131	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P19793	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL1159650	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL1200384	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL1200666	CHEMBL1977	Vitamin D3 receptor	SINGLE PROTEIN	Homo sapiens	P11473	SINGLE PROTEIN	AGONIST	Vitamin D receptor agonist	single_protein_target	False
+CHEMBL1200908	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL1201572	CHEMBL1825	Tumor necrosis factor	SINGLE PROTEIN	Homo sapiens	P01375	SINGLE PROTEIN	INHIBITOR	TNF-alpha inhibitor	single_protein_target	False
+CHEMBL1201575	CHEMBL2364172	Integrin alpha-L/beta-2 (LFA-1)	PROTEIN COMPLEX	Homo sapiens	P20701	PROTEIN SUBUNIT	INHIBITOR	Integrin alpha-L/beta-2 (LFA-1) inhibitor	complex_or_family_component	False
+CHEMBL1201575	CHEMBL2364172	Integrin alpha-L/beta-2 (LFA-1)	PROTEIN COMPLEX	Homo sapiens	P05107	PROTEIN SUBUNIT	INHIBITOR	Integrin alpha-L/beta-2 (LFA-1) inhibitor	complex_or_family_component	False
+CHEMBL1201580	CHEMBL1825	Tumor necrosis factor	SINGLE PROTEIN	Homo sapiens	P01375	SINGLE PROTEIN	INHIBITOR	TNF-alpha inhibitor	single_protein_target	False
+CHEMBL1201581	CHEMBL1825	Tumor necrosis factor	SINGLE PROTEIN	Homo sapiens	P01375	SINGLE PROTEIN	INHIBITOR	TNF-alpha inhibitor	single_protein_target	False
+CHEMBL1201835	CHEMBL2364153	Interleukin-12	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-12 inhibitor	complex_or_family_component	True
+CHEMBL1201835	CHEMBL2364153	Interleukin-12	PROTEIN COMPLEX	Homo sapiens	P29459	PROTEIN SUBUNIT	INHIBITOR	Interleukin-12 inhibitor	complex_or_family_component	False
+CHEMBL1201835	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True
+CHEMBL1201835	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	Q9NPF7	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	False
+CHEMBL131	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL160	CHEMBL1949	Peptidyl-prolyl cis-trans isomerase A	SINGLE PROTEIN	Homo sapiens	P62937	SINGLE PROTEIN	MODULATOR	Cyclophilin A modulator	single_protein_target	False
+CHEMBL1657	CHEMBL2363069	Retinoic acid receptor	PROTEIN FAMILY	Homo sapiens	P13631	GROUP MEMBER	AGONIST	Retinoic acid receptor agonist	complex_or_family_component	False
+CHEMBL1657	CHEMBL2363069	Retinoic acid receptor	PROTEIN FAMILY	Homo sapiens	P10826	GROUP MEMBER	AGONIST	Retinoic acid receptor agonist	complex_or_family_component	False
+CHEMBL1657	CHEMBL2363069	Retinoic acid receptor	PROTEIN FAMILY	Homo sapiens	P10276	GROUP MEMBER	AGONIST	Retinoic acid receptor agonist	complex_or_family_component	False
+CHEMBL1742996	CHEMBL3580485	Interleukin-17 receptor A	SINGLE PROTEIN	Homo sapiens	Q96F46	SINGLE PROTEIN	ANTAGONIST	Interleukin-17 receptor A antagonist	single_protein_target	False
+CHEMBL1743034	CHEMBL3390822	Interleukin-17A	SINGLE PROTEIN	Homo sapiens	Q16552	SINGLE PROTEIN	INHIBITOR	Interleukin 17A inhibitor	single_protein_target	False
+CHEMBL1743068	CHEMBL3390822	Interleukin-17A	SINGLE PROTEIN	Homo sapiens	Q16552	SINGLE PROTEIN	INHIBITOR	Interleukin 17A inhibitor	single_protein_target	False
+CHEMBL1766	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL193240	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	P27815	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL193240	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	Q08499	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL193240	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	Q07343	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL193240	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	Q08493	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL2107333	CHEMBL2069156	Kelch-like ECH-associated protein 1	SINGLE PROTEIN	Homo sapiens	Q14145	SINGLE PROTEIN	INHIBITOR	Kelch-like ECH-associated protein 1 inhibitor	single_protein_target	False
+CHEMBL2108681	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True
+CHEMBL2108681	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	Q9NPF7	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	False
+CHEMBL2364648	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True
+CHEMBL2364648	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	Q9NPF7	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	False
+CHEMBL259571	CHEMBL3201	Aryl hydrocarbon receptor	SINGLE PROTEIN	Homo sapiens	P35869	SINGLE PROTEIN	AGONIST	Aryl hydrocarbon receptor agonist	single_protein_target	False
+CHEMBL34259	CHEMBL202	Dihydrofolate reductase	SINGLE PROTEIN	Homo sapiens	P00374	SINGLE PROTEIN	INHIBITOR	Dihydrofolate reductase inhibitor	single_protein_target	False
+CHEMBL384467	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL389621	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL3990029	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True
+CHEMBL3990029	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	Q9NPF7	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	False
+CHEMBL4297700	CHEMBL3390822	Interleukin-17A	SINGLE PROTEIN	Homo sapiens	Q16552	SINGLE PROTEIN	INHIBITOR	Interleukin 17A inhibitor	single_protein_target	False
+CHEMBL4297700	CHEMBL4630880	Interleukin-17F	SINGLE PROTEIN	Homo sapiens	Q96PD4	SINGLE PROTEIN	INHIBITOR	Interleukin-17F inhibitor	single_protein_target	False
+CHEMBL4297911	CHEMBL4665591	IL36 receptor	PROTEIN COMPLEX	Homo sapiens	Q9HB29	PROTEIN SUBUNIT	ANTAGONIST	IL36 receptor antagonist	complex_or_family_component	False
+CHEMBL4297911	CHEMBL4665591	IL36 receptor	PROTEIN COMPLEX	Homo sapiens	Q9NPH3	PROTEIN SUBUNIT	ANTAGONIST	IL36 receptor antagonist	complex_or_family_component	False
+CHEMBL464	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P28702	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL464	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P13631	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL464	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P48443	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL464	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P10826	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL464	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P10276	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL464	CHEMBL2363071	Retinoid receptor	PROTEIN FAMILY	Homo sapiens	P19793	GROUP MEMBER	AGONIST	Retinoid receptor agonist	complex_or_family_component	False
+CHEMBL514800	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	P27815	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL514800	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	Q08499	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL514800	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	Q07343	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL514800	CHEMBL2093863	Phosphodiesterase 4	PROTEIN FAMILY	Homo sapiens	Q08493	GROUP MEMBER	INHIBITOR	Phosphodiesterase 4 inhibitor	complex_or_family_component	False
+CHEMBL635	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False
+CHEMBL846	CHEMBL1977	Vitamin D3 receptor	SINGLE PROTEIN	Homo sapiens	P11473	SINGLE PROTEIN	AGONIST	Vitamin D receptor agonist	single_protein_target	False
+CHEMBL989	CHEMBL2034	Glucocorticoid receptor	SINGLE PROTEIN	Homo sapiens	P04150	SINGLE PROTEIN	AGONIST	Glucocorticoid receptor agonist	single_protein_target	False

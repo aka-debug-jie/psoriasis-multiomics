@@ -1,0 +1,35 @@
+cluster	cell_type	test_contrast	marker_evidence	unresolved	annotation_version
+0	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+1	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+2	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+3	Immune cells	true	CD3D/CD3E/PTPRC	T-cell-like; subtype not assigned	reconstructed_broad_types_20261017
+4	Vascular endothelial cells	true	CLDN5/VWF	Vascular subtype not assigned	reconstructed_broad_types_20261017
+5	Fibroblasts	true	DCN/LUM	Subtype not assigned	reconstructed_broad_types_20261017
+6	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+7	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+8	Fibroblasts	true	DCN/LUM	Subtype not assigned	reconstructed_broad_types_20261017
+9	Mural cells	true	ACTA2/TAGLN	Pericyte versus smooth muscle not resolved	reconstructed_broad_types_20261017
+10	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+11	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+12	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+13	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+14	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+15	Immune cells	true	HLA-DPB1/LST1/LYZ/FCER1A	Myeloid/APC-like; subtype not assigned	reconstructed_broad_types_20261017
+16	Melanocytes	true	MLANA/DCT/PMEL		reconstructed_broad_types_20261017
+17	Immune cells	true	CD3D/CD3E/PTPRC	T-cell-like; subtype not assigned	reconstructed_broad_types_20261017
+18	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+19	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+20	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+21	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+22	Fibroblasts	true	DCN/LUM	Subtype not assigned	reconstructed_broad_types_20261017
+23	Fibroblasts	true	DCN/LUM	Subtype not assigned	reconstructed_broad_types_20261017
+24	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+25	Mural cells	true	ACTA2/TAGLN	Pericyte versus smooth muscle not resolved	reconstructed_broad_types_20261017
+26	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+27	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+28	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+29	Vascular endothelial cells	true	CLDN5/VWF	Vascular subtype not assigned	reconstructed_broad_types_20261017
+30	Keratinocytes	true	KRT14/KRT5 and/or KRT10/KRT1/SBSN/KLK7	Paper Keratinocytes 1/2 correspondence unresolved	reconstructed_broad_types_20261017
+31	Immune cells	true	TPSAB1/KIT/FCER1A	Mast-cell-like; detection/coexpression review pending	reconstructed_broad_types_20261017
+32	Unassigned	false	PLP1/SOX10	Glial-like; identity not confirmed	reconstructed_broad_types_20261017
+33	Unassigned	false	DCD/SCGB2A2/KRT8/KRT18/KRT19	Glandular epithelial-like; identity not confirmed	reconstructed_broad_types_20261017

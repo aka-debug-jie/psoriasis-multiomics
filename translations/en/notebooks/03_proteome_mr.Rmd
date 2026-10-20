@@ -1,0 +1,219 @@
+---
+title: "03 | Proteome-wide MR: discovery, deduplication, and external validation"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+Extending a single-instrument analysis to 2,709 proteins requires handling duplicate records and correlations between instruments. The same variant can occur in measurements from multiple protein sources but correspond to the same observation in the disease GWAS; counting it repeatedly would inflate the information. This lesson deduplicates records and defines the instrument set using exposure evidence, applies generalized IVW with signed LD, then checks external support in the Stuart outcome dataset.
+
+You will produce an all-protein testing table, a candidate list, and a cross-outcome comparison plot.
+
+The default code takes about 22 seconds on the test machine, excluding reading and hands-on time. See [Chapter 0](00_start.ipynb) for the test-machine configuration.
+
+### Prepare the lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('03', root=root)
+data.frame(lesson = "03", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Lesson parameters
+
+The default settings control LD filtering and result classification; the testing family remains the 2,709 proteins defined before analysis. After changing parameters, use the code-cell output for the current candidate results.
+
+```{r parameters}
+settings <- list(max_abs_r = 0.95, discovery_alpha = 0.05, external_p = 0.05)
+settings
+```
+
+Full script with default parameters: [03_proteome_mr.R](../lessons/03_proteome_mr.R).
+
+The values in the text come from an example run with R 4.4.2; code cells show the results from your run. Beginners should start with the defaults. Save a separate copy of results when doing exercises so you can compare the effect of changing parameters.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [exposures.tsv](../data/genetics/exposures.tsv) | 3,802 eligible exposure-source records for a prespecified family of 2,709 proteins. |
+| [within_protein_ld.tsv](../data/genetics/within_protein_ld.tsv) | Signed correlations for variant pairs within proteins, used together with reference-allele directions. |
+| [mvp.tsv](../data/genetics/mvp.tsv) | Discovery outcome: MVP. SE was inferred from intervals; the source P value and interval derivation conventions have not been reconciled. |
+| [stuart.tsv](../data/genetics/stuart.tsv) | External outcome: Stuart psoriasis, using the reported SE. |
+
+### Method notes
+
+A row in the exposure table is an association between one protein and one variant in a particular source; it is not a participant. `unit` describes the protein-effect scale; disease effects are log-ORs. Identify what each row represents before deciding which information is duplicated and which can be estimated jointly.
+
+Let x be the variant-to-protein effect, y the disease effect aligned to the same allele direction, and R the signed LD matrix. The covariance matrix for disease effects is `S = outer(SE_Y, SE_Y) * R`. Generalized IVW is `beta = (xᵀ S⁻¹ y)/(xᵀ S⁻¹ x)`, with first-order `SE = sqrt(1/(xᵀ S⁻¹ x))`. Correlated variants therefore cannot be combined as independent observations. For each protein, the same physical variant is first assigned one source using exposure F, then LD filtering is applied. The default discovery threshold is 0.05/2709; external support uses nominal P<0.05, and a protein is listed as a candidate if Stuart meets that threshold. Direction agreement is recorded separately. Proteins without a computable outcome remain in the testing family.
+
+### 03.1 | Load the complete testing family
+
+Read all exposure records and LD information within each protein. The testing-family denominator of 2,709 was set before inspecting disease associations. It remains fixed even if an outcome is missing or only significant proteins are displayed. The results separately track the sources of exposure and disease effects.
+
+```{r l03_s01}
+source("R/common.R")
+source("R/genetics.R")
+out <- lesson_output("03_proteome_mr")
+x <- read_tsv("data/genetics/exposures.tsv")
+ld <- load_ld()
+stopifnot(length(unique(x$uniprot)) == 2709L)
+
+data.frame(source_rows = nrow(x), proteins = length(unique(x$uniprot)))
+```
+
+The input contains 2,709 distinct UniProt identifiers, forming the complete testing family for this lesson. When reading the results, distinguish between an estimate that could be calculated and an estimate that met a significance threshold.
+
+### 03.2 | Define the instrument set using exposure evidence
+
+<details><summary>Expand: what do deduplication and LD filtering each address?</summary>
+
+The same physical variant may appear in two sources while still corresponding to the same disease effect. Counting it twice would inflate the information. Different variants can also be correlated through shared inheritance; that is the LD issue here. Deduplication handles repeated records, while LD filtering handles correlation between different variants. Correlation among retained variants is then accounted for by the covariance matrix.
+
+</details>
+
+`freeze_instruments()` sorts by exposure F, keeps one record per physical variant for each protein, and then filters using the absolute value of signed LD. The default primary branch retains pairs with |r|≤0.95. If LD is missing or numerically unstable, the specified single-instrument rule is used. See the function source in the [statistical functions appendix](../COURSE.md#appendix-genetics).
+
+```{r l03_s02}
+plan <- freeze_instruments(x, ld, max_abs_r = settings$max_abs_r)
+write_tsv(plan, file.path(out, "selected_instruments.tsv"))
+
+course_table(as.data.frame(table(plan$selection_reason, plan$selected)))
+```
+
+`selected_instruments.tsv` lists selected and unselected unique variants and gives the reason for each decision. The instrument set is based entirely on exposure evidence; disease P values have not been used yet.
+
+### 03.3 | Analyze two outcomes separately
+
+<details><summary>Expand: what do x, y, R, and S in the formula represent?</summary>
+
+In the formula, x is the protein-effect vector, y is the disease-effect vector with aligned direction, and R is the signed correlation matrix for the same variants. S uses disease SEs to convert correlations into a covariance matrix for the effect estimates. In the code, `x` and `y` are whole input tables; `givw()` receives filtered `v$beta`, `v$y`, `v$sy`, and an LD matrix. The formula refers to columns in those tables.
+
+</details>
+
+Use the defined instrument set with MVP and Stuart in turn. `analyse_outcome()` records whether instruments could be allele-harmonized and entered the calculation; `givw()` estimates effects using the covariance matrix. Analyze the two outcomes separately; external results check support and are not combined into the discovery stage.
+
+This step takes about 17 seconds on the test machine. If you see `[*]`, computation is in progress; wait for it to finish before running the next cell.
+
+```{r l03_s03}
+results <- list()
+harmonized <- list()
+for (label in c("mvp", "stuart")) {
+    y <- read_tsv(paste0("data/genetics/", label, ".tsv"))
+    fit <- analyse_outcome(plan, y, ld)
+    fit$results$outcome <- label
+    fit$harmonized$outcome <- label
+    results[[label]] <- fit$results
+    harmonized[[label]] <- fit$harmonized
+}
+all <- do.call(rbind, results)
+write_tsv(all, file.path(out, "all_outcomes.tsv"))
+write_tsv(do.call(rbind, harmonized), file.path(out, "harmonization.tsv"))
+
+course_table(all, columns = c("gene", "outcome", "observed_variants", "beta", "se", "p"))
+```
+
+`all_outcomes.tsv` contains estimates and coverage for each protein and outcome. Use `harmonization.tsv` to inspect directions and exclusions. Missing estimates are retained as NA.
+
+When reading a row, first check `outcome` and `observed_variants`, then inspect `beta`, `se`, and `p`. A positive beta means that a one-unit increase in protein level is associated with a positive disease log-OR; check the exposure source for the unit.
+
+<details><summary>Expand: why does the loop produce two result tables?</summary>
+
+`label` takes each of the two outcome names in turn. `results[[label]]` stores the corresponding results, and `rbind` combines them by row while `outcome` preserves their source. The instrument plan is fixed, but the number of instruments that can be matched may differ by outcome. See the [loop guide](assets/reading_guide.html#loops) for help following this process.
+
+</details>
+
+### 03.4 | Apply the discovery threshold and external-support rule
+
+<details><summary>Expand: why check the discovery threshold before external results?</summary>
+
+First control multiplicity in the prespecified family of 2,709 proteins, then check nominal external support for candidates, and finally check direction. `candidate` does not require the direction to agree; `direction_agrees` answers that question separately. `match()` finds corresponding rows by UniProt; see the [matching guide](assets/reading_guide.html#matching). Do not use table row numbers as protein identities.
+
+</details>
+
+Match the Stuart external results to MVP by UniProt to avoid errors from different row orders. Apply the default Bonferroni threshold of alpha=0.05 for discovery and nominal P<0.05 for external support. Evaluate effect direction separately so results that are significant but reversed can also be identified.
+
+```{r l03_s04}
+main <- results$mvp
+for (label in c("stuart")) {
+    v <- results[[label]][match(main$uniprot, results[[label]]$uniprot), ]
+    main[[paste0(label, "_beta")]] <- v$beta
+    main[[paste0(label, "_p")]] <- v$p
+}
+main$discovery <- main$p < settings$discovery_alpha/2709
+main$external_nominal <- main$stuart_p < settings$external_p
+main$candidate <- main$discovery & main$external_nominal
+main$direction_agrees <- ((main$stuart_p < settings$external_p) & main$beta * main$stuart_beta > 0)
+write_tsv(main, file.path(out, "all_proteins.tsv"))
+selected <- main[which(main$candidate), ]
+write_tsv(selected, file.path(out, "candidates.tsv"))
+
+course_table(selected, n = 12, columns = c("gene", "beta", "p", "stuart_p", "direction_agrees"))
+```
+
+> Reference result with default settings: seven candidates meet these rules—IL12B, SGSH, TNFAIP3, DDX58, IL7R, PRSS53, and UBLCP1. This list was produced by filtering the results, not by preselecting these names before analysis; use the code-cell output for the current candidate list.
+
+### 03.5 | Compare effects across the two outcomes
+
+The plot places estimates for the same protein from the two outcomes together, using color to distinguish data sources. The x axis is log-OR, with no association at zero. Compare both point locations and interval widths to assess differences in estimates and precision.
+
+```{r l03_s05}
+plotdata <- all[all$uniprot %in% selected$uniprot, ]
+plotdata$gene <- factor(plotdata$gene, levels = rev(selected$gene[order(selected$beta)]))
+p <- ggplot2::ggplot(plotdata, ggplot2::aes(x = beta, y = gene, colour = outcome)) + ggplot2::geom_vline(xintercept = 0, 
+    colour = "#A8B2B8", linetype = 2) + ggplot2::geom_pointrange(ggplot2::aes(xmin = CI_log_low, 
+    xmax = CI_log_high), position = ggplot2::position_dodge(0.55)) + ggplot2::scale_colour_manual(values = c(mvp = "#184E77", 
+    stuart = "#D97948")) + ggplot2::labs(x = "Log odds ratio per unit protein", 
+    y = NULL, colour = "Outcome", title = "Discovery and external outcomes", subtitle = "One observation per variant; signed-LD generalized IVW") + 
+    theme_course()
+save_plot(p, out, "discovery_and_validation", 8, 5.5)
+print(selected[, c("gene", "beta", "se", "p", "stuart_p", "direction_agrees")])
+```
+
+In the default example, these seven candidates have consistent directions in the external results; use the code-cell output for the current direction checks. Comparing estimates and intervals across datasets can reveal shifts in effects or precision.
+
+*Colors represent MVP and Stuart. Points are generalized IVW log-ORs, horizontal lines are 95% intervals, and the dashed line marks no effect.*
+
+See the original example output in [results/03_proteome_mr/](../results/03_proteome_mr/).
+
+### Exercises and reference answers
+
+First predict how tightening the LD limit will affect the number of instruments. Then change `max_abs_r` from 0.95 to 0.8, run the parameter cell, and rerun from 03.2 onward. Compare instrument coverage, estimates, and candidate flags for each protein, and explain which changes are expected. Keep the default results and change only one parameter. Use the questions below to check your understanding of the selection rules.
+
+1. **Why can't the same SNP recorded in two protein-measurement sources count as two independent disease observations?**
+
+   <details><summary>Reference answer</summary>
+   
+   Both records may share the same disease GWAS effect. Counting it twice would duplicate the same information. This workflow first fixes one source per variant using exposure F, then handles LD between different variants.
+   
+   </details>
+
+2. **What would happen if the discovery denominator were changed to 7?**
+
+   <details><summary>Reference answer</summary>
+   
+   The threshold would become much more permissive, but seven is the number of candidates after discovery, not the number of proteins tested in advance. This changes the multiple-testing question and cannot be interpreted as the same discovery analysis.
+   
+   </details>
+
+3. **If external P<0.05 but beta is opposite to MVP, what should you check?**
+
+   <details><summary>Reference answer</summary>
+   
+   Check the variants, EA/OA, log-OR units, and data sources, then consider phenotype definitions and sample differences. Report external nominal support and direction agreement separately, and preserve results that run in the opposite direction.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](03_proteome_mr.Rmd)
+
+This run's results are saved under `resources/work/results/chapter-folder/`. After changing a parameter, resume from the affected step.

@@ -1,0 +1,39 @@
+{
+  "paper_doi": "10.1093/bioinformatics/btag347",
+  "mode": "research",
+  "random_seed": 20261016,
+  "deterministic_relative_tolerance": 1e-08,
+  "deterministic_absolute_tolerance": 1e-10,
+  "discovery": {
+    "reported_p_threshold": 1.89e-05,
+    "reported_protein_counts": [
+      2598,
+      2647
+    ],
+    "resolved_testing_denominator": null,
+    "resolved_selection_order": null,
+    "outcome_accession": "GCST90476190",
+    "sample_definition_difference_accepted": true,
+    "acceptance_note": "User 2026-10-16 allows reported versus available data differences; retain explicitly cited accession and actual phenotype/counts; no assumption about cause."
+  },
+  "replication_p_threshold": 0.05,
+  "smr": {
+    "instrument_p": 5e-08,
+    "association_p": 0.05,
+    "heidi_p_min_exclusive": 0.01
+  },
+  "sc_qc": {
+    "min_genes": 500,
+    "max_genes": 6000,
+    "min_counts": 1000,
+    "max_counts": 30000,
+    "max_percent_mito": 10
+  },
+  "coloc": {
+    "region_definition": null,
+    "prior_source": null,
+    "moderate_h4_gt": 0.5,
+    "strong_h4_gt": 0.8
+  },
+  "ukb_authorization": "not_available_or_unconfirmed"
+}

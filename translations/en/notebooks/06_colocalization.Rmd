@@ -1,0 +1,201 @@
+---
+title: "06 | Colocalization: Complete Regions, Five Hypotheses, and Prior Sensitivity"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics Course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+Beyond association testing, we also want to know whether the signals for two traits in a genomic region are more consistent with a shared causal variant. This chapter performs colocalization analyses of the IL7R protein and ERAP2 blood mRNA with psoriasis, separately, including all shared variants available in each region. By varying the window and the shared prior, we examine how the posterior probabilities of the five hypotheses change.
+
+This lesson produces a table of posterior probabilities for each scenario and regional association plots.
+
+The default code for this chapter takes about 6 seconds on the test machine, excluding reading and hands-on work. See [Chapter 0](00_start.ipynb) for the test machine configuration.
+
+### Prepare for this lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('06', root=root)
+data.frame(lesson = "06", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Parameters for this lesson
+
+The default shared priors are 10⁻⁶, 10⁻⁵, and 10⁻⁴, and the H4 display threshold is 0.8. After changing a prior or display threshold, rerun the entire scenario loop.
+
+```{r parameters}
+settings <- list(p12_values = c(1e-6, 1e-5, 1e-4), h4_cutoff = 0.8)
+settings
+```
+
+Full script with the default parameters: [06_colocalization.R](../lessons/06_colocalization.R).
+
+The values in the text come from an example run under R 4.4.2; code cells show the results from your current run. For your first pass, use the default parameters. When doing the exercises, save the results separately so you can compare the effects of parameter changes.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [IL7R_500kb.tsv.gz](../data/coloc/IL7R_500kb.tsv.gz) | Shared regional effects for Fenland Olink IL7R protein and MVP; 3,935 and 4,042 SNPs in the ±500 kb and ±1000 kb windows, respectively. |
+| [ERAP2_500kb.tsv.gz](../data/coloc/ERAP2_500kb.tsv.gz) | Shared regional effects for GTEx / eQTL Catalogue blood ERAP2 expression and MVP; 3,313 and 5,736 SNPs in the two windows, respectively. |
+| [regions.tsv](../data/coloc/regions.tsv) | Index, requested boundaries, and boundaries available from the source studies; a ±1 Mb request may extend beyond the available cis coverage. |
+
+### Method essentials
+
+Each row in the regional table represents one shared SNP. The two sets of beta/SE values describe the molecular trait and the disease, respectively. IL7R is a protein, whereas ERAP2 is blood expression; they are not the same type of measurement. Beta retains each source's effect scale, and SE has the same unit as beta. The posterior probabilities have no units.
+
+Under a model with one region and at most one causal variant per trait, `coloc.abf` compares five hypotheses: H0, neither trait is associated; H1, only the molecular trait is associated; H2, only the disease is associated; H3, both are associated but have different causal variants; and H4, both share a causal variant.
+
+This lesson supplies beta and the variance SE². The molecular trait uses `sdY=1` on its established scale, and the disease is specified as binary. `p1=p2=10⁻⁴` remain fixed, while the default shared prior `p12` takes the values 10⁻⁶, 10⁻⁵, and 10⁻⁴. The posterior probabilities of the five hypotheses should sum to 1. The analysis uses all available shared variants in the region that can be harmonized; restricting the input to significant variants would change the information used by the model.
+
+### 06.1 | Prepare containers for results
+
+<details><summary>Expand: How do I find H0 through H4 in the results table?</summary>
+
+`PP.H0.abf` corresponds to neither trait being associated; H1 means only the molecular trait is associated, H2 only the disease, H3 both are associated but with different causal variants, and H4 a shared causal variant. Here the molecular trait is the first dataset supplied, and disease is the second. Read all five columns together: a lower H4 may reflect support for H3 or insufficient evidence of association for one of the traits.
+
+</details>
+
+After loading functions for reading tables, plotting, and allele harmonization, we create two result containers: `rows` stores posterior probabilities for each scenario, and `points` stores data for regional plots. IL7R and ERAP2 are each compared with the same disease outcome; no colocalization analysis is performed between IL7R and ERAP2.
+
+```{r l06_s01}
+source("R/common.R")
+source("R/genetics.R")
+out <- lesson_output("06_colocalization")
+rows <- list()
+points <- list()
+k <- 0L
+
+data.frame(trait=c("IL7R protein","ERAP2 blood mRNA"), windows_kb="500, 1000")
+```
+
+With the default settings, 2 molecular traits, 2 windows, and 3 p12 values make up 12 scenarios. Before running the analysis, check the units in each input file and the actual regional coverage boundaries.
+
+### 06.2 | Harmonize each region and run full colocalization
+
+<details><summary>Expand: Why is squared SE supplied, and what is s?</summary>
+
+`sx` and `sy` are standard errors, while `varbeta` requires the variance of the effect estimate, so the code supplies squared values. `s=15635/444887` describes the case fraction in the disease GWAS sample; it is different from population prevalence K. The input lists use named fields to identify what each value means. You can compare them field by field with the [function argument guide](assets/reading_guide.html#functions).
+
+</details>
+
+Run this entire loop code cell. It reads the shared variants, harmonizes allele directions, builds data lists for the molecular trait and disease, and calculates H0–H4. `varbeta` must receive squared SE. The disease parameter `s` is the case fraction in that GWAS, which differs from the population prevalence used by Steiger in the previous chapter.
+
+```{r l06_s02}
+rows <- list(); points <- list(); k <- 0L
+for (gene in c("IL7R", "ERAP2")) for (window in c(500, 1000)) {
+    d <- read_tsv(paste0("data/coloc/", gene, "_", window, "kb.tsv.gz"))
+    stopifnot(!anyDuplicated(d$SNP), nrow(d) > 1000L)
+    d$by <- d$by * mapply(allele_sign, d$A1, d$A2, d$EA_y, d$OA_y)
+    stopifnot(all(is.finite(d$by)))
+    for (p12 in settings$p12_values) {
+        fit <- coloc::coloc.abf(list(snp = d$SNP, position = d$position, type = "quant", beta = d$bx, 
+            varbeta = d$sx^2, sdY = 1), list(snp = d$SNP, position = d$position, type = "cc", 
+            beta = d$by, varbeta = d$sy^2, s = 15635/444887), p1 = 1e-04, p2 = 1e-04, p12 = p12)
+        pp <- fit$summary[paste0("PP.H", 0:4, ".abf")]
+        stopifnot(abs(sum(pp) - 1) < 1e-10, all(pp >= 0 & pp <= 1))
+        k <- k + 1
+        rows[[k]] <- data.frame(gene = gene, window_kb = window, n_variants = nrow(d), p12 = p12, 
+            as.list(pp), strong_H4 = unname(pp["PP.H4.abf"]) > settings$h4_cutoff, check.names = FALSE)
+        write_tsv(fit$results, file.path(out, sprintf("%s_%skb_p12_%g_posteriors.tsv", gene, window, p12)))
+        if (p12 == 1e-05) 
+            write_tsv(fit$results, file.path(out, paste0(gene, "_", window, "kb_posteriors.tsv")))
+    }
+    if (window == 500) 
+        points[[gene]] <- rbind(data.frame(gene, position = d$position, signal = "Molecular trait", 
+            neglogp = -log10(pmax(2 * pnorm(-abs(d$bx/d$sx)), 1e-300))), data.frame(gene, position = d$position, 
+            signal = "Psoriasis", neglogp = -log10(pmax(2 * pnorm(-abs(d$by/d$sy)), 1e-300))))
+}
+
+course_table(do.call(rbind, rows), n=12)
+```
+
+Each scenario saves the posterior probabilities, variant count, and per-SNP posterior files labeled with p12; for the default p12=10⁻⁵, the original reference filename is also retained. The P values used in the regional plots are calculated from the current effects and SEs; they are not read directly from the source P field.
+
+<details><summary>Expand: Does a complete region mean keeping only significant SNPs?</summary>
+
+Non-significant variants also provide information about the distribution of signals across a region. Keeping only significant variants would change the data used to compare the five hypotheses. In this lesson, the complete region means all available, shared, and harmonizable variants within the requested range. Extending the window does not fill in regions that were not covered by the source study, so also check the available boundaries in `regions.tsv`.
+
+</details>
+
+### 06.3 | Organize results for each scenario
+
+<details><summary>Expand: How do priors, posteriors, and display thresholds differ?</summary>
+
+`p12` is the prior probability, set before analysis, that a single variant affects both traits; `PP.H4.abf` is the support for H4 after considering the regional data. `h4_cutoff` only labels the posterior result TRUE/FALSE; it is not used to calculate the posterior. For comparison, first hold gene and window fixed while examining p12, then hold the prior fixed while comparing windows. This helps avoid confusing the sources of change.
+
+</details>
+
+Combine the scenarios into one table with the gene, window, number of shared variants, and prior. By default, `strong_H4` is marked when PP.H4>0.8. When interpreting results, also compare H3 and the posterior probabilities of the other scenarios.
+
+```{r l06_s03}
+res <- do.call(rbind, rows)
+write_tsv(res, file.path(out, "coloc_summary.tsv"))
+
+course_table(res, n=12, columns=c("gene","window_kb","n_variants","p12","PP.H3.abf","PP.H4.abf","strong_H4"))
+```
+
+> Reference results with the default parameters: under the main prior, H4 for the two IL7R windows is about 0.8467/0.8465; the ERAP2 blood regions have the largest posterior for H1 (about 0.6126/0.5615), with H4 about 0.0224/0.0205. Even association of each trait on its own is not enough to determine whether they share a variant. Use the code-cell output for the current posterior probabilities.
+
+### 06.4 | Show regional signals for the two traits side by side
+
+The x-axis uses GRCh37 coordinates converted to Mb. The top and bottom rows show the molecular trait and disease, respectively; the left and right columns show ERAP2 and IL7R, respectively. Panels in the same row share a y-axis scale; the two rows use separate y-axis ranges to make the signals easier to see; check the axis scales when comparing peak heights.
+
+```{r l06_s04}
+p <- ggplot2::ggplot(do.call(rbind, points), ggplot2::aes(position/1e+06, neglogp, colour = signal)) + 
+    ggplot2::geom_point(size = 0.6, alpha = 0.6) + ggplot2::facet_grid(signal ~ gene, scales = "free") + 
+    ggplot2::scale_colour_manual(values = c(`Molecular trait` = "#148F8A", Psoriasis = "#394D72")) + 
+    ggplot2::labs(x = "Position (GRCh37, Mb)", y = expression(-log[10](P)), title = "Regional association patterns", 
+        subtitle = "All shared, harmonizable variants within index ±500 kb") + theme_course() + 
+    ggplot2::theme(legend.position = "none")
+save_plot(p, out, "regional_associations", 9, 6)
+print(res)
+```
+
+With the default-parameter reference results, the IL7R posterior relatively supports H4, while H1 has the largest posterior in the ERAP2 blood regions, with stronger molecular-trait evidence than disease evidence. Use the code-cell output for the current run. When interpreting this support, retain the analysis conditions: the region, prior, and model with one causal variant per trait.
+
+*Each point represents summary statistics for one shared SNP; the y-axis is −log10(P). Compare the positions and shapes of the signals for the two traits, then interpret them alongside the full posterior table.*
+
+See the original example output in [results/06_colocalization/](../results/06_colocalization/).
+
+### Exercises and answer key
+
+First predict which columns will be affected by changing `h4_cutoff` from 0.8 to 0.9. Then run the parameter cell and rerun the scenario loop from 06.2. Check the posterior probabilities and `strong_H4` labels, and explain why changing only the display threshold does not change the posterior probabilities of the five hypotheses. Save the default results separately, then complete the prior and input-unit exercises below.
+
+1. **H3 and H4 both require association of the two traits. What is the difference between them?**
+
+   <details><summary>Answer key</summary>
+   
+   H3 corresponds to different causal variants, while H4 corresponds to the same causal variant. Significance of each trait on its own cannot distinguish these possibilities.
+   
+   </details>
+
+2. **Why might H4 decrease when p12 is changed from 10⁻⁵ to 10⁻⁶?**
+
+   <details><summary>Answer key</summary>
+   
+   Lowering p12 also lowers the prior weight assigned to the shared causal model. Keep the conditions of the other scenarios fixed, examine how the posterior changes, and report the results for all priors.
+   
+   </details>
+
+3. **What happens if SE is mistakenly supplied to `varbeta`?**
+
+   <details><summary>Answer key</summary>
+   
+   The model requires the effect variance, or SE². Supplying SE directly changes the uncertainty and the approximate Bayes factor. When troubleshooting, first check beta, SE, variance, and trait type, then check the region and alleles.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source file](06_colocalization.Rmd)
+
+This run's results are saved in `课程资源/work/results/本课目录/`. After changing parameters, resume from the affected step.

@@ -1,0 +1,175 @@
+gsm	title	donor_id	subject_status	tissue_type	supplementary_url	selected	selection_reason	included_in_counts
+GSM1315608	CASP1234	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315609	M3059	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315610	M3171	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315612	M3418	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315613	M3978	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315615	M4208	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	FALSE
+GSM1315617	M4257	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315618	M4271	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315621	M4277	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315623	M4284	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315625	M4288	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315627	M4294	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315629	M4298	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315630	M4310	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	FALSE
+GSM1315631	M4334	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315632	M4344	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315633	M4356	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315634	M4368	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315635	M4379	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315636	M4389	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315637	M4390	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315638	M4397	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315639	M4459	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315640	M4505	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315641	M4532	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315642	M4545	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315643	M4616	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315644	M4649	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315645	M4689	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315646	M4701	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315647	M4708	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315648	M4787	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315649	M4874	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315650	M4934	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315651	M4977	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315652	M4981	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315653	M4999	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315654	M5030	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315655	M5063	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315656	M5079	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315657	M5130	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315658	M5142	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315659	M5144	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315660	M5146	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315661	M5177	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315662	M5219	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315663	M5223	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315664	M5243	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315665	M5247	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315666	M5258	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315667	M5286	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315668	M5305	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315669	M5324	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315670	M5385	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315671	M5414	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315672	M5441	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315673	M5478	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315674	M5592	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315675	M5611	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315676	M5742	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315677	M5766	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315678	M582	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315679	M5849	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315680	M5883	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315681	M5904	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315682	M5917	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315683	M5936	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315684	M9003	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315685	M6153	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315686	M6171	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315687	M6245	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315688	M6346	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315689	M6390	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315690	M6690	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315691	M6708	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315692	M6782	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315693	M6794	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315694	M6844	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315695	M6861	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315696	M6953	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315697	M7003	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315698	M7168	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315699	M7204	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315700	M7252	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315701	M7264	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315702	M7305	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315703	M7450	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315704	M7473	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315705	M7588	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315706	M7600	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315707	M7605	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315708	M7642	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315709	M7647	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315710	M7651	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315711	M7663	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315712	M7664	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315713	M7669	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315714	M7670	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315715	M7682	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315716	M7684	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315717	M7685	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315718	M7701	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315719	M7702	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315720	M7704	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315721	M7710	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315722	M7711	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315723	M7714	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315724	M7715	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315725	M7730	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315726	M7731	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315727	M7741	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315728	M7742	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315729	M7743	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315730	M7744	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315731	M7747	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315732	M7748	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315733	M7749	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315734	M7767	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315735	M7768	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315736	M7772	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315737	M777	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315738	M7785	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315739	M7786	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315740	M7807	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315741	M7825	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315742	M7832	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315743	M7834	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315744	M7838	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315745	M7874	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315746	M7912	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315747	M7972	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315748	M8065	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315749	M8221	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315750	M8280	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315751	M8282	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315752	M8298	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315753	M8376	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315754	M8424	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315755	M8470	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315756	M8481	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315757	M8483	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315758	M8485	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315759	M8487	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315760	M8490	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315761	M8492	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315762	M8530	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315763	M8554	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315764	M8561	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315765	M856	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315766	M8610	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315767	M8639	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315768	M8646	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315769	M8654	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315770	M8659	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315771	M8698	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315772	M8702	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315773	M8704	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315774	M8719	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315775	M8755	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315776	M8771	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315777	M8815	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315778	M8825	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315779	M8846	NA	NA	normal skin	NA	true	included in bulk metadata audit	FALSE
+GSM1315780	M8868	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315781	M8882	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315782	M8883	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315783	M8900	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315784	M8979	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315785	M9000	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315786	M9004	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315787	M9027	NA	NA	normal skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315788	M9049	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315789	M9081	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE
+GSM1315790	M9132	NA	NA	lesional psoriatic skin	NA	true	included in bulk metadata audit	TRUE

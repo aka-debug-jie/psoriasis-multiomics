@@ -1,0 +1,408 @@
+---
+title: "07 | Cell Types and Candidate Genes in Single-Cell Data"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics Course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+What are the major cell types in skin? How are candidate genes expressed across these cells, and how do lesional and normal groups differ? This chapter uses single-cell data to address these questions. The teaching matrix contains 22 samples and 10,708 cells sampled before QC, covering 33,538 genes. The lesson includes both cell-level tests and a pseudobulk analysis that treats donors as replicates. Keep their statistical units distinct when reading the results.
+
+> Reference results with the default parameters: 7,938 cells remain after QC, yielding 25 clusters. Use the code-cell output for the current run.
+
+This lesson produces a cell QC table, UMAP, marker plot, and donor-level comparison results.
+
+The default code for this chapter takes about 70 seconds on the test machine, excluding reading and hands-on work. See [Chapter 0](00_start.ipynb) for the test machine configuration.
+
+### Prepare for this lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('07', root=root)
+data.frame(lesson = "07", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Parameters for this lesson
+
+The default upper limit for mitochondrial percentage is 10%; the analysis uses 2,000 highly variable genes, 30 principal components, and a clustering resolution of 0.8. After changing QC or dimensionality-reduction parameters, rerun from the relevant step onward. These parameters do not change which cells were sampled in advance, and sample identity information is retained.
+
+```{r parameters}
+settings <- list(seed = 20261017L, max_percent_mito = 10, nfeatures = 2000L, pcs = 30L, resolution = 0.8)
+settings
+```
+
+Full script with the default parameters: [07_single_cell.R](../lessons/07_single_cell.R).
+
+The values in the text come from an example run under R 4.4.2; cells show the results from the current session. We recommend completing one run with the default parameters, then saving results from adjusted parameters separately for comparison.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [counts.mtx.gz](../data/single_cell/counts.mtx.gz) | Sparse raw count matrix with genes in rows and cells in columns; 10,708 sampled cells before QC. |
+| [features.tsv](../data/single_cell/features.tsv) | Gene IDs, symbols, and mitochondrial markers; rows correspond one-to-one with the count matrix. |
+| [cells.tsv](../data/single_cell/cells.tsv) | Cell ID, sample, donor, and condition; 22 samples in total, 8 normal and 14 lesional. |
+| [pseudobulk_counts.tsv.gz](../data/single_cell/pseudobulk_counts.tsv.gz) | Raw counts aggregated from the full dataset by sample and cell type; the statistical unit is the sample. |
+| [pseudobulk_samples.tsv](../data/single_cell/pseudobulk_samples.tsv) | Metadata for samples, cell types, groups, and cell counts corresponding to pseudobulk columns. |
+| [pseudobulk_features.tsv](../data/single_cell/pseudobulk_features.tsv) | Gene ID and symbol annotations for the pseudobulk matrix. |
+
+### Method overview
+
+First identify what each row represents. One row in `features` is one gene, and one row in `cells` is one cell; rows in `counts` are genes and columns are cells, with raw counts as values. One donor can contribute many cells, so cell count and the number of biological replicates are not interchangeable. This chapter first locates expression across cell types, then examines group differences using donor-level summaries.
+
+Before QC, up to 500 cells were sampled from each sample in the teaching matrix, so it represents only part of the full atlas. After filtering cells by the number of detected genes, total counts, and mitochondrial percentage, LogNormalize adjusts for sequencing depth. By default, 2,000 highly variable genes are selected for scaling, PCA, neighbor graph construction, clustering, and UMAP.
+
+Cluster IDs need to be interpreted using marker genes. The script standardizes the mean log expression of each marker across clusters, then averages marker scores by cell type to suggest a label. Mean expression and expression percentages in the dot plot help assess these labels.
+
+Cell-level Wilcoxon tests separately compare lesional versus normal cells within the same cell type, and one cell type versus all remaining cells. For each comparison, BH correction is applied to the test family formed by the preselected candidate genes and evaluable cell types. Cells from the same donor are not independent replicates, so these tests describe only the current sample. The pseudobulk analysis instead aggregates raw counts from the full dataset by sample and cell type, uses samples as statistical replicates, and compares disease groups with edgeR.
+
+### 07.1 | Read the matrix and calculate cell QC
+
+Rows and columns in the count matrix should correspond to the gene and cell metadata, respectively, and the sample count should also match. After confirming this, calculate total counts, the number of detected genes, and mitochondrial percentage for each cell; flag cells within the preset ranges and summarize QC results for each sample.
+
+This step takes about 11 seconds on the test machine. When `[*]` appears, the calculation is still running; wait before running the next cell.
+
+```{r l07_s01}
+source("R/common.R")
+library(Seurat)
+library(Matrix)
+out <- lesson_output("07_single_cell")
+set.seed(settings$seed)
+con <- gzfile("data/single_cell/counts.mtx.gz")
+counts <- as(Matrix::readMM(con), "CsparseMatrix")
+features <- read_tsv("data/single_cell/features.tsv")
+cells <- read_tsv("data/single_cell/cells.tsv")
+rownames(counts) <- features$gene_id
+colnames(counts) <- cells$cell_id
+rownames(cells) <- cells$cell_id
+stopifnot(nrow(counts) == nrow(features), ncol(counts) == nrow(cells), length(unique(cells$gsm)) == 
+    22L)
+```
+
+### Check the quality of each cell
+
+<details><summary>Expand: What does each of the three QC metrics measure?</summary>
+
+`n_counts` is the total count, `n_features` is the number of detected genes, and `percent_mito` is the fraction of counts from mitochondria. They describe cell quality from different angles; a high count may also deserve inspection, so higher is not always better. `qc$keep` requires all conditions to be met. After running it, first compare the number of retained cells across samples, then check the total. See [row and column subsetting](assets/reading_guide.html#subset) for how the bracket expression selects cells.
+
+</details>
+
+```{r sc_qc}
+qc <- cells
+qc$n_counts <- Matrix::colSums(counts)
+qc$n_features <- Matrix::colSums(counts > 0)
+mt <- toupper(as.character(features$mitochondrial)) == "TRUE"
+qc$percent_mito <- 100 * Matrix::colSums(counts[mt, , drop = FALSE])/qc$n_counts
+qc$keep <- with(qc, n_features >= 500 & n_features <= 6000 & n_counts >= 1000 & n_counts <= 
+    30000 & percent_mito <= settings$max_percent_mito)
+qc$keep[is.na(qc$keep)] <- FALSE
+write_tsv(qc, file.path(out, "cell_qc.tsv"))
+write_tsv(aggregate(keep ~ gsm + donor_id + condition, qc, sum), file.path(out, "sample_qc.tsv"))
+
+data.frame(preQC=nrow(qc),postQC=sum(qc$keep),samples=length(unique(qc$gsm)))
+```
+
+Before QC there are 10,708 cells and 33,538 genes from 22 samples. The thresholds are 500–6,000 detected genes, 1,000–30,000 counts, and, by default, a mitochondrial percentage no higher than 10%.
+
+### 07.2 | Normalize, reduce dimensions, and cluster
+
+Cells that pass QC enter the Seurat analysis. After LogNormalize, 2,000 highly variable genes are selected and scaled; by default, 30 principal components are used to build the neighbor graph, cluster cells, and calculate UMAP. A fixed random seed helps reproduce this teaching run.
+
+<details><summary>Expand: What do PCA, clustering, and UMAP each do?</summary>
+
+PCA summarizes expression variation along a smaller number of axes. The neighbor graph represents how close cells are along these axes, and clustering groups cells based on that graph. UMAP visualizes the structure in two dimensions; its coordinates have no expression units. The code stores these results in `obj`. After running it, read the cell and cluster counts and interpret them alongside the marker plot. Do not treat distances between islands as the size of a disease effect.
+
+</details>
+
+```{r l07_s02}
+obj <- CreateSeuratObject(counts[, qc$keep], meta.data = cells[qc$keep, ])
+obj <- NormalizeData(obj, normalization.method = "LogNormalize", scale.factor = 10000, verbose = FALSE)
+obj <- FindVariableFeatures(obj, selection.method = "vst", nfeatures = settings$nfeatures, verbose = FALSE)
+course_table(data.frame(variable_gene = VariableFeatures(obj)), n=8)
+```
+
+### Inspect highly variable genes and calculate PCA
+
+```{r l07_pca}
+obj <- ScaleData(obj, features = VariableFeatures(obj), verbose = FALSE)
+obj <- RunPCA(obj, features = VariableFeatures(obj), npcs = settings$pcs, seed.use = settings$seed, verbose = FALSE)
+course_table(as.data.frame(Embeddings(obj,"pca"))[,1:5])
+```
+
+### Build a neighbor graph and calculate UMAP from principal components
+
+This step takes about 16 seconds on the test machine. When `[*]` appears, the calculation is still running; wait before running the next cell.
+
+```{r l07_umap}
+obj <- FindNeighbors(obj, dims = 1:settings$pcs, k.param = 20, verbose = FALSE)
+obj <- FindClusters(obj, resolution = settings$resolution, algorithm = 1, random.seed = settings$seed, verbose = FALSE)
+obj <- RunUMAP(obj, dims = 1:settings$pcs, n.neighbors = 30, min.dist = 0.3, metric = "cosine", seed.use = settings$seed, 
+    verbose = FALSE, n.threads = 2)
+data.frame(cells = ncol(obj), clusters = length(unique(Idents(obj))))
+```
+
+> Reference results with the default parameters: 7,938 cells are retained in the summary, yielding 25 clusters. These counts correspond to this lesson's sample and parameter settings; use the code-cell output for the current run.
+
+### 07.3 | Suggest cluster labels using markers
+
+Cell types for the reference clusters under the default parameters should be assessed using marker genes; use the code-cell output for the current clustering. Label scores come from mean log expression by cluster: each marker is standardized across clusters, then marker scores are averaged by cell type. A cluster whose highest cell-type score is not greater than zero is labeled Unassigned. The dot plot also shows expression percentages to help assess labels.
+
+<details><summary>Expand: Can the highest marker score establish cell identity?</summary>
+
+Each row in `annotation` corresponds to one cluster. First read `suggested_type` and `marker_score`, then use the dot plot to check the mean expression and expression percentage of multiple markers. The score is relative across clusters in this dataset and cannot be interpreted as the probability that a label is correct. `Unassigned` means this rule found no positive score to support a label.
+
+</details>
+
+This step takes about 11 seconds on the test machine. When `[*]` appears, the calculation is still running; wait before running the next cell.
+
+```{r l07_s03}
+panels <- list(Keratinocytes = c("KRT14", "KRT5", "KRT10", "KRT1", "SBSN", "KLK7"), Fibroblasts = c("DCN", 
+    "LUM"), Endothelial = c("CLDN5", "VWF"), Immune = c("HLA-DPB1", "CD3D", "CD3E"), Melanocytes = c("MLANA", 
+    "DCT"), Pericytes = c("ACTA2", "TAGLN"))
+lognorm <- LayerData(obj, layer = "data")
+cluster <- as.character(Idents(obj))
+cl <- sort(unique(cluster))
+marker_rows <- list()
+scores <- matrix(0, length(cl), length(panels), dimnames = list(cl, names(panels)))
+for (type in names(panels)) {
+    ids <- features$gene_id[features$symbol %in% panels[[type]]]
+    ids <- intersect(ids, rownames(lognorm))
+    means <- sapply(cl, function(k) Matrix::rowMeans(lognorm[ids, cluster == k, drop = FALSE]))
+    z <- t(scale(t(means)))
+    z[!is.finite(z)] <- 0
+    scores[, type] <- colMeans(z)
+    for (g in ids) marker_rows[[paste(type, g)]] <- data.frame(cell_type = type, gene = features$symbol[match(g, 
+        features$gene_id)], cluster = cl, average = as.numeric(means[g, ]), percent = sapply(cl, 
+        function(k) 100 * mean(lognorm[g, cluster == k] > 0)))
+}
+annotation <- data.frame(cluster = cl, suggested_type = colnames(scores)[max.col(scores, ties.method = "first")], 
+    marker_score = apply(scores, 1, max))
+annotation$cell_type <- ifelse(annotation$marker_score > 0, annotation$suggested_type, "Unassigned")
+write_tsv(annotation, file.path(out, "marker_annotation.tsv"))
+write_tsv(do.call(rbind, marker_rows), file.path(out, "marker_expression.tsv"))
+
+course_table(annotation, n=12)
+```
+
+The reference output with the default parameters includes suggested types and marker scores for 25 clusters, as well as per-marker expression and percentages. Use the code-cell output for the current number of clusters. Consider multiple markers when assessing labels.
+
+### 07.4 | Plot the cell atlas and marker dot plot
+
+UMAP shows the structure of sampled cells as a two-dimensional point cloud, faceted by condition. Point locations should not be interpreted directly as cell relationships or disease effects. In the marker dot plot, point size represents the percentage of expressing cells, and color represents mean log expression; this helps assess whether suggested labels are appropriate.
+
+```{r l07_s04}
+embedding <- as.data.frame(Embeddings(obj, "umap"))
+names(embedding) <- c("UMAP1", "UMAP2")
+embedding$cell_id <- colnames(obj)
+embedding$cluster <- cluster
+embedding$condition <- obj$condition
+embedding$cell_type <- annotation$cell_type[match(cluster, annotation$cluster)]
+write_tsv(embedding, file.path(out, "umap.tsv"))
+p <- ggplot2::ggplot(embedding, ggplot2::aes(UMAP1, UMAP2, colour = cell_type)) + ggplot2::geom_point(size = 0.3, 
+    alpha = 0.7) + ggplot2::facet_wrap(~condition) + ggplot2::scale_colour_manual(values = c(Keratinocytes = "#D9954C", 
+    Fibroblasts = "#628EA0", Endothelial = "#7772A5", Immune = "#378F78", Melanocytes = "#B66D82", 
+    Pericytes = "#8A9C50", Unassigned = "#AAAAAA")) + ggplot2::labs(title = "A compact atlas across 22 skin samples", 
+    subtitle = "Labels are marker-based suggestions for this sampled dataset", colour = NULL) + 
+    theme_course() + ggplot2::theme(axis.ticks = ggplot2::element_blank(), axis.text = ggplot2::element_blank())
+save_plot(p, out, "cell_atlas", 10, 5.2)
+```
+
+After inspecting the UMAP, also examine marker expression across clusters.
+
+```{r l07_markers}
+m <- do.call(rbind, marker_rows)
+p <- ggplot2::ggplot(m, ggplot2::aes(gene, cluster, size = percent, colour = average)) + ggplot2::geom_point() + 
+    ggplot2::scale_colour_viridis_c() + ggplot2::labs(x = NULL, y = "Cluster", size = "% expressed", 
+    colour = "Mean log-expression", title = "Marker evidence for cluster annotation") + theme_course() + 
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+save_plot(p, out, "marker_dotplot", 11, 7)
+```
+
+The plot shows marker expression for each cluster under the current parameters: point size represents the percentage of cells expressing the marker, and color represents mean log expression.
+
+*The axes are UMAP1 and UMAP2, each point is a cell, and color indicates the marker-based suggested type. Panels are split into normal and psoriasis; the reference plot with default parameters shows 7,938 sampled cells after QC. Use the code-cell output for the current cell count.*
+
+*The x-axis shows marker genes and the y-axis shows clusters. Point size encodes the fraction of cells expressing each gene, and color encodes mean log expression; use this plot to check support from multiple markers for each cluster under the current parameters.*
+
+### 07.5 | Compare the two groups within each cell type
+
+Within each cell type, run Wilcoxon tests for the preselected candidate genes to compare expression in lesional and normal cells. Multiple cells come from the same donor, so these results describe only the current sample; cell count must not be treated as the number of independent biological replicates.
+
+```{r l07_s05}
+obj$teaching_type <- embedding$cell_type
+selected_genes <- c("IL12B", "SGSH", "TNFAIP3", "DDX58", "IL7R", "PRSS53", "UBLCP1")
+gene_map <- features[features$symbol %in% c(selected_genes, "RIGI"), ]
+gene_map$symbol[gene_map$symbol == "RIGI"] <- "DDX58"
+cell_de <- list()
+counter <- 0L
+for (type in sort(unique(obj$teaching_type))) for (j in seq_len(nrow(gene_map))) {
+    gid <- gene_map$gene_id[j]
+    sel <- obj$teaching_type == type
+    a <- as.numeric(lognorm[gid, sel & obj$condition == "psoriasis"])
+    b <- as.numeric(lognorm[gid, sel & obj$condition == "normal"])
+    counter <- counter + 1L
+    cell_de[[counter]] <- data.frame(gene = gene_map$symbol[j], cell_type = type, n_psoriasis = length(a), 
+        n_normal = length(b), p = if (length(a) > 2 && length(b) > 2 && length(unique(c(a, 
+            b))) > 1) 
+            wilcox.test(a, b, exact = FALSE)$p.value
+        else NA_real_)
+}
+cell_de <- do.call(rbind, cell_de)
+cell_de$comparison <- "psoriasis_vs_normal"
+cell_de$BH <- p.adjust(cell_de$p, "BH")
+write_tsv(cell_de, file.path(out, "candidate_cell_wilcoxon.tsv"))
+
+course_table(cell_de)
+```
+
+For each comparison, the BH family consists of candidate gene × evaluable cell type; this correction applies only to this type of group comparison.
+
+### 07.6 | Compare one cell type with the remaining cells
+
+This Wilcoxon test compares candidate gene expression in one cell type with that in all remaining cells, to examine differences between types. It addresses a different question from the disease-group comparison in the previous section, so BH correction is applied within its own test family.
+
+```{r l07_s06}
+rest_de <- list()
+counter <- 0L
+for (type in sort(unique(obj$teaching_type))) for (j in seq_len(nrow(gene_map))) {
+    gid <- gene_map$gene_id[j]
+    sel <- obj$teaching_type == type
+    a <- as.numeric(lognorm[gid, sel])
+    b <- as.numeric(lognorm[gid, !sel])
+    counter <- counter + 1L
+    rest_de[[counter]] <- data.frame(gene = gene_map$symbol[j], cell_type = type, n_type = length(a), 
+        n_rest = length(b), p = if (length(a) > 2 && length(b) > 2 && length(unique(c(a, b))) > 
+            1) 
+            wilcox.test(a, b, exact = FALSE)$p.value
+        else NA_real_)
+}
+rest_de <- do.call(rbind, rest_de)
+rest_de$comparison <- "type_vs_rest"
+rest_de$BH <- p.adjust(rest_de$p, "BH")
+write_tsv(rest_de, file.path(out, "candidate_type_vs_rest_wilcoxon.tsv"))
+
+course_table(rest_de)
+```
+
+This produces a separate `type_vs_rest` results table; its BH values come from the comparison family of one cell type versus all remaining cells.
+
+### 07.7 | Run pseudobulk analysis using samples as units
+
+Pseudobulk aggregates the full cell dataset by sample and cell type into raw-count columns. After selecting groups with sufficient cell counts, edgeR models the data and uses biological samples as statistical units, avoiding the treatment of multiple cells from the same donor as independent replicates.
+
+<details><summary>Expand: Why is there another set of cell-type labels here?</summary>
+
+The `annotation` above comes from clustering and marker scoring in the classroom sample; `pm$cell_type` here is supplied with the aggregated data reconstructed from the full dataset. Their sources and coverage differ, and their cell-type names may not match exactly. Changing QC or clustering parameters in the classroom does not regenerate the pseudobulk counts or labels that have already been read in.
+
+</details>
+
+<details><summary>Expand: Which columns should I read first in the pseudobulk table?</summary>
+
+Each row in `pm` corresponds to an aggregated column for one donor and cell type; in the current input, sample and donor correspond one-to-one. First read `symbol`, `cell_type`, and `logFC`: a positive value means higher expression in the lesional group than in the normal group. Then read `PValue` and `FDR`. This tests the genes retained for each cell type; its correction family differs from that of the candidate cell-level tests.
+
+</details>
+
+```{r l07_s07}
+pb <- read_tsv("data/single_cell/pseudobulk_counts.tsv.gz")
+pm <- read_tsv("data/single_cell/pseudobulk_samples.tsv")
+pf <- read_tsv("data/single_cell/pseudobulk_features.tsv")
+pc <- as.matrix(pb[, -1])
+rownames(pc) <- pb$gene_id
+stopifnot(identical(colnames(pc), pm$sample_id))
+pb_results <- list()
+dispersion_settings <- list()
+for (type in sort(setdiff(unique(pm$cell_type), "Unassigned"))) {
+    use <- pm$cell_type == type & pm$n_cells >= 10
+    meta <- pm[use, ]
+    group <- factor(meta$condition, levels = c("normal", "psoriasis"))
+    if (any(table(group) < 3)) 
+        next
+    design <- model.matrix(~group)
+    y <- edgeR::DGEList(pc[, use, drop = FALSE])
+    keep <- edgeR::filterByExpr(y, design = design)
+    y <- y[keep, , keep.lib.sizes = FALSE]
+    y <- edgeR::calcNormFactors(y, method = "TMM")
+    # 显式保留 edgeR 4.4 的平滑规则和 QL 离散度来源。
+    n_disp <- sum(rowSums(y$counts) >= 5)
+    dispersion_span <- if (n_disp <= 50) 1 else 0.25 + 0.75 * sqrt(50 / n_disp)
+    y <- edgeR::estimateDisp(y, design, span = dispersion_span, robust = FALSE)
+    top <- order(y$AveLogCPM, decreasing = TRUE)[seq_len(ceiling(0.1 * nrow(y)))]
+    ql_dispersion <- mean(y$trended.dispersion[top])
+    dispersion_settings[[type]] <- data.frame(cell_type = type,
+        span = dispersion_span, ql_dispersion = ql_dispersion)
+    fit <- edgeR::glmQLFit(y, design, dispersion = ql_dispersion,
+                          legacy = FALSE, robust = FALSE)
+    fit <- edgeR::glmQLFTest(fit, coef = "grouppsoriasis")
+    tab <- edgeR::topTags(fit, n = Inf, sort.by = "none")$table
+    tab$gene_id <- rownames(tab)
+    tab$symbol <- pf$symbol[match(tab$gene_id, pf$gene_id)]
+    tab$cell_type <- type
+    pb_results[[type]] <- tab
+}
+```
+
+### Save donor-level results and inspect the summary
+
+```{r sc_pb_summary}
+write_tsv(do.call(rbind, pb_results), file.path(out, "donor_pseudobulk.tsv"))
+write_tsv(do.call(rbind, dispersion_settings), file.path(out, "dispersion_settings.tsv"))
+write_tsv(data.frame(preQC = ncol(counts), postQC = sum(qc$keep), genes = nrow(counts), clusters = nrow(annotation)), 
+    file.path(out, "summary.tsv"))
+print(data.frame(preQC = ncol(counts), postQC = sum(qc$keep), clusters = nrow(annotation)))
+
+course_table(do.call(rbind,pb_results), columns=c("gene_id","symbol","cell_type","logFC","PValue","FDR"))
+```
+
+Results are written to `donor_pseudobulk.tsv`. The reference summary with the default parameters contains 10,708 cells before QC, 7,938 after QC, and 25 clusters; use the code-cell output for the current counts. Interpret pseudobulk and cell-level Wilcoxon results separately.
+
+See the original example output in [results/07_single_cell/](../results/07_single_cell/).
+
+The following links point to example results bundled with the course. See the first cell for the output directory of the current session:
+
+| Output | What to inspect |
+|---|---|
+| [summary.tsv](../results/07_single_cell/summary.tsv) | Cell counts before and after QC, gene count, and cluster count for this sample. |
+| [candidate_cell_wilcoxon.tsv](../results/07_single_cell/candidate_cell_wilcoxon.tsv) | Cell-level Wilcoxon results and BH values for psoriasis versus normal, stratified by cell type. |
+| [candidate_type_vs_rest_wilcoxon.tsv](../results/07_single_cell/candidate_type_vs_rest_wilcoxon.tsv) | Candidate gene Wilcoxon results comparing each cell type with the remaining cells, with independent BH values. |
+| [donor_pseudobulk.tsv](../results/07_single_cell/donor_pseudobulk.tsv) | edgeR pseudobulk results using samples as replicates. |
+
+### Exercises and answer key
+
+First predict what will happen to the number of retained cells if `max_percent_mito` is changed from 10 to 8, and whether pseudobulk will also change. Modify the parameter, run the parameter cell, and then rerun from “Check the quality of each cell” onward. Compare retained counts by sample, clusters, and marker plots, then explain why the two analyses may change differently. Do not judge QC as better merely because the UMAP looks more orderly.
+
+1. **Why can cell-level Wilcoxon tests not treat every cell as an independent donor replicate?**
+
+   <details><summary>Answer key</summary>
+   
+   Multiple cells from the same donor share an individual background and are not independent biological replicates; cell-level results describe only this sample. Group comparisons at the donor level should use samples as units, as in this lesson's pseudobulk analysis.
+   
+   </details>
+
+2. **After lowering the mitochondrial percentage limit from 10%, what results should be checked?**
+
+   <details><summary>Answer key</summary>
+   
+   A lower limit may filter out more cells. Check `cell_qc.tsv`, `sample_qc.tsv` for per-sample counts, and the summary cell counts, then reassess clustering and marker plots. UMAP appearance alone is not enough to judge whether filtering is appropriate.
+   
+   </details>
+
+3. **If the same gene has different BH values in the two Wilcoxon tables, does that indicate a computational conflict?**
+
+   <details><summary>Answer key</summary>
+   
+   Not necessarily. The tables use different comparisons and correction families: one compares psoriasis with normal cells within the same type, and the other compares that type with all remaining cells. Use the `comparison` column to confirm the question addressed by each result.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source file](07_single_cell.Rmd)
+
+Results from the current session are saved in `课程资源/work/results/本课目录/`. After changing upstream parameters, rerun the relevant steps and subsequent cells.

@@ -1,0 +1,3 @@
+probeID	topSNP_teaching	b_SMR_teaching	se_SMR_teaching	p_SMR_teaching	p_HEIDI_teaching	topSNP_reference	b_SMR_reference	se_SMR_reference	p_SMR_reference	p_HEIDI_reference	topSNP_absolute_difference	b_SMR_absolute_difference	se_SMR_absolute_difference	p_SMR_absolute_difference	p_HEIDI_absolute_difference
+ENSG00000107798	rs1412444	0.0106345	0.0334145	0.7502885	0.2011178	rs1412444	0.0106345	0.0334145	0.7502885	0.2011178	0	0	0	0	0
+ENSG00000164308	rs2927608	0.0254694	0.013581	0.06074163	0.248052	rs2927608	0.0254694	0.013581	0.06074163	0.248052	0	0	0	0	0

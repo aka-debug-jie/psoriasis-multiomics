@@ -1,0 +1,65 @@
+{
+  "status": "approved_reconstruction_not_author_parameters",
+  "LD": {
+    "reference": "1000_Genomes_Phase3_EUR",
+    "window_kb": 10000,
+    "r2": 0.1,
+    "p": 5e-06
+  },
+  "coloc": {
+    "index_window_kb": 500,
+    "sensitivity_window_kb": 1000,
+    "p1": 0.0001,
+    "p2": 0.0001,
+    "p12": 1e-05
+  },
+  "single_cell": {
+    "normalization": "LogNormalize",
+    "scale_factor": 10000,
+    "variable_features_method": "vst",
+    "nfeatures": 2000,
+    "PCs": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "k_param": 20,
+    "algorithm": 1,
+    "resolution": 0.8,
+    "seed": 20261016,
+    "batch_correction": false
+  },
+  "steiger": {
+    "status": "unresolved",
+    "exclude_on_unverified_parameters": false
+  },
+  "user_approval_date": "2026-10-16",
+  "approval": "采用固定重建参数，保留与原文的差异说明"
+}

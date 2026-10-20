@@ -1,0 +1,23 @@
+source_id	phenotype	num_cases	num_controls	comparison_note
+GCST90475578	Melanomas of skin (PheCode 172.11)	10468	436283	MVP definition; not FinnGen cancer-exclusion controls
+GCST90475580	Other non-epithelial cancer of skin (PheCode 172.2)	68143	360898	MVP definition differs from FinnGen non-melanoma endpoint
+GCST90475932	Myocardial infarction (PheCode 411.2)	39074	392979	Additional indexed teaching phenotype; not a stroke substitute
+GCST90475644	Graves' disease (PheCode 242.1)	1672	448997	MVP definition; not FinnGen strict definition
+GCST90475721	Hypercholesterolemia (PheCode 272.11)	65795	351476	Specific cholesterol phenotype; not general hyperlipidemia
+GCST90475762	Obesity (PheCode 278.1)	169600	244254	MVP PheCode definition
+GCST90477304	Thyroiditis (PheCode 245)	1904	447836	Broad thyroiditis; not specifically autoimmune thyroiditis
+GCST90475929	Ischemic heart disease (PheCode 411)	141465	275809	Broad ischemic heart disease; not FinnGen major CHD events
+GCST90475582	Basal cell carcinoma (PheCode 172.21)	31142	404406	Additional indexed teaching phenotype; no coronary-atherosclerosis equivalence
+GCST90475981	Congestive heart failure; nonhypertensive (PheCode 428)	58749	370923	Nonhypertensive congestive heart failure; distinct from heart failure NOS
+GCST90475919	Hypertension (PheCode 401)	322448	105690	MVP PheCode definition
+GCST90476066	Regional enteritis (PheCode 555.1)	3402	446631	MVP regional enteritis; not FinnGen strict Crohn definition
+GCST90476065	Inflammatory bowel disease and other gasteroenteritis and colitis (PheCode 555)	7837	438916	Broad colitis/gastroenteritis family; not strict IBD
+GCST90476187	Psoriasis (PheCode 696.4)	16283	428468	Related to the MVP discovery phenotype; not independent validation
+GCST90475735	Gout (PheCode 274.1)	42034	397989	MVP PheCode definition
+GCST90476191	Psoriatic arthropathy (PheCode 696.42)	3087	447533	MVP PheCode definition
+GCST90476230	Rheumatoid arthritis (PheCode 714.1)	10479	436161	MVP PheCode definition
+GCST90478853	Sicca syndrome (PheCode 709.2)	1080	448272	Sicca syndrome; not necessarily classified Sjogren syndrome
+GCST90476084	Other chronic nonalcoholic liver disease (PheCode 571.5)	29342	403367	Broader than NAFLD
+GCST90476180	Lupus (localized and systemic) (PheCode 695.4)	1379	449451	Includes localized and systemic lupus; not an SLE-only definition
+GCST90475667	Type 2 diabetes (PheCode 250.2)	154194	278454	MVP PheCode definition
+GCST90475647	Hypothyroidism (PheCode 244)	62814	378321	Additional teaching phenotype; no ulcerative-colitis equivalence claimed

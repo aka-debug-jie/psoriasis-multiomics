@@ -1,0 +1,263 @@
+---
+title: "09 | Cox Proportional Hazards Models and Survival Data"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics Course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+This chapter uses lung cancer follow-up data to examine how baseline age, sex, and ECOG performance status relate to time to death. You will practice event coding, handling missing values, and interpreting hazard ratios. The raw data contain 228 people and 165 deaths. After excluding one person with missing ECOG, the complete-case primary model includes 227 people and 164 deaths. Kaplan–Meier (KM) curves describe unadjusted survival, while the Cox model estimates associations conditional on the other variables.
+
+You will produce Kaplan–Meier curves, Cox hazard ratios, and model diagnostics.
+
+With the default settings, the code takes about 4 seconds on the test machine, excluding reading and interaction time. See [Chapter 0](00_start.ipynb) for the test-machine configuration.
+
+### Prepare for this lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('09', root=root)
+data.frame(lesson = "09", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Lesson parameters
+
+The default is `ties="efron"`. Change it to `"breslow"` to compare ways of handling tied event times; use the same complete cases for both fits.
+
+```{r parameters}
+settings <- list(ties = "efron")
+settings
+```
+
+Default-parameter full script: [09_cox.R](../lessons/09_cox.R).
+
+The numbers in the text come from an example run using R 4.4.2; code cells show results from the current session. We recommend completing the analysis once with the defaults, then saving and comparing results from any changed settings.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [lung_ncctg228.tsv](../data/cox/lung_ncctg228.tsv) | Lung cancer follow-up data for 228 people; `time` is in days, `status=2` means death, `status=1` means censored, and `sex=1/2` means male/female. |
+
+### Method notes
+
+Each row of `dat` represents one person. `time` is the observed follow-up time in days, and `event` records whether death was observed. `analysis` contains the complete cases included in the model, and `fit` stores the fitted model. This chapter uses a time-to-event outcome to practice model interpretation; do not pair these participants with the genetic reference sample from another chapter.
+
+Survival analysis requires both follow-up time and event status. Here, time is measured in days; `status=2` indicates death and `status=1` indicates censoring. We recode the event as a 0/1 indicator and construct `Surv(time,event)`. The complete-case analysis excludes one person with missing ECOG.
+
+The Cox model includes age, sex, and ECOG, with men as the reference group. Effects are estimated per year of age and per ECOG grade. Efron's method is used by default to handle tied event times. HR = exp(beta) is the relative instantaneous hazard conditional on the model; it is not a difference in survival probability. For display, the KM plot combines ECOG values ≥2, while the primary model still treats ECOG as an ordinal numeric variable.
+
+`cox.zph` uses Schoenfeld residuals to assess the proportional hazards assumption. No departure was detected, which means only that this test found no clear evidence of a violation; it does not prove the assumption holds.
+
+### 09.1 | Read the follow-up data and define the death event
+
+Check field names and values against the data dictionary, then read follow-up time and event status separately. Explicitly coding death as 1 and censoring as 0 makes the event definition easy to inspect, without relying on software to infer the meaning of the original codes.
+
+<details><summary>Expand: Does a censored person still provide information?</summary>
+
+Censoring means that the event had not been recorded by the end of observation; we only know that the event time is later than the observed follow-up time. The person still contributes to the risk set before that time. Their follow-up time must not be treated as a death time, nor as proof that they will never die. Interpretation of KM and Cox analyses also depends on an appropriate censoring mechanism assumption; `event=0` alone cannot verify that assumption.
+
+</details>
+
+```{r l09_s01}
+source("R/common.R")
+required <- c("survival", "ggplot2", "scales")
+missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing)) stop("请先安装课程依赖：", paste(missing, collapse = ", "))
+out <- lesson_output("09_cox")
+data_file <- "data/cox/lung_ncctg228.tsv"
+if (!file.exists(data_file)) stop("找不到课程数据：", data_file)
+dat <- read_tsv(data_file)
+stopifnot(nrow(dat) == 228L, all(dat$status %in% c(1, 2)), all(dat$time > 0), all(dat$sex %in% 
+    c(1, 2)))
+dat$event <- as.integer(dat$status == 2)
+stopifnot(sum(dat$event) == 165L)
+
+data.frame(people=nrow(dat),deaths=sum(dat$event))
+```
+Of the 228 people in the raw data, 165 deaths have `status==2`; `status==1` is treated as censoring.
+
+### 09.2 | Count missing values and define complete cases
+
+The primary model uses `time`, `event`, `age`, `sex`, and `ph.ecog`. Summarize missing values field by field and record the sample size before and after complete-case filtering so it is clear which observations enter the model.
+
+```{r l09_s02}
+model_vars <- c("time", "event", "age", "sex", "ph.ecog")
+missing_by_variable <- data.frame(variable = c("time", "age", "sex", "ph.ecog"), missing_n = vapply(dat[c("time", 
+    "age", "sex", "ph.ecog")], function(x) sum(is.na(x)), integer(1)), stringsAsFactors = FALSE)
+cc <- complete.cases(dat[model_vars])
+exclusion <- data.frame(group = c("原始样本", "纳入主模型（完整病例）", "因模型变量缺失而排除"), 
+    n = c(nrow(dat), sum(cc), sum(!cc)), stringsAsFactors = FALSE)
+write_tsv(missing_by_variable, file.path(out, "missing_by_variable.tsv"))
+write_tsv(exclusion, file.path(out, "sample_flow.tsv"))
+analysis <- dat[cc, , drop = FALSE]
+stopifnot(nrow(analysis) == 227L, sum(analysis$event) == 164L)
+analysis$sex_f <- factor(analysis$sex, levels = c(1, 2), labels = c("男", "女"))
+
+course_table(exclusion)
+```
+One person is missing ECOG, and the other relevant fields have no missing values. The primary model includes 227 people, of whom 164 died.
+
+### 09.3 | Construct the survival object and fit the Cox model
+
+Set sex as a factor with men as the reference group, then construct a `Surv` object from time and event status. The Cox model includes age, sex, and ECOG simultaneously. The coefficients represent the change in log hazard per additional year of age, for women relative to men, and per additional ECOG grade.
+
+<details><summary>Expand: How should you read the tilde and plus signs in a model formula?</summary>
+
+In `surv_obj ~ age + sex_f + ph.ecog`, the left side is the time-and-event object and the right side lists variables included together in the model. The plus signs separate model terms; they do not add age and sex values together. The factor levels determine the reference group for `sex_f`. ECOG enters as a numeric value, which assumes the same change in log HR for each one-grade increase. See the [model formula guide](assets/reading_guide.html#formulas) for the syntax.
+
+</details>
+
+```{r l09_s03}
+surv_obj <- survival::Surv(time = analysis$time, event = analysis$event)
+fit <- survival::coxph(surv_obj ~ age + sex_f + ph.ecog, data = analysis, ties = settings$ties, x = TRUE)
+
+summary(fit)$coefficients
+```
+The model uses complete cases, handles tied event times with Efron's method by default, and treats ECOG as an ordinal numeric variable.
+
+### 09.4 | Summarize HRs, intervals, and test results
+
+Exponentiate the model beta estimates and their confidence limits to obtain HRs and corresponding intervals. The code checks that each HR equals exp(beta) and falls within its interval, then saves the model results table.
+
+<details><summary>Expand: How should an HR below 1 be interpreted?</summary>
+
+First read `term` to confirm the comparison and unit, then read `HR`, `CI95_low`, `CI95_high`, and `p_value`. The HR compares the instantaneous risk of death at a given time among people still in the risk set. In the default example, the HR for women relative to men is 0.575. This must not be written as a 42.5 percentage-point reduction in the probability of death, nor used to infer how many days longer someone lives.
+
+</details>
+
+```{r l09_s04}
+coef_table <- summary(fit)$coefficients
+ci <- exp(stats::confint(fit))
+model_results <- data.frame(term = rownames(coef_table), beta = unname(stats::coef(fit)), HR = exp(unname(stats::coef(fit))), 
+    CI95_low = ci[, 1], CI95_high = ci[, 2], p_value = coef_table[, "Pr(>|z|)"], row.names = NULL, 
+    check.names = FALSE)
+stopifnot(all(is.finite(model_results$HR)), isTRUE(all.equal(model_results$HR, exp(model_results$beta))), 
+    all(model_results$CI95_low <= model_results$HR), all(model_results$HR <= model_results$CI95_high))
+write_tsv(model_results, file.path(out, "cox_model.tsv"))
+
+course_table(model_results)
+```
+> Default-parameter reference results: age HR=1.011 (P=0.232), women relative to men HR=0.575 (P=0.001), and each one-grade increase in ECOG HR=1.590 (P<0.001). These are associations conditional on the other model variables. Use the code-cell output for the current run.
+
+*The x-axis uses a log scale for HR. Points show adjusted HRs, horizontal lines show 95% intervals, and the dashed line marks HR=1. Estimates are shown for age, women relative to men, and each ECOG grade.*
+
+### 09.5 | Plot Kaplan–Meier curves by ECOG group
+
+KM curves describe unadjusted survival in each ECOG group. For display, ECOG values ≥2 are combined as 2+; ECOG remains an ordinal numeric variable in the Cox model.
+
+```{r l09_s05}
+analysis$ecog_group <- factor(ifelse(analysis$ph.ecog >= 2, "2+", as.character(analysis$ph.ecog)), 
+    levels = c("0", "1", "2+"))
+km <- survival::survfit(survival::Surv(time, event) ~ ecog_group, data = analysis)
+km_summary <- summary(km)
+km_data <- data.frame(time = km_summary$time, surv = km_summary$surv, strata = sub("^ecog_group=", 
+    "ECOG ", km_summary$strata))
+km_data <- rbind(data.frame(time = 0, surv = 1, strata = unique(km_data$strata)), km_data)
+km_plot <- ggplot2::ggplot(km_data, ggplot2::aes(x = time, y = surv, colour = strata)) + ggplot2::geom_step(linewidth = 0.9) + 
+    ggplot2::scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2), labels = scales::label_percent(accuracy = 1)) + 
+    ggplot2::scale_colour_manual(values = c(`ECOG 0` = "#2878B5", `ECOG 1` = "#E07A2D", `ECOG 2+` = "#48976A")) + 
+    ggplot2::labs(title = "Survival by baseline ECOG", subtitle = "NCCTG lung cancer example; complete cases; death is the event", 
+        x = "Follow-up since enrollment (days)", y = "Survival probability", colour = "Baseline ECOG") + 
+    theme_course()
+save_plot(km_plot, out, "km_by_ecog", width = 7.2, height = 5.2)
+```
+The x-axis shows follow-up days since enrollment, and the y-axis shows survival probability. These are unadjusted descriptive curves, not multivariable model results.
+
+*The x-axis shows follow-up time (days), and the y-axis shows survival probability. Colors distinguish ECOG 0, 1, and 2+. Combining values as 2+ is only for displaying the KM curves and does not represent an adjusted effect.*
+
+### 09.6 | Check the proportional hazards assumption
+
+Use `cox.zph` with Schoenfeld residuals to assess the proportional hazards assumption. The variable rows show test results for individual covariates, and the GLOBAL row gives the test for the full model; inspect both.
+
+<details><summary>Expand: Does proportional hazards require the death hazard to stay constant over time?</summary>
+
+The model allows the baseline hazard to vary over time; the proportional hazards assumption constrains the hazard ratios associated with covariates. In `ph_table`, find each `term` and inspect its `p` value, including `GLOBAL`. A large P value means that no clear departure was detected. It does not prove the assumption holds, and it does not replace checking the study design and variable relationships.
+
+</details>
+
+```{r l09_s06}
+ph <- survival::cox.zph(fit, transform = "km")
+stopifnot(all(c("age", "sex_f", "ph.ecog", "GLOBAL") %in% rownames(ph$table)))
+ph_table <- as.data.frame(ph$table)
+ph_table$term <- rownames(ph$table)
+rownames(ph_table) <- NULL
+write_tsv(ph_table, file.path(out, "ph_test.tsv"))
+
+course_table(ph_table)
+```
+> Default-parameter reference results: GLOBAL P=0.216; P values for age, sex, and ECOG are approximately 0.665, 0.129, and 0.152, respectively. This test did not indicate a clear departure; use the code-cell output for the current run.
+
+### 09.7 | Output the model summary and hazard-ratio plot
+
+Summarize the data source, analysis sample, and PH test results, then draw the hazard-ratio plot. Check that labels match the coefficients, especially the direction of the women-versus-men comparison and the unit for each ECOG increase.
+
+```{r l09_s07}
+cat("数据来源：survival::lung；survival ", as.character(utils::packageVersion("survival")), 
+    "\n", sep = "")
+cat("原始样本：", nrow(dat), "；死亡事件：", sum(dat$event), "；完整病例：", 
+    sum(cc), "；完整病例死亡事件：", sum(analysis$event), "\n", sep = "")
+print(model_results, row.names = FALSE, digits = 4)
+cat("\nPH 检验（cox.zph）：\n")
+print(ph)
+cat(course_output_path(), "\n")
+model_results$label <- c("Age (per year)", "Female vs male", "ECOG (per grade)")
+p <- ggplot2::ggplot(model_results, ggplot2::aes(HR, label)) + ggplot2::geom_vline(xintercept = 1, 
+    linetype = 2, colour = "grey65") + ggplot2::geom_pointrange(ggplot2::aes(xmin = CI95_low, 
+    xmax = CI95_high), colour = "#197D8D") + ggplot2::scale_x_log10() + ggplot2::labs(x = "Hazard ratio (95% CI)", 
+    y = NULL, title = "Cox model: adjusted associations") + theme_course()
+save_plot(p, out, "hazard_ratios", 7, 3.6)
+```
+In this example, time is measured as follow-up since enrollment. Using age as the time axis would require age at enrollment, age at exit, and delayed-entry settings; follow-up days cannot simply be substituted for age.
+
+See the example output in [results/09_cox/](../results/09_cox/).
+
+The following links point to the example results distributed with the course package. The output directory for the current session is shown in the first cell:
+
+| Output | What to look for |
+|---|---|
+| [missing_by_variable.tsv](../results/09_cox/missing_by_variable.tsv) | Number of missing values in each primary-model field; one ECOG value is missing. |
+| [sample_flow.tsv](../results/09_cox/sample_flow.tsv) | Sample counts before and after complete-case filtering: 228 people, 227 included, and 1 excluded. |
+| [cox_model.tsv](../results/09_cox/cox_model.tsv) | beta, HR, 95% confidence interval, and Wald P value for each covariate. |
+| [ph_test.tsv](../results/09_cox/ph_test.tsv) | Variable rows and the GLOBAL row from the Schoenfeld-residual proportional hazards test. |
+
+### Exercises and answer key
+
+First predict what may change in the sample size, event count, and HRs after changing `ties` from `"efron"` to `"breslow"`. Run the analysis with the changed setting, then rerun from 09.3 onward and compare `cox_model.tsv` with the PH test. Explain whether any differences arise from handling tied event times, and confirm that both fits use the same 227 complete cases.
+
+1. **Why convert `status` to a 0/1 event indicator?**
+
+   <details><summary>Answer</summary>
+   
+   In the original data, `status==2` means death and `status==1` means censoring. `Surv` can automatically recognize some 1/2 encodings, but explicit conversion makes the event definition easier to check. A filtered subset may retain only one value, so event meaning cannot be inferred from the numeric values alone.
+   
+   </details>
+
+2. **If the Cox formula includes only age and `sex_f`, what should you state when comparing results?**
+
+   <details><summary>Answer</summary>
+   
+   Keep the same 227 complete cases and change only the formula. Use the coefficients or HR table from `fit` to examine how covariate adjustment changes the estimates. If you continue running the notebook, update the variable-name check in the proportional hazards test to match the new formula, and revise the forest-plot labels for the two remaining coefficients. Differences between models alone do not establish a causal effect for any variable.
+   
+   </details>
+
+3. **If the model sample size is 228 rather than 227, which filtering step should you check?**
+
+   <details><summary>Answer</summary>
+   
+   Check whether `complete.cases()` covers `time`, `event`, `age`, `sex`, and `ph.ecog`, and inspect the one missing `ph.ecog` value in `missing_by_variable.tsv`. Identify the source of the sample-size difference; do not impute missing values without explanation.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](09_cox.Rmd)
+
+Current-session results are saved under `课程资源/work/results/本课目录/`. After changing an upstream parameter, rerun the relevant steps and all subsequent cells.

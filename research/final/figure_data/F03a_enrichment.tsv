@@ -1,0 +1,4 @@
+"term"	"description"	"overlap"	"query_annotated"	"term_background"	"background_annotated"	"p_value"	"gene_ids"	"fdr_bh"	"library"
+"GO:0050691"	"regulation of defense response to virus by host"	3	7	10	1932	3.46192618046599e-06	"23586;3593;7128"	0.00448657649795808	"GO biological process"
+"GO:0050688"	"regulation of defense response to virus"	3	7	11	1932	4.75272934105729e-06	"23586;3593;7128"	0.00448657649795808	"GO biological process"
+"hsa05162"	"Measles - Homo sapiens (human)"	3	5	27	1233	9.11260422509455e-05	"23586;3593;7128"	0.0195009730417023	"KEGG"

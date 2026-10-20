@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173f35">
+  <title>{{TITLE}}</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">
+    <span lang="en">Skip to content</span>
+    <span aria-hidden="true"> / </span>
+    <span lang="zh-CN">跳转到正文</span>
+  </a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="./" aria-label="Course home / 课程主页">
+        <span class="brand-mark" aria-hidden="true">M</span>
+        <span class="brand-name">
+          <span lang="en">Multi-omics Course</span>
+          <span lang="zh-CN">多组学课程</span>
+        </span>
+      </a>
+      <nav class="language-nav" aria-label="Language / 语言">
+        <a href="?lang=en" lang="en">English</a>
+        <span aria-hidden="true">·</span>
+        <a href="?lang=zh" lang="zh-CN">简体中文</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow">
+          <span lang="en">A practical learning path</span>
+          <span aria-hidden="true"> / </span>
+          <span lang="zh-CN">循序渐进的实践课程</span>
+        </p>
+        <h1 id="page-title">{{TITLE}}</h1>
+        <div class="intro">{{INTRO}}</div>
+      </div>
+      <nav class="entry-grid" aria-label="Course entry points / 课程入口">
+        {{NAV}}
+      </nav>
+    </section>
+
+    <section class="content-section" aria-labelledby="chapters-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">
+            <span lang="en">Explore the curriculum</span>
+            <span aria-hidden="true"> / </span>
+            <span lang="zh-CN">浏览课程</span>
+          </p>
+          <h2 id="chapters-title">
+            <span lang="en">Chapters</span>
+            <span aria-hidden="true"> / </span>
+            <span lang="zh-CN">章节</span>
+          </h2>
+        </div>
+        <p class="section-note">
+          <span lang="en">Move through the course at your own pace.</span>
+          <span aria-hidden="true"> / </span>
+          <span lang="zh-CN">按自己的节奏逐章学习。</span>
+        </p>
+      </div>
+      <div class="course-grid">
+        {{COURSE_CARDS}}
+      </div>
+    </section>
+
+    <section class="content-section downloads-section" aria-labelledby="downloads-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">
+            <span lang="en">Choose your platform</span>
+            <span aria-hidden="true"> / </span>
+            <span lang="zh-CN">选择运行平台</span>
+          </p>
+          <h2 id="downloads-title">
+            <span lang="en">Course packages</span>
+            <span aria-hidden="true"> / </span>
+            <span lang="zh-CN">课程包</span>
+          </h2>
+        </div>
+        <p class="section-note">
+          <span lang="en">Select the package for your operating system and processor.</span>
+          <span aria-hidden="true"> / </span>
+          <span lang="zh-CN">根据操作系统和处理器选择对应版本。</span>
+        </p>
+      </div>
+      <div class="download-list">
+        {{DOWNLOADS}}
+      </div>
+    </section>
+
+    <section class="research-section" aria-labelledby="research-title">
+      <div class="research-heading">
+        <p class="eyebrow">
+          <span lang="en">About the project</span>
+          <span aria-hidden="true"> / </span>
+          <span lang="zh-CN">项目简介</span>
+        </p>
+        <h2 id="research-title">
+          <span lang="en">Research overview</span>
+          <span aria-hidden="true"> / </span>
+          <span lang="zh-CN">研究概述</span>
+        </h2>
+      </div>
+      <div class="research-copy">{{RESEARCH}}</div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">{{FOOTER}}</div>
+  </footer>
+</body>
+</html>

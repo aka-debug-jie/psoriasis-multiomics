@@ -1,0 +1,247 @@
+---
+title: "11 | Genetic associations with 22 related diseases: a fixed testing family and candidate results"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+This lesson analyzes genetic associations between a prespecified set of 17 proteins and 22 MVP EUR clinical outcomes, then examines results for seven formal candidates. After instrument variants are selected for each protein using the LD rule, they are used for allele harmonization and effect estimation across the outcomes. The primary multiple-testing family includes all 17 × 22 = 374 comparisons. The seven candidates contribute 154 of those comparisons; their results retain BH values computed across the full family, and may also be given an exploratory adjustment within the candidate subset.
+
+You will produce an association table across related diseases and an effect-comparison plot.
+
+The default code takes about 4 seconds on the test machine, excluding reading and hands-on time. See [Chapter 0](00_start.ipynb) for the test-machine configuration.
+
+### Prepare the lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('11', root=root)
+data.frame(lesson = "11", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Lesson parameters
+
+The default FDR threshold is 0.05. This parameter changes only the significance flags; BH calculations for all 374 tests and the 154 candidate tests remain unchanged.
+
+```{r parameters}
+settings <- list(fdr = 0.05)
+settings
+```
+
+Full script with default parameters: [11_clinical_mr.R](../lessons/11_clinical_mr.R).
+
+The values in the text come from an example run with R 4.4.2; cells show results from the current session. We recommend running the analysis once with the default settings, then saving results from any changed settings separately for comparison.
+
+This public teaching panel contains 22 indexed MVP European-ancestry phenotypes from GWAS Catalog. It differs from the research FinnGen panel; myocardial infarction, basal cell carcinoma, and hypothyroidism are additional examples, and broad phenotypes retain their actual names. The input table records exact definitions, accessions, sample sizes, and differences. These outcomes share a cohort and can overlap with the MVP discovery phenotype. They are not independent replications.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [family_17.tsv](../data/clinical/family_17.tsv) | Prespecified analysis family of 17 proteins. |
+| [endpoints.tsv](../data/clinical/endpoints.tsv) | Outcome codes, phenotype definitions, case counts, and control counts for 22 outcomes. |
+| [exposures.tsv](../data/genetics/exposures.tsv) | Protein-exposure associations and effect information for genetic instruments; restricted to the fixed family of 17 proteins. |
+| [primary_candidates.tsv](../data/genetics/primary_candidates.tsv) | Seven formal candidates and their prespecified selection flags. |
+| [clinical](../data/clinical) | Outcome association files named by the codes in endpoints.tsv; each outcome is analyzed across all 17 proteins. |
+
+### Method notes
+
+Each row in `endpoints` defines one clinical outcome, each row in an association file records an outcome effect for one variant, and each row in the final results represents one protein–outcome pair. Model `beta` is the log-OR per analysis unit change in protein level. This lesson compares the direction of candidate associations across outcomes; a heatmap alone cannot establish treatment benefit or risk.
+
+After selecting instruments, each outcome is allele-harmonized and estimated with generalized IVW. Combinations with no harmonizable instruments are retained as NA. The multiple-testing family was set before candidate results were viewed: 17 proteins across 22 outcomes, for 374 tests.
+
+BH adjustment is performed on P values from all 374 rows before the 154 rows for the seven formal candidates are extracted. Candidate results therefore retain adjusted values from the full family. BH adjustment within the 154 candidates can be reported as exploratory, but it does not replace the primary analysis.
+
+The heatmap uses color for the log odds ratio and different symbols for full-family BH and exploratory BH within the candidate subset. Interpret each phenotype code according to its own definition. These genetic associations are not direct evidence of causal effects or clinical utility.
+
+### 11.1 | Load the fixed family and select instruments
+
+Read the 17 proteins, 22 outcomes, exposure data, and seven formal candidates. After checking the family sizes and candidate flags, select instruments using the within-protein LD threshold.
+
+<details><summary>Expand: why check outcome definitions before looking at disease names?</summary>
+
+The same broad disease category can use different case definitions and control exclusions. First inspect `phenocode`, `phenotype`, `num_cases`, and `num_controls` in `endpoints`, then interpret the results. Do not merge outcomes just because their short names look similar, and do not attribute every difference in P values across outcomes to differences in biological effect size.
+
+</details>
+
+```{r l11_s01}
+source("R/common.R")
+source("R/genetics.R")
+suppressPackageStartupMessages(library(ggplot2))
+output <- lesson_output("11_clinical_mr")
+family <- read_tsv("data/clinical/family_17.tsv")
+endpoints <- read_tsv("data/clinical/endpoints.tsv")
+exposures <- read_tsv("data/genetics/exposures.tsv")
+formal_candidates <- read_tsv("data/genetics/primary_candidates.tsv")
+ld <- load_ld()
+stopifnot(length(unique(family$uniprot)) == 17L, nrow(endpoints) == 22L, nrow(formal_candidates) == 
+    7L, all(as.character(formal_candidates$primary_selected) == "True"))
+exposures <- exposures[exposures$uniprot %in% family$uniprot, , drop = FALSE]
+stopifnot(setequal(unique(exposures$uniprot), family$uniprot))
+plan <- freeze_instruments(exposures, ld, max_abs_r = 0.95)
+write_tsv(plan, file.path(output, "frozen_instruments.tsv"))
+
+data.frame(proteins=nrow(family),endpoints=nrow(endpoints),candidates=nrow(formal_candidates))
+```
+
+All subsequent outcome analyses start from this instrument table.
+
+### 11.2 | Harmonize and estimate effects for each outcome
+
+Read each outcome file in turn, harmonize the prespecified instruments with its outcome data, estimate effects, and retain both the results and harmonized data.
+
+<details><summary>Expand: how does the loop put 22 outcomes into the results table?</summary>
+
+Each iteration of `i` points to a row in the outcome table. `code` takes that row's `phenocode`; the corresponding file is read and passed to `analyse_outcome()`. `fits[[i]]` stores the results from that iteration, which are later combined by row. After running the cell, inspect `gene` and `observed_variants` first, then `beta`, `se`, and `p`. NA means an estimate could not be made; it does not mean the effect is zero. See [Loops and lists](assets/reading_guide.html#loops) for the syntax.
+
+</details>
+
+```{r l11_s02}
+fits <- vector("list", nrow(endpoints))
+harmonized <- vector("list", nrow(endpoints))
+for (i in seq_len(nrow(endpoints))) {
+    code <- endpoints$phenocode[i]
+    y <- read_tsv(file.path("data/clinical", paste0(code, ".tsv")))
+    fit <- analyse_outcome(plan, y, ld)
+    fit$results$phenocode <- code
+    fit$harmonized$phenocode <- code
+    fits[[i]] <- fit$results
+    harmonized[[i]] <- fit$harmonized
+}
+
+course_table(fits[[1]],columns=c("gene","beta","se","p","observed_variants"))
+```
+
+Combinations that cannot be estimated remain in the results table, with NA in the effect fields.
+
+### 11.3 | Adjust across all 374 tests
+
+Combine results for all proteins and outcomes, confirm the full family, then apply BH adjustment to all computable P values with n=374, keeping the 66 uncomputable entries as NA. Add outcome definitions and save the results in the prespecified order.
+
+```{r l11_s03}
+all_results <- do.call(rbind, fits)
+stopifnot(nrow(all_results) == 374L, setequal(unique(all_results$phenocode), endpoints$phenocode), 
+    setequal(unique(all_results$uniprot), family$uniprot))
+all_results$BH_original_family_374 <- p.adjust(all_results$p, method = "BH", n = 374L)
+all_results <- merge(all_results, endpoints, by = "phenocode", all.x = TRUE, sort = FALSE, 
+    suffixes = c("", "_endpoint"))
+all_results <- all_results[match(paste(rep(family$uniprot, each = nrow(endpoints)), rep(endpoints$phenocode, 
+    times = nrow(family))), paste(all_results$uniprot, all_results$phenocode)), ]
+write_tsv(all_results, file.path(output, "clinical_all_374.tsv"))
+
+data.frame(comparisons=nrow(all_results),estimable=sum(is.finite(all_results$p)))
+```
+
+The primary analysis uses P-value ranks from the full family; adjustment is completed before the seven formal candidates are extracted.
+
+<details><summary>Expand: why keep comparisons that do not produce attractive results?</summary>
+
+The 17 × 22 combinations define all questions selected in advance. Selecting significant candidates before adjustment would change the testing family. The primary column `BH_original_family_374` uses the full family; the exploratory candidate column uses 154 tests. Keep the column names when comparing them, and do not label whichever column is smaller as the primary analysis FDR.
+
+</details>
+
+### 11.4 | Extract candidates and retain both adjustments
+
+Extract the 154 combinations for seven candidates, retaining their BH values from the full 374-test analysis and calculating an additional exploratory BH adjustment within the candidate set.
+
+```{r l11_s04}
+formal_ids <- unique(formal_candidates$uniprot)
+candidate_results <- all_results[all_results$uniprot %in% formal_ids, , drop = FALSE]
+stopifnot(nrow(candidate_results) == 154L, setequal(unique(candidate_results$uniprot), formal_ids))
+candidate_results$BH_candidate_family_exploratory <- p.adjust(candidate_results$p, method = "BH", 
+    n = 154L)
+candidate_results$candidate_family_size <- 154L
+write_tsv(candidate_results, file.path(output, "clinical_candidates_154.tsv"))
+write_tsv(do.call(rbind, harmonized), file.path(output, "harmonized_374.tsv"))
+
+course_table(candidate_results,columns=c("gene","phenocode","beta","p","BH_original_family_374","BH_candidate_family_exploratory"))
+```
+
+The two adjusted-value columns refer to different testing families: the full family is used for the primary analysis, and the 154-row candidate subset is exploratory.
+
+### 11.5 | Plot the clinical-effect heatmap
+
+The heatmap uses outcomes and candidate proteins as its axes. Color shows effect direction and size; different point shapes mark results that pass each of the two adjustments.
+
+<details><summary>Expand: how should a sign change for the same protein across diseases be read?</summary>
+
+First confirm the protein-change unit, allele harmonization, and outcome definition, then interpret direction and uncertainty. A positive beta means higher odds for that outcome; a negative beta means lower odds. Neither is a difference in disease probability. MVP outcomes may share samples or controls, and may share disease GWAS with analyses earlier in the course. Do not treat several cells pointing in the same direction as several fully independent validations.
+
+</details>
+
+```{r l11_s05}
+plot_data <- candidate_results
+plot_data$gene <- factor(plot_data$gene, levels = rev(formal_candidates$gene[order(formal_candidates$gene)]))
+plot_data$phenocode <- factor(plot_data$phenocode, levels = endpoints$phenocode)
+endpoint_labels <- vapply(sub(" [(]PheCode.*", "", endpoints$phenotype), function(x) paste(strwrap(x, width=38), collapse="\n"), "")
+names(endpoint_labels) <- endpoints$phenocode
+plot_data$marker <- ifelse(!is.na(plot_data$BH_original_family_374) & plot_data$BH_original_family_374 < settings$fdr, "Full family", ifelse(!is.na(plot_data$BH_candidate_family_exploratory) & plot_data$BH_candidate_family_exploratory < settings$fdr, "Exploratory only", "Not below either threshold"))
+plot <- ggplot(plot_data, aes(x = phenocode, y = gene, fill = beta)) + geom_tile(colour = "white", 
+    linewidth = 0.45) + geom_point(data = plot_data[plot_data$marker != "Not below either threshold", 
+    ], aes(shape = marker), size = 1.8, colour = "#263746") + scale_shape_manual(values = c(`Full family` = 16, 
+    `Exploratory only` = 1), name = NULL) + scale_fill_gradient2(low = "#2878A5", mid = "#F7F8F8", 
+    high = "#B64D4D", midpoint = 0, na.value = "#D9E2E7", name = "Log odds ratio") + scale_x_discrete(labels = endpoint_labels) + coord_flip() + 
+    labs(title = "Clinical associations across 22 outcomes", subtitle = paste0("FDR threshold = ",settings$fdr,"; full family vs candidate exploration"), 
+        x = NULL, y = NULL) + theme_course() + theme(axis.text.x = element_text(angle = 55, 
+    hjust = 1, size = 8), panel.grid = element_blank(), legend.position = "bottom")
+save_plot(plot, output, "clinical_effect_heatmap", width = 10, height = 9.5)
+```
+
+Point shapes distinguish the full testing family from exploratory adjustment within the candidate subset. Whether a result is below a threshold depends on the parameter and the code-cell output.
+
+*The x axis shows 22 outcomes and the y axis shows seven candidate proteins. Fill indicates the log odds ratio: blue is negative, red is positive, pale colors are near zero, and gray is NA. A filled point indicates the full family of 374 tests passed the threshold; an open point indicates that only the exploratory adjustment within the 154 candidate tests passed. The parameter sets the threshold.*
+
+### 11.6 | Summarize family size and significant results
+
+Summarize the number of rows in the full results, the number of candidate comparisons, and the number of candidate results below the full-family BH threshold.
+
+```{r l11_s06}
+cat(sprintf("Full family: %d; seven-candidate comparisons: %d; BH374 significant: %d\n", nrow(all_results), 
+    nrow(candidate_results), sum(candidate_results$BH_original_family_374 < settings$fdr, na.rm = TRUE)))
+```
+
+When reporting results, state the phenotype definition, effect direction, interval, and testing family, and interpret each outcome separately.
+
+See the original example output in [results/11_clinical_mr/](../results/11_clinical_mr/).
+
+### Exercises and reference answers
+
+First predict how changing `fdr` from 0.05 to 0.01 will affect the heatmap colors, point shapes, and BH values. Run the parameter cell with the new setting, then rerun from 11.5 onward. Compare the candidate results table and plot. Explain why significance markers may decrease or stay the same while effects and adjusted values remain unchanged. Keep the primary family of 374 tests.
+
+1. **Why can't we use only the 154 candidate P values and set n=374 to replace BH across the full family?**
+
+   <details><summary>Reference answer</summary>
+   
+   BH ranks all 308 computable P values in the full family with n=374; 66 NA values remain missing. Setting n alone cannot restore the ranking information from other computable tests.
+   
+   </details>
+
+2. **If the full-family FDR threshold is tightened from 0.05 to 0.01, which quantities should stay the same?**
+
+   <details><summary>Reference answer</summary>
+   
+   Beta, SE, raw P values, and the already calculated BH values for all 374 tests stay the same. Significance flags and plot symbols may change. Changing a decision threshold does not require redefining the testing family, and `n` should not be changed to 154.
+   
+   </details>
+
+3. **Can the MVP localized-and-systemic lupus phenotype be labelled SLE?**
+
+   <details><summary>Reference answer</summary>
+   
+   No. This source includes localized lupus as well. Retain its actual name and interpret the PheCode definition and case selection; similarity of names does not establish an SLE-only phenotype.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](11_clinical_mr.Rmd)
+
+Results from this session are saved under `resources/work/results/chapter-folder/`. After changing an upstream parameter, rerun the relevant steps and subsequent cells.

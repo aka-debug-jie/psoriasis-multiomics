@@ -1,0 +1,260 @@
+---
+title: "05｜SMR 与 HEIDI：关联和区域异质性"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+一个基因的遗传预测表达与疾病有关，是否可能由同一处遗传信号解释？本章使用血液 GTEx / eQTL Catalogue 中 ERAP2 和 LIPA 的两个完整 cis 区域，运行 SMR 与 HEIDI。SMR 检验表达—疾病关联，HEIDI 则检查不同工具的关联比例是否存在异质性；理解这两种检验，需要把结果放在一起阅读。
+
+本课会得到SMR、HEIDI 结果表及两种检验的关系图。
+
+本章默认代码在测试机上约需 3 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('05', root=root)
+data.frame(lesson = "05", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认主分析使用随包固定的 BESD，HEIDI LD 上限为0.9。调整 LD 阈值时，请另存结果，并与默认参数下的结果比较。
+
+```{r parameters}
+settings <- list(heidi_ld_upper = 0.9)
+settings
+```
+
+默认参数完整脚本：[05_smr.R](../lessons/05_smr.R)。
+
+正文中的数值来自 R 4.4.2 下的示例运行，代码单元格会显示你本次运行的结果。第一次学习建议使用默认参数；做练习时另存结果，便于比较参数变化的影响。
+
+公开版使用 eQTL Catalogue 重处理的 GTEx 血液数据 QTD000356，共 670 人，各变异的 an/2 为 636–670。ERAP2 和 LIPA 按暴露 eQTL 强度选为教学示例，选择时未使用疾病效应；其输入和结果与科研版的 eQTLGen 分析分开保存。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [public_eqtl.besd](../data/smr/public_eqtl.besd) | 由随附 ESD 转换的两个固定 probe 示例；配套 epi 和 esi 保存 probe、SNP 和顺序信息。 |
+| [eqtl_flist.txt](../data/smr/eqtl_flist.txt) | 两份可阅读ESD表的索引，用于学习文本转BESD格式；共7131和7199条cis关联。 |
+| [mvp_regional.ma](../data/smr/mvp_regional.ma) | 对应区域MVP的效应等位基因、频率、log-OR、SE、P和N。 |
+| [EUR_two_regions.bed](../data/smr/EUR_two_regions.bed) | 1000G EUR 503人的区域LD参考，需同名前缀bim/fam文件。 |
+
+### 方法要点
+
+ESD 中一行是一个 SNP 与一个表达 probe 的关联，疾病表一行是一个 SNP 的 GWAS 统计；最终 SMR 表一行对应一个 probe。表达效应沿用 eQTL 来源尺度，疾病效应为 log-OR。这里检查的是遗传预测表达与疾病的关系，不能直接当作蛋白浓度实验。
+
+SMR 选取最强的合格eQTL，用表达效应和疾病效应构造关联检验。工具P阈值5×10⁻⁸与SMR关联P阈值0.05用于不同环节。HEIDI比较多个区域变异的效应比例，本例采用HEIDI P>0.01作为判定条件。较大的HEIDI P表示未检出明显异质性，不能理解为共享机制成立的概率；工具阈值、LD筛选和参与位点数都会影响结果。
+
+本课还安排了从ESD转换为BESD的格式练习。转换会将SNP按坐标重新排序，而HEIDI在LD并列时的剪枝结果可能受顺序影响。因此，主分析直接使用随包固定的BESD输入，格式转换的结果另行保存。
+
+### 05.1｜准备外部工具和输出位置
+
+本课使用课程内置的SMR程序。tool_path() 根据操作系统定位可执行文件，run_tool() 负责向程序传递参数。
+
+```{r l05_s01}
+source("R/common.R")
+out <- lesson_output("05_smr")
+data_dir <- "data/smr"
+smr <- tool_path("smr")
+besd_prefix <- file.path(out, "eqtl_two_probes")
+besd_log <- file.path(out, "make_besd.log")
+smr_log <- file.path(out, "smr_heidi.log")
+
+data.frame(tool="SMR", state="matching executable found")
+```
+这一段设置程序位置、输入目录和输出前缀。格式转换与主分析采用不同的输出名称，方便辨认各自使用的数据。
+
+### 05.2｜明确三类阈值及区域参数
+
+<details><summary>展开看：哪类参数决定进入检验的位点</summary>
+
+`peqtl_smr` 挑选 SMR 工具，`peqtl_heidi` 与 LD 上下限共同影响 HEIDI 使用的位点；cis 窗口限制位置范围。它们作用于计算前的筛选，SMR P<0.05 和 HEIDI P>0.01 则在结果产生后判定。改变参与位点后，HEIDI P 没有保证的增减方向。
+
+</details>
+
+阅读参数时，要区分工具选择与关联判定。peqtl_smr用于挑选eQTL，peqtl_heidi用于筛选HEIDI位点；得到结果后，再应用SMR P<0.05和HEIDI P>0.01的判定规则。
+
+```{r l05_s02}
+parameters <- list(peqtl_smr = 5e-08, heidi_skip_threshold = 1, peqtl_heidi = 0.0015654, heidi_ld_upper = settings$heidi_ld_upper, 
+    heidi_ld_lower = 0.05, cis_window_kb = 2000, frequency_difference = 0.2, frequency_exclusion_fraction = 0.05, 
+    threads = 2L)
+required <- c("eqtl_flist.txt", "mvp_regional.ma", "EUR_two_regions.bed", "EUR_two_regions.bim", 
+    "EUR_two_regions.fam", "reference_results.tsv")
+stopifnot(all(file.exists(file.path(data_dir, required))))
+
+as.data.frame(parameters)
+```
+对照参数表可找到LD上下限、cis窗口及频率差阈值。threads=2控制运行资源，不改变本课的统计判定规则。
+
+### 05.3｜把 ESD 表转换为 BESD
+
+<details><summary>展开看：ESD 和三个 BESD 配套文件各管什么</summary>
+
+ESD 是可阅读的关联表，`flist` 将表与 probe 对应起来；BESD 保存二进制统计量，EPI 保存 probe 信息，ESI 保存 SNP 信息。程序按同名前缀找到这组文件。格式转换并没有增加样本，仍需检查精度和顺序。主分析使用由同一组排序后的 ESD 生成并冻结的参考 BESD。
+
+</details>
+
+这一段将ESD转换为BESD。ESD记录每个SNP的等位基因、频率、效应、SE和P，flist则说明各文件对应哪个probe。完成后检查besd、epi和esi三个配套文件是否齐全。
+
+```{r l05_s03}
+run_tool(smr, c("--make-besd", "--eqtl-flist", file.path(data_dir, "eqtl_flist.txt"), "--out", 
+    besd_prefix), besd_log)
+stopifnot(all(file.exists(paste0(besd_prefix, c(".besd", ".epi", ".esi")))))
+
+data.frame(file=paste0("eqtl_two_probes",c(".besd",".epi",".esi")), generated=TRUE)
+```
+生成的eqtl_two_probes用于观察格式转换的结果。主分析使用由同一组 ESD 生成并冻结的 public_eqtl；课堂转换结果另存，便于核对。
+
+### 05.4｜执行两个基因的 SMR 与 HEIDI
+
+SMR接收基因型参考、疾病汇总统计，以及固定顺序的eQTL文件前缀。raw保存本次运行结果，reference是同一输入预先运行得到的参考表，不参与SMR计算。
+
+```{r l05_s04}
+args <- c("--bfile", file.path(data_dir, "EUR_two_regions"), "--gwas-summary", file.path(data_dir, 
+    "mvp_regional.ma"), "--beqtl-summary", file.path(data_dir, "public_eqtl"), "--peqtl-smr", 
+    parameters$peqtl_smr, "--heidi-skip-thresh", parameters$heidi_skip_threshold, "--peqtl-heidi", 
+    parameters$peqtl_heidi, "--ld-upper-limit", parameters$heidi_ld_upper, "--ld-lower-limit", 
+    parameters$heidi_ld_lower, "--cis-wind", parameters$cis_window_kb, "--diff-freq", parameters$frequency_difference, 
+    "--diff-freq-prop", parameters$frequency_exclusion_fraction, "--thread-num", parameters$threads, 
+    "--extract-probe", file.path(data_dir, "probes.txt"), "--out", file.path(out, "two_probe"))
+run_tool(smr, args, smr_log)
+raw <- read_tsv(file.path(out, "two_probe.smr"))
+reference <- read_tsv(file.path(data_dir, "reference_results.tsv"))
+stopifnot(all(c("probeID", "p_SMR", "p_HEIDI", "b_SMR", "se_SMR", "topSNP") %in% names(raw)), 
+    setequal(raw$probeID, c("ENSG00000164308", "ENSG00000107798")), setequal(reference$probeID, 
+        raw$probeID))
+
+course_table(raw)
+```
+每个probe应得到topSNP、SMR beta/SE/P以及HEIDI P。若运行失败，查看对应程序日志，优先核对输入前缀与工具版本。
+
+读表先看 `probeID` 与 `topSNP`，再读 `b_SMR` 的方向和 `p_SMR`；同时查看 `p_HEIDI` 与 `nsnp_HEIDI`，后者记录 HEIDI 实际使用的位点数。
+
+### 05.5｜分别解释关联与异质性
+
+<details><summary>展开看：SMR 显著且 HEIDI 不显著意味着什么</summary>
+
+这组结果表示检出了表达—疾病关联，并且当前参与位点未提供明显的异质性证据。未拒绝异质性零假设不能证明共享因果变异，更不能排除水平多效性或确立表达介导机制。HEIDI 的统计能力也受位点数和数据精度影响。
+
+</details>
+
+本次结果与参考结果按probeID对齐，列出差值，并应用名义判定规则。若HEIDI为NA，判定也保留NA，表示无法据此判断是否满足异质性条件。
+
+```{r l05_s05}
+columns <- c("topSNP", "b_SMR", "se_SMR", "p_SMR", "p_HEIDI")
+comparison <- merge(raw[c("probeID", columns)], reference[c("probeID", columns)], by = "probeID", 
+    suffixes = c("_teaching", "_reference"), sort = TRUE)
+for (column in columns) {
+    left <- comparison[[paste0(column, "_teaching")]]
+    right <- comparison[[paste0(column, "_reference")]]
+    comparison[[paste0(column, "_absolute_difference")]] <- if (is.numeric(left)) 
+        abs(left - right)
+    else as.numeric(left != right)
+}
+write_tsv(comparison, file.path(out, "reference_comparison.tsv"))
+comparison$heidi_status <- ifelse(is.na(comparison$p_HEIDI_teaching), "not_computed", "computed")
+comparison$nominal_SMR_and_HEIDI_rule <- ifelse(is.na(comparison$p_HEIDI_teaching), NA, comparison$p_SMR_teaching < 
+    0.05 & comparison$p_HEIDI_teaching > 0.01)
+write_tsv(comparison, file.path(out, "two_probe_results.tsv"))
+print(comparison[c("probeID", "topSNP_teaching", "b_SMR_teaching", "p_SMR_teaching", "p_HEIDI_teaching", 
+    "heidi_status", "nominal_SMR_and_HEIDI_rule")], row.names = FALSE)
+
+course_table(comparison, columns=c("probeID","p_SMR_teaching","p_HEIDI_teaching","nominal_SMR_and_HEIDI_rule"))
+```
+> 默认参数参考结果：ERAP2 的 SMR P=0.06074、HEIDI P=0.2481；LIPA 的 SMR P=0.7503、HEIDI P=0.2011。两者均未满足 SMR<0.05 且 HEIDI>0.01 的组合条件。HEIDI 未检出异质性，本身不能补足表达与疾病的关联证据。
+
+### 05.6｜比较不同工具版本的结果
+
+比较版本结果时，要查看P值范围、顶端变异和本例判定，也要比较具体数值。本课的内置程序和示例参考结果均使用SMR1.4.3；本次计算仍独立保存数值，便于比较不同运行环境。程序成功运行说明计算已完成，版本间的数值是否一致还需根据结果判断。
+
+```{r l05_s06}
+stopifnot(all(is.finite(raw$p_SMR)), all(raw$p_SMR >= 0 & raw$p_SMR <= 1), all(is.finite(raw$p_HEIDI)), 
+    all(raw$p_HEIDI >= 0 & raw$p_HEIDI <= 1), all(comparison$topSNP_absolute_difference == 
+        0))
+fields <- c("b_SMR", "se_SMR", "p_SMR", "p_HEIDI")
+within_tolerance <- all(vapply(fields, function(k) {
+    a <- comparison[[paste0(k, "_teaching")]]
+    b <- comparison[[paste0(k, "_reference")]]
+    all(abs(a - b) <= 1e-10 + 1e-08 * abs(b))
+}, logical(1)))
+version_check <- data.frame(platform = .Platform$OS.type, valid_P_and_topSNP = TRUE, decision_matches_reference = identical(comparison$nominal_SMR_and_HEIDI_rule, c(FALSE,FALSE)), numeric_matches_Linux_1_4_3 = within_tolerance, 
+    status = if (within_tolerance) "matched_reference" else "computed_with_reference_difference")
+write_tsv(version_check, file.path(out, "version_comparison.tsv"))
+if (isTRUE(getOption("teaching.reference", FALSE))) stopifnot(within_tolerance)
+
+course_table(version_check)
+```
+version_comparison.tsv记录本次结果是否与参考数值匹配，便于查看版本或运行环境带来的差异。它仅汇总比较结果，不会调整SMR或HEIDI统计量。
+
+### 05.7｜在同一图中区分两个检验
+
+<details><summary>展开看：为什么图上越高不代表越支持候选</summary>
+
+两轴都取了负对数，但检验问题不同。横轴越大，对无表达—疾病关联的证据越不利；纵轴越大，则越提示工具之间存在异质性。本课联合规则对应横向过线且纵向不过线，仍需回到结果表读取位点数和具体 P 值。
+
+</details>
+
+图中将SMR和HEIDI的P都转换为−log10尺度。向右表示SMR关联证据更强，向上则表示HEIDI检出的异质性更强。两个坐标反映不同问题，不能用同一种“越大越好”的方式解释。
+
+```{r l05_s07}
+plotdata <- data.frame(gene = c("ERAP2", "LIPA"), SMR = c(raw$p_SMR[match("ENSG00000164308", 
+    raw$probeID)], raw$p_SMR[match("ENSG00000107798", raw$probeID)]), HEIDI = c(raw$p_HEIDI[match("ENSG00000164308", 
+    raw$probeID)], raw$p_HEIDI[match("ENSG00000107798", raw$probeID)]))
+p <- ggplot2::ggplot(plotdata, ggplot2::aes(-log10(SMR), -log10(HEIDI), label = gene)) + ggplot2::geom_vline(xintercept = -log10(0.05), 
+    linetype = 2, colour = "grey60") + ggplot2::geom_hline(yintercept = -log10(0.01), linetype = 2, 
+    colour = "grey60") + ggplot2::geom_point(size = 3, colour = "#197D8D") + ggplot2::geom_text(nudge_x = 0.15, 
+    hjust = 0) + ggplot2::expand_limits(x = 4) + ggplot2::labs(x = "-log10(SMR P)", y = "-log10(HEIDI P)", 
+    title = "Association and heterogeneity answer different questions") + theme_course()
+save_plot(p, out, "SMR_HEIDI", 7, 4.5)
+```
+本例两个基因均未达到 SMR 关联阈值，HEIDI 也均未检出明显异质性。两项检验需要结合阅读。
+
+*横轴为−log10(SMR P)，纵轴为−log10(HEIDI P)；虚线分别标出0.05和0.01阈值。*
+
+原示例输出见 [results/05_smr/](../results/05_smr/)。
+
+### 练习与参考答案
+
+先预测把 `heidi_ld_upper` 从 0.9 改为 0.8 可能影响哪些位点和结果，再运行参数格并从 05.2 向下重跑。记录 topSNP、nsnp_HEIDI、SMR P 与 HEIDI P，解释哪些变化符合预期。若新参数使 HEIDI 无法计算，05.6 的有限值检查会停止；记录该状态并恢复默认参数，不要把 NA 改成数值来通过检查。
+
+1. **为什么HEIDI P大于0.01和SMR P小于0.05的方向相反？**
+
+   <details><summary>参考答案</summary>
+   
+   两个检验的零假设不同。SMR检验无表达—疾病关联，HEIDI检验所考察工具的效应比例是否缺乏异质性；应按各自问题解释P。
+   
+   </details>
+
+2. **把heidi_ld_upper由0.9改成0.8，应比较哪些输出？**
+
+   <details><summary>参考答案</summary>
+   
+   将练习结果另存，比较参与位点数、HEIDI P，以及检验是否仍可计算。调整LD筛选可能改变工具集合。05.6使用原参数核对参考数值；更改参数后，应记录并解释差异，无需要求结果仍与原示例逐值相同。
+   
+   </details>
+
+3. **文本ESD和BESD对应同一批SNP，为什么结果仍可能有差异？**
+
+   <details><summary>参考答案</summary>
+   
+   文本输出可能降低精度，转换还会重排SNP；顺序会影响HEIDI在并列情况下的LD剪枝。应核对数值精度、顺序和最终参与位点。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](05_smr.Rmd)
+
+本次结果保存在 `课程资源/work/results/本课目录/`。修改参数后，请从受影响的步骤继续运行。

@@ -1,0 +1,18 @@
+{
+  "random_seed": 20261016,
+  "pseudobulk": {
+    "counts": "research/results/sc_de/pseudobulk_raw_counts.tsv.gz",
+    "samples": "research/results/sc_de/pseudobulk_samples.tsv",
+    "features": "research/data/processed/sc_analysis/features.tsv",
+    "cell_DE": "research/results/sc_de/all_gene_psoriasis_vs_normal.tsv",
+    "min_cells_per_donor_type": 10,
+    "min_donors_per_condition": 3,
+    "normalization": "TMM",
+    "design": "~condition",
+    "method": "edgeR_filterByExpr_estimateDisp_glmQLFit_glmQLFTest",
+    "robust": false,
+    "fdr": 0.05,
+    "abs_log2fc": 0.25,
+    "analysis_role": "donor_level_extension_not_replacement_of_paper_cell_Wilcoxon"
+  }
+}

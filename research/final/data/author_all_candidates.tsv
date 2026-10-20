@@ -1,0 +1,30 @@
+gene	gene_id	author_reference	author_target	author_pwas	author_sensitivity	author_smr_blood	author_smr_skin	author_pgs_psoriasis	author_pgs_psa	author_bulk	author_single_cell	author_coloc	author_ppi	author_tier_score	author_prior_gwas	author_prior_observational	author_prior_mr	author_drug_phase	author_evidence_origin	in_corrected_primary_set
+DAPK2	ENSG00000035664	True	DAPK2	+	+	NA	NA	NA	NA	NA	NA	NA	√	Tier 3(2)	NA	NA	NA	NA	author_reported	False
+FAP	ENSG00000078098	True	FAP	−	−	NA	NA	NA	NA	NA	↑	NA	NA	Tier 3(1)	NA	NA	NA	Phase 3	author_reported	False
+ICAM1	ENSG00000090339	True	ICAM1	−	+/ −	−	NA	+/ −	NA	NA	↓	NA	√	Tier 1(5)	NA	√	√	Approved	author_reported	False
+ICAM5	ENSG00000105376	True	ICAM5	+	+	−	+	+/ −	NA	NA	NA	NA	√	Tier 2(4)	NA	NA	√	NA	author_reported	False
+COMP	ENSG00000105664	True	COMP	+	+	NA	NA	NA	NA	↑	↑	NA	√	Tier 2(4)	NA	√	NA	NA	author_reported	False
+RARRES2	ENSG00000106538	True	RARRES2	−	−	−	−	−	NA	NA	↑	√	√	Tier 1(6)	NA	NA	NA	NA	author_reported	False
+DDX58	ENSG00000107201	True	DDX58	+	+	NA	NA	+/ −	NA	↑	NA	NA	√	Tier 2(4)	√	√	NA	Phase 2	author_reported	True
+NFKB1	ENSG00000109320	True	NFKB1	+	+	+	NA	+	NA	NA	↓	NA	√	Tier 2(4)	√	√	√	Approved	author_reported	False
+CRTAM	ENSG00000109943	True	CRTAM	−	−	NA	NA	−	NA	NA	NA	NA	√	Tier 3(3)	NA	NA	NA	NA	author_reported	False
+MMP12	ENSG00000110347	True	MMP12	+	+	NA	NA	+	+	↑	NA	√	√	Tier 1(6)	NA	√	√	Phase 1	author_reported	False
+IL23A	ENSG00000110944	True	IL23	−	−	−	NA	−	−	↑	NA	√	√	Tier 1(6)	√	√	NA	Approved c	author_reported	False
+ASF1A	ENSG00000111875	True	ASF1A	−	−	−	NA	NA	NA	NA	NA	√	√	Tier 2(4)	NA	NA	NA	NA	author_reported	False
+IL12B	ENSG00000113302	True	IL12B	−	−	NA	NA	−	−	↑	NA	NA	√	Tier 2(4)	√	√	√	Approved/Phase 3 c	author_reported	True
+GCA	ENSG00000115271	True	GCA	+	+	+	NA	+	NA	NA	↓	NA	NA	Tier 3(3)	√	NA	NA	NA	author_reported	False
+TNFAIP3	ENSG00000118503	True	TNFAIP3	−	−	+	NA	+/ −	NA	NA	↓	NA	√	Tier 2(4)	√	√	√	NA	author_reported	True
+LBP	ENSG00000129988	True	LBP	−	−	NA	NA	NA	NA	↑	NA	NA	√	Tier 3(2)	NA	√	NA	NA	author_reported	False
+IL2RA	ENSG00000134460	True	IL2RA	+	+/ −	+	NA	+/ −	NA	↑	↑	√	√	Tier 1(7)	NA	NA	√	Approved	author_reported	False
+XCL2	ENSG00000143185	True	XCL2	−	−	NA	NA	−	+	↑	NA	√	NA	Tier 3(3)	NA	NA	NA	NA	author_reported	False
+TIMD4	ENSG00000145850	True	TIMD4	−	−	+	NA	NA	NA	↑	NA	√	√	Tier 3(3)	NA	NA	NA	NA	author_reported	False
+CTF1	ENSG00000150281	True	CTF1	−	−	NA	NA	−	NA	NA	NA	√	√	Tier 2(4)	NA	NA	NA	Phase 1	author_reported	False
+PRSS53	ENSG00000151006	True	PRSS53	+	+	−	+	+/ −	NA	↑	NA	NA	NA	Tier 2(4)	√	NA	NA	NA	author_reported	True
+CD8A	ENSG00000153563	True	CD8A	−	+/ −	NA	NA	NA	+	↑	NA	√	√	Tier 3(3)	NA	NA	NA	Phase 2	author_reported	False
+DBI	ENSG00000155368	True	DBI	+	+	+	NA	NA	NA	NA	↑	√	NA	Tier 2(4)	NA	NA	NA	NA	author_reported	False
+UBLCP1	ENSG00000164332	True	UBLCP1	−	−	NA	−	−	NA	NA	↓	NA	NA	Tier 2(4)	NA	NA	√	NA	author_reported	True
+A2ML1	ENSG00000166535	True	A2ML1	−	−	NA	NA	NA	NA	↑	↑	NA	NA	Tier 3(1)	NA	NA	NA	NA	author_reported	False
+IL7R	ENSG00000168685	True	IL7R	+	+	NA	NA	+	−	↑	↓	√	√	Tier 1(5)	NA	√	NA	Phase 2	author_reported	True
+IL12A	ENSG00000168811	True	IL12	−	−	+	NA	−	−	NA	NA	NA	√	Tier 2(4)	NA	√	NA	Approved/Phase 3 c	author_reported	False
+B3GNT2	ENSG00000170340	True	B3GNT2	−	−	NA	NA	−	−	NA	↓	NA	NA	Tier 2(4)	NA	NA	NA	NA	author_reported	False
+SGSH	ENSG00000181523	True	SGSH	−	−	+	+	+/ −	NA	NA	NA	√	NA	Tier 3(3)	NA	NA	NA	Phase 2/3	author_reported	True

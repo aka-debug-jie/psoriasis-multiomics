@@ -1,0 +1,22 @@
+name: Course problem / 课程问题
+description: Report a reproducible problem without personal information.
+body:
+  - type: markdown
+    attributes:
+      value: "Remove usernames, personal paths, access tokens and student work. Do not attach the entire course folder. 请先移除用户名、个人路径、令牌和学生作业，不要上传整个课程目录。"
+  - type: input
+    id: version
+    attributes:
+      label: Course version, language and operating system / 课程版本、语言和系统
+    validations:
+      required: true
+  - type: input
+    id: chapter
+    attributes:
+      label: Chapter and cell label / 章节与代码格
+  - type: textarea
+    id: problem
+    attributes:
+      label: Steps and error message / 操作步骤与报错
+    validations:
+      required: true

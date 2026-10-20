@@ -1,0 +1,28 @@
+{
+  "seed": 20261017,
+  "font": "Liberation Sans",
+  "base_font_pt": 8,
+  "width_inches": 7.2,
+  "png_dpi": 600,
+  "formats": ["pdf", "svg", "png"],
+  "colors": {
+    "ink": "#243746",
+    "teal": "#167D8D",
+    "orange": "#C76D3A",
+    "purple": "#79649A",
+    "muted": "#AAB6BF",
+    "missing": "#E9EDF0",
+    "grid": "#E7EBEE",
+    "negative": "#246B8E",
+    "positive": "#C56B38"
+  },
+  "coloc_threshold": 0.8,
+  "expression_color_limits": [-3, 3],
+  "clinical_color_limits": [-1, 1],
+  "risk_notes": {
+    "pooled_MR": "Paper-style independent-weight reconstruction reuses outcome estimates; compare the fixed single-IV sensitivity.",
+    "single_IV": "One strongest exposure instrument selected before outcome matching; no fallback for missing instruments; not the recovered author analysis.",
+    "CI": "MVP outcome SE inferred from reported CI is not generally equivalent to the source P value.",
+    "TGFBI": "External nominal association has the opposite direction."
+  }
+}

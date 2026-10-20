@@ -1,0 +1,347 @@
+---
+title: "10｜候选基因的功能富集与关联证据"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+七个候选基因涉及哪些功能，它们与其他蛋白及药物靶点有哪些联系？本课用功能富集、STRING 网络和药物靶点资料分别考察这些问题。可用的 2,045 个蛋白构成机会背景，映射去重后为 2,043 个 GeneID；各功能家族的检验背景再按注释覆盖确定。网络关联与药物资料按证据类别分别展示。
+
+本课会得到功能富集图、STRING 网络与药物证据分类图。
+
+本章默认代码在测试机上约需 8 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('10', root=root)
+data.frame(lesson = "10", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认 max_term_size=500，FDR 阈值为0.05。可将条目上限在10–500范围内下调；调整后，完整注释背景不变，但需对保留的条目重新做 BH 校正。
+
+```{r parameters}
+settings <- list(fdr = 0.05, max_term_size = 500L, seed = 20261017L)
+settings
+```
+
+默认参数完整脚本：[10_functional.R](../lessons/10_functional.R)。
+
+正文中的数字来自 R 4.4.2 示例运行，单元格会显示当前会话的结果。建议用默认参数完成一遍分析，再另存调整参数后的结果，进行比较。
+
+公开版的通路注释使用 Reactome 第 92 版，替代科研版的 KEGG 快照。超几何检验和家族内 BH 校正方法保持一致，通路成员和参考结果随输入重新计算。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [candidates.tsv](../data/functional/candidates.tsv) | 七个候选的 GeneID、基因符号及蛋白标识，用于构建查询集。 |
+| [opportunity_background.tsv](../data/functional/opportunity_background.tsv) | 机会背景中的可用蛋白；2,045 个蛋白映射去重后为 2,043 个 GeneID。 |
+| [term_gene.tsv](../data/functional/term_gene.tsv) | BP、MF、CC 和 Reactome 的 term–gene 长表，含条目描述及成员基因。 |
+| [annotated_background.tsv](../data/functional/annotated_background.tsv) | 按功能家族记录已注释背景基因，用于分别确定各家族的 N 与 n。 |
+| [string_induced_edges.tsv](../data/functional/string_induced_edges.tsv) | 人类 STRING 诱导网络边及综合关联分数；本次输入为 77 条边。 |
+| [drug_direct_targets.tsv](../data/functional/drug_direct_targets.tsv) | 候选的直接药物靶点资料记录；默认参数参考结果为 0 条；本次条目数以代码格输出为准。 |
+| [drug_complex_components.tsv](../data/functional/drug_complex_components.tsv) | 复合物或家族组分类药物资料；本次为 5 条。 |
+| [drug_network_associations.tsv](../data/functional/drug_network_associations.tsv) | 候选与药物靶点之间的 STRING 网络关联；默认参数参考结果为 53 条；本次条目数以代码格输出为准。 |
+
+### 方法说明
+
+候选表一行是一个待解释的候选；`term_gene` 一行是一条“基因属于某条目”的关系，同一基因可出现多次。网络表一行是一条蛋白关联边。它们不是同一种观测单位。本章把候选放回可被检测的背景中考察功能，并分别整理网络和药物资料。
+
+富集分析需要明确哪些基因有机会进入候选集，以及哪些基因具有相应注释。对于 BP、MF、CC 和 Reactome，各自使用完整已注释背景，并确定其中有该家族注释的候选基因。输入 term 表默认只保留背景成员数为10–500的条目；筛选条目不会改变已经确定的注释背景。
+
+每个 term 的超几何检验使用四个量：N 为该家族已注释背景基因数，K 为 term 在背景中的成员数，n 为有该家族注释的候选数，k 为候选与 term 的交集数。计算右尾概率时保留零交集条目，并在每个家族内部单独做 BH 校正。结果图展示有交集的代表条目，虚线对应当前 `settings$fdr`，默认值为 0.05。
+
+STRING 边表示功能关联。药物资料则分为直接靶点、复合物/家族组分和网络关联；网络联系本身不能证明直接结合或药效。
+
+### 10.1｜定义候选集与机会背景
+
+读取候选、机会背景、term–gene 关系及各家族的已注释背景。核对候选数、背景去重后的 GeneID 数，并确认候选都在背景内。
+
+```{r l10_s01}
+source("R/common.R")
+required <- c("ggplot2", "igraph")
+missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing)) stop("请先安装课程依赖：", paste(missing, collapse = ", "))
+out <- lesson_output("10_functional")
+data_dir <- "data/functional"
+input <- function(name) file.path(data_dir, name)
+candidates <- read_tsv(input("candidates.tsv"))
+background <- read_tsv(input("opportunity_background.tsv"))
+term_gene <- read_tsv(input("term_gene.tsv"))
+annotated_input <- read_tsv(input("annotated_background.tsv"))
+query <- unique(as.character(candidates$GeneID))
+background_genes <- unique(as.character(background$GeneID))
+stopifnot(length(query) == 7L, length(background_genes) == 2043L, all(query %in% background_genes), 
+    all(term_gene$family %in% c("BP", "MF", "CC", "Reactome")))
+stopifnot(settings$max_term_size>=10,settings$max_term_size<=500)
+term_key <- paste(term_gene$family,term_gene$term,sep="::")
+term_sizes <- table(term_key)
+term_gene <- term_gene[as.integer(term_sizes[term_key])<=settings$max_term_size,]
+
+
+data.frame(candidates=length(query),background_genes=length(background_genes))
+```
+本例为 7 个候选和 2,043 个去重 GeneID；检验时仍按各家族注释覆盖另定背景。
+
+<details><summary>展开看：背景为什么不能随意换成全基因组</summary>
+
+背景代表有机会进入候选集合的基因。加入本研究根本没有机会测到的基因，会改变比较基准。代码先用 `unique()` 去重 GeneID，再按注释家族确定可比较集合；2,045 个蛋白映射成 2,043 个 GeneID 后，应使用基因数计数。
+
+</details>
+
+### 10.2｜逐家族计算富集并校正
+
+各家族的 N 和 n 由独立的 annotated_background.tsv 确定。term 表中的背景成员数已限定为10–500，按默认条目上限进一步筛选后，计算超几何右尾 P 值，并对该家族全部合格条目做 BH 校正，零交集条目也参与校正。
+
+<details><summary>展开看：N、K、n、k 怎么在集合中定位</summary>
+
+| 量 | 从哪个集合数出 | 输出列 |
+|---|---|---|
+| N | 该家族全部已注释背景 | `background_annotated` |
+| K | 背景中属于当前条目的基因 | `term_background` |
+| n | 已注释背景中的候选 | `query_annotated` |
+| k | 这些候选与当前条目的交集 | `overlap` |
+
+想象在 N 个背景基因中抽取 n 个；检验问抽到至少 k 个当前条目成员是否少见。`intersect()` 求交集，得到 `hits`，再用 `length()` 计数。
+
+</details>
+
+<details><summary>展开看：为什么命中数相同，P 值仍会不同</summary>
+
+相同 k 在不同的 N、K、n 下有不同的机会背景。`phyper(k-1, ..., lower.tail=FALSE)` 计算至少 k 次命中的右尾概率，再由 `p.adjust()` 得到家族内 `fdr_bh`。读结果时先看四个计数，再看 P 与 FDR；富集不能单独说明通路被激活还是抑制。
+
+</details>
+
+```{r l10_s02}
+families <- c("BP", "MF", "CC", "Reactome")
+results <- vector("list", length(families))
+names(results) <- families
+for (family in families) {
+    rows <- term_gene[term_gene$family == family, , drop = FALSE]
+    rows$GeneID <- as.character(rows$GeneID)
+    term_ids <- unique(as.character(rows$term))
+    annotated <- as.character(annotated_input$GeneID[annotated_input$family == family])
+    query_annotated <- intersect(query, annotated)
+    n <- length(query_annotated)
+    N <- length(annotated)
+    one <- lapply(term_ids, function(term_id) {
+        term_rows <- rows[rows$term == term_id, , drop = FALSE]
+        members <- unique(term_rows$GeneID)
+        hits <- sort(intersect(members, query_annotated))
+        K <- length(members)
+        k <- length(hits)
+        data.frame(family = family, term = term_id, description = as.character(term_rows$description[1]), 
+            overlap = k, query_annotated = n, term_background = K, background_annotated = N, 
+            p_value = stats::phyper(k - 1L, K, N - K, n, lower.tail = FALSE), gene_ids = paste(hits, 
+                collapse = ";"), stringsAsFactors = FALSE)
+    })
+    table <- do.call(rbind, one)
+    table$fdr_bh <- stats::p.adjust(table$p_value, method = "BH")
+    table <- table[order(table$fdr_bh, table$p_value, table$term), , drop = FALSE]
+    rownames(table) <- NULL
+    results[[family]] <- table
+    write_tsv(table, file.path(out, paste0("enrichment_", family, ".tsv")))
+}
+```
+
+### 合并各家族的检验结果
+
+```{r functional_summary}
+enrichment <- do.call(rbind, results)
+write_tsv(enrichment, file.path(out, "enrichment_all_families.tsv"))
+
+course_table(enrichment, columns=c("family","term","overlap","background_annotated","p_value","fdr_bh"))
+```
+各家族完成计算后合并结果。未注释基因不等于该家族的阴性注释；已纳入检验但没有候选命中的条目仍保留。
+
+### 10.3｜汇总检验并绘制富集图
+
+汇总每个家族的检验项数和当前设置的 FDR 阈值下的条目数，绘制有候选交集的代表条目。
+
+```{r l10_s03}
+comparison <- do.call(rbind, lapply(families, function(f) data.frame(family = f, tested_terms = nrow(results[[f]]), 
+    significant = sum(results[[f]]$fdr_bh < settings$fdr))))
+write_tsv(comparison, file.path(out, "family_summary.tsv"))
+show <- do.call(rbind, lapply(results, function(z) head(z[z$overlap > 0, ], 6)))
+show$label <- factor(paste(show$family, show$description, sep = ": "), levels = rev(paste(show$family, 
+    show$description, sep = ": ")))
+p <- ggplot2::ggplot(show, ggplot2::aes(-log10(fdr_bh), label, size = overlap, colour = family)) + 
+    ggplot2::geom_vline(xintercept = -log10(settings$fdr), linetype = 2, colour = "grey65") + ggplot2::geom_point() + 
+    ggplot2::labs(x = "-log10(BH FDR)", y = NULL, title = "Functional enrichment", size = "Hits", 
+        colour = "Family") + theme_course()
+save_plot(p, out, "functional_enrichment", 11, 8)
+
+course_table(comparison)
+```
+> 默认参数参考结果：BP、MF、CC、Reactome 检验数为 1,888、338、282、342；默认 FDR=0.05 下的显著条目数为 2、0、0、0。本次结果以代码格输出为准。
+
+*横轴为 −log10(BH FDR)，虚线表示当前设置的 FDR 阈值；点大小表示候选命中数，颜色区分 BP、MF、CC 与 Reactome。*
+
+### 10.4｜构建 STRING 诱导网络
+
+输入边组成无向图，STRING 综合分数用作布局权重，图中展示候选节点及其网络邻居。节点位置只帮助呈现连接关系。
+
+```{r l10_s04}
+candidate_names <- as.character(candidates$gene_symbol)
+network <- read_tsv(input("string_induced_edges.tsv"))
+stopifnot(nrow(network) == 77L, all(network$ncbiTaxonId == 9606))
+graph <- igraph::graph_from_data_frame(data.frame(from = network$preferredName_A, to = network$preferredName_B, 
+    score = as.numeric(network$score)), directed = FALSE)
+set.seed(settings$seed)
+layout <- igraph::layout_with_fr(graph, weights = igraph::E(graph)$score)
+layout <- igraph::norm_coords(layout, xmin = -1, xmax = 1, ymin = -1, ymax = 1)
+vertices <- data.frame(name = igraph::V(graph)$name, x = layout[, 1], y = layout[, 2], candidate = igraph::V(graph)$name %in% 
+    candidate_names)
+edgelist <- as.data.frame(igraph::as_edgelist(graph), stringsAsFactors = FALSE)
+names(edgelist) <- c("from", "to")
+edges <- merge(edgelist, vertices[c("name", "x", "y")], by.x = "from", by.y = "name")
+names(edges)[names(edges) == "x"] <- "x"
+names(edges)[names(edges) == "y"] <- "y"
+edges <- merge(edges, vertices[c("name", "x", "y")], by.x = "to", by.y = "name", suffixes = c("", 
+    "_end"))
+names(edges)[names(edges) == "x_end"] <- "xend"
+names(edges)[names(edges) == "y_end"] <- "yend"
+score_key <- paste(network$preferredName_A, network$preferredName_B, sep = "|")
+reverse_key <- paste(network$preferredName_B, network$preferredName_A, sep = "|")
+edge_key <- paste(edges$from, edges$to, sep = "|")
+score_lookup <- c(stats::setNames(as.numeric(network$score), score_key), stats::setNames(as.numeric(network$score), 
+    reverse_key))
+edges$score <- unname(score_lookup[edge_key])
+```
+
+### 绘制网络
+
+```{r functional_network_plot}
+network_plot <- ggplot2::ggplot() + ggplot2::geom_segment(data = edges, ggplot2::aes(x = x, 
+    y = y, xend = xend, yend = yend, linewidth = score), colour = "#9AA6B2", alpha = 0.48) + 
+    ggplot2::geom_point(data = vertices, ggplot2::aes(x = x, y = y, fill = candidate), shape = 21, 
+        size = 3.4, colour = "white", stroke = 0.7) + ggplot2::geom_text(data = vertices[vertices$candidate, 
+    , drop = FALSE], ggplot2::aes(x = x, y = y, label = name), nudge_y = 0.07, size = 3, fontface = "bold", 
+    check_overlap = TRUE) + ggplot2::scale_fill_manual(values = c(`FALSE` = "#A9B4BE", `TRUE` = "#D96B32"), 
+    labels = c("Network neighbor", "Candidate protein"), name = NULL) + ggplot2::scale_linewidth(range = c(0.25, 
+    1.2), guide = "none") + ggplot2::labs(title = "STRING induced functional association network", 
+    subtitle = "Candidate proteins are highlighted; edges are not direct drug effects", x = NULL, 
+    y = NULL) + ggplot2::coord_equal(ylim = c(-1.15, 1.15)) + theme_course() + ggplot2::theme_void(base_size = 12) + 
+    ggplot2::theme(legend.position = "bottom", plot.title = ggplot2::element_text(face = "bold"), 
+        plot.margin = ggplot2::margin(12, 12, 12, 12))
+save_plot(network_plot, out, "string_induced_network", width = 8.5, height = 7)
+
+data.frame(nodes=nrow(vertices),edges=nrow(network))
+```
+77 条边代表功能关联，不表示直接结合、作用方向或药物效应。
+
+*橙色高亮为候选蛋白，灰色为网络邻居；连线表示 STRING 功能关联，线宽随关联分数变化，不代表直接结合或因果方向。*
+
+### 10.5｜按类别整理药物证据
+
+将直接靶点、复合物或家族组分，以及候选到药物靶点的 STRING 关联分别去重、计数，按候选展示结果。
+
+<details><summary>展开看：网络连到药物靶点算哪种证据</summary>
+
+这类记录进入 `network`，不自动变成 `direct`。`component` 则保留复合物或家族组分关系。读 `counts` 时把 `gene_symbol`、`evidence_class`、`drug_count` 连起来看；输入行数和去重后的药物数不同，53 条网络记录不能写成 53 种直接靶向药物。
+
+</details>
+
+```{r l10_s05}
+direct <- read_tsv(input("drug_direct_targets.tsv"))
+components <- read_tsv(input("drug_complex_components.tsv"))
+links <- read_tsv(input("drug_network_associations.tsv"))
+stopifnot(nrow(direct) == 0L, nrow(components) == 5L, nrow(links) == 53L)
+class_counts <- list(direct = data.frame(uniprot = as.character(direct$uniprot), drug = as.character(direct$molecule_chembl_id)), 
+    component = data.frame(uniprot = as.character(components$uniprot), drug = as.character(components$molecule_chembl_id)), 
+    network = data.frame(uniprot = as.character(links$candidate_uniprot), drug = as.character(links$molecule_chembl_id)))
+association_rows <- do.call(rbind, lapply(names(class_counts), function(class_name) {
+    x <- unique(class_counts[[class_name]])
+    data.frame(uniprot = x$uniprot, drug = x$drug, evidence_class = rep(class_name, nrow(x)), 
+        stringsAsFactors = FALSE)
+}))
+association_rows$gene_symbol <- candidates$gene_symbol[match(association_rows$uniprot, candidates$uniprot)]
+association_rows <- association_rows[!is.na(association_rows$gene_symbol), , drop = FALSE]
+write_tsv(association_rows, file.path(out, "drug_association_evidence.tsv"))
+counts <- as.data.frame(table(factor(association_rows$gene_symbol, levels = candidates$gene_symbol), 
+    factor(association_rows$evidence_class, levels = c("direct", "component", "network"))), 
+    stringsAsFactors = FALSE)
+names(counts) <- c("gene_symbol", "evidence_class", "drug_count")
+counts$drug_count <- as.integer(counts$drug_count)
+write_tsv(counts, file.path(out, "drug_association_counts.tsv"))
+```
+
+### 绘制药物证据分类
+
+```{r functional_drug_plot}
+drug_plot <- ggplot2::ggplot(counts, ggplot2::aes(x = gene_symbol, y = drug_count, fill = evidence_class)) + 
+    ggplot2::geom_col(position = "dodge", width = 0.72) + ggplot2::scale_fill_manual(values = c(direct = "#B44A4A", 
+    component = "#D99B31", network = "#4D8C78"), breaks = c("direct", "component", "network"), 
+    labels = c("Direct target", "Complex/family component", "STRING-associated target"), name = NULL) + 
+    ggplot2::labs(title = "Curated drug evidence by candidate", subtitle = "Unique molecule counts by evidence class; STRING links indicate association only", 
+        x = NULL, y = "Unique molecules") + theme_course() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 35, 
+    hjust = 1))
+save_plot(drug_plot, out, "drug_association_classes", width = 8.5, height = 5.4)
+
+course_table(counts, n=21)
+```
+本次三类记录数为 0、5、53；网络关联单独列示，不并入直接靶点数。
+
+*横轴为候选基因，纵轴为各证据类别中的独立药物数；颜色区分直接靶点、复合物/家族组分和 STRING 网络关联。*
+
+### 10.6｜输出摘要
+
+汇总候选和背景规模、各家族检验结果、网络边数及三类药物证据行数，可与保存的结果表对照。
+
+```{r l10_s06}
+cat("Candidates:", length(query), "of", length(background_genes), "unique GeneIDs from 2045 proteins\n")
+print(comparison, row.names = FALSE, digits = 5)
+cat("STRING induced edges:", nrow(network), "\n")
+cat("Drug evidence rows: direct=", nrow(direct), ", complex/family components=", nrow(components), 
+    ", network associations=", nrow(links), "\n", sep = "")
+cat(course_output_path(), "\n")
+```
+阅读摘要时，要把富集检验结果、网络关联和药物资料分别解释。资料库中的关联不能直接当作作用机制或药效证据。
+
+原示例输出见 [results/10_functional/](../results/10_functional/)。
+
+### 练习与参考答案
+
+先预测把 `max_term_size` 从 500 改为 300 后，检验条目数、保留条目的原始 P 和 BH 值是否都会改变。实际修改参数，从参数格向下重跑；按 `family` 与 `term` 对照两次结果，再解释为什么完整注释背景不变，BH 值却可能变化。最后检查图中代表条目是否也改变。
+
+1. **为什么 GO 家族的检验背景不能直接用全部 2,043 个 GeneID？**
+
+   <details><summary>参考答案</summary>
+   
+   各家族的注释覆盖不同。N 应取该家族完整已注释背景的基因数，n 应取其中的候选基因数。
+   
+   </details>
+
+2. **若将 term 背景成员数上限调低，哪些结果需更新？**
+
+   <details><summary>参考答案</summary>
+   
+   完整注释背景中的 N、n 保持不变，按新上限筛选 term 后，在各家族保留的检验项中重做 BH。删除其他条目不会改变保留条目的原始 P，但可能改变校正 P。当前教学输入只包含 10–500 范围内的条目，扩大范围需从原始注释重新整理。
+   
+   </details>
+
+3. **53 条网络药物关联是否表示 53 种药直接作用于候选？**
+
+   <details><summary>参考答案</summary>
+   
+   不表示。本例直接靶点为 0、复合物/家族组分为 5、网络关联为 53。网络关联记录反映候选与药物靶点之间的联系，不能证明药物直接结合候选或产生药效。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](10_functional.Rmd)
+
+当前会话结果保存在 `课程资源/work/results/本课目录/`。修改上游参数后，请重跑相应步骤及后续单元格。

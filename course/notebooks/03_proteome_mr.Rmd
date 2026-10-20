@@ -1,0 +1,214 @@
+---
+title: "03｜蛋白组 MR：发现、去重与外部验证"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+将单工具分析扩展到2709个蛋白时，需要处理重复记录和工具之间的相关性。同一变异可能出现在多个蛋白测量来源中，却对应疾病 GWAS 中的同一份观测；重复使用会虚增信息。本章依据暴露证据去重并确定工具集合，用有符号 LD 计算广义 IVW，再到另外两个结局数据中查看外部支持。
+
+本课会得到全蛋白检验表、候选名单及外部结局比较图。
+
+本章默认代码在测试机上约需 22 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('03', root=root)
+data.frame(lesson = "03", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认参数控制 LD 筛选和结果判定；检验家族仍为分析前确定的2709个蛋白。调整参数后，候选数值以代码格输出为准。
+
+```{r parameters}
+settings <- list(max_abs_r = 0.95, discovery_alpha = 0.05, external_p = 0.05)
+settings
+```
+
+默认参数完整脚本：[03_proteome_mr.R](../lessons/03_proteome_mr.R)。
+
+正文中的数值来自 R 4.4.2 下的示例运行，代码单元格会显示你本次运行的结果。第一次学习建议使用默认参数；做练习时另存结果，便于比较参数变化的影响。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [exposures.tsv](../data/genetics/exposures.tsv) | 3802条合格暴露来源记录，对应预先固定的2709蛋白家族。 |
+| [within_protein_ld.tsv](../data/genetics/within_protein_ld.tsv) | 蛋白内部变异对的有符号相关系数，与参考等位基因方向一起使用。 |
+| [mvp.tsv](../data/genetics/mvp.tsv) | 发现结局：MVP；SE由区间推算，源P与区间导出规则仍有口径差异。 |
+| [stuart.tsv](../data/genetics/stuart.tsv) | 外部结局：Stuart 银屑病，使用报告SE。 |
+
+### 方法要点
+
+暴露表的一行对应某来源中一个蛋白与一个变异的关联，不能当作一个受试者。`unit` 说明蛋白效应尺度；疾病效应使用 log-OR。先识别记录代表谁，才能判断哪些信息重复、哪些可以共同估计。
+
+令 x 为变异对蛋白的效应，y 为方向一致的疾病效应，R 为有符号 LD。疾病效应协方差矩阵为 `S = outer(SE_Y, SE_Y) * R`；广义 IVW 为 `beta = (xᵀ S⁻¹ y)/(xᵀ S⁻¹ x)`，一阶 `SE = sqrt(1/(xᵀ S⁻¹ x))`。因此，相关变异不能按互相独立的观测合并。同一蛋白的同一实际变异先按暴露 F 选一个来源，再用 LD 筛选。默认发现阈值为0.05/2709；默认外部支持阈值为名义P<0.05，至少一个外部结局达到该阈值才列为候选，效应方向一致性另列。没有可计算结局的蛋白仍保留在检验家族里。
+
+### 03.1｜载入完整检验家族
+
+读取全部暴露记录，以及同一蛋白内部的 LD 信息。检验家族的分母2709在查看疾病关联之前已经确定，即使部分结局缺失，或只展示显著蛋白，也仍使用这一分母。表中分别记录暴露和疾病效应的来源。
+
+```{r l03_s01}
+source("R/common.R")
+source("R/genetics.R")
+out <- lesson_output("03_proteome_mr")
+x <- read_tsv("data/genetics/exposures.tsv")
+ld <- load_ld()
+stopifnot(length(unique(x$uniprot)) == 2709L)
+
+data.frame(source_rows = nrow(x), proteins = length(unique(x$uniprot)))
+```
+输入包含2709个不同的 UniProt 标识，构成本章的完整检验家族。阅读结果时，要区分“能够计算出估计”和“估计达到显著性阈值”。
+
+### 03.2｜依据暴露证据确定工具集合
+
+<details><summary>展开看：去重和 LD 筛选分别处理什么</summary>
+
+同一实际变异在两个来源中出现时，可能仍对应同一份疾病效应，重复计入会虚增信息。不同变异也可能因共同遗传而相关，这就是这里的 LD 问题。去重处理重复记录，LD 筛选处理不同变异之间的相关性；筛选后仍保留的相关性交给协方差矩阵处理。
+
+</details>
+
+freeze_instruments() 按暴露 F 排序，为每个蛋白的每个实际变异保留一条记录，然后根据有符号 LD 的绝对值筛选工具。默认主分支保留 |r|≤0.95 的组合；LD 缺失或数值不稳定时，采用既定的单工具规则。函数源码见[统计函数附录](../COURSE.md#appendix-genetics)。
+
+```{r l03_s02}
+plan <- freeze_instruments(x, ld, max_abs_r = settings$max_abs_r)
+write_tsv(plan, file.path(out, "selected_instruments.tsv"))
+
+course_table(as.data.frame(table(plan$selection_reason, plan$selected)))
+```
+selected_instruments.tsv 列出选中和未选中的唯一变异，并说明选择原因。工具集合完全依据暴露证据确定，此时尚未使用疾病 P 值。
+
+### 03.3｜对两个结局分别计算
+
+<details><summary>展开看：公式中的 x、y、R、S 对应哪些数据</summary>
+
+公式的 x 是蛋白效应向量，y 是已协调方向的疾病效应向量，R 是同一批变异的有符号相关矩阵。S 再用疾病 SE 将相关系数换成效应估计的协方差。代码中的 `x`、`y` 则是整张输入表；`givw()` 实际接收筛选后的 `v$beta`、`v$y`、`v$sy` 和 LD 矩阵。公式用到的是表中的列。
+
+</details>
+
+已确定的工具集合分别与 MVP 和 Stuart 对齐。analyse_outcome() 记录工具能否完成等位基因协调、是否进入计算，givw() 则根据协方差矩阵计算估计。两个结局分别分析，外部结果用于检查支持情况，不合并到发现阶段。
+
+这一步在测试机上约需 17 秒。出现 `[*]` 时正在计算，请等待后再运行下一格。
+
+```{r l03_s03}
+results <- list()
+harmonized <- list()
+for (label in c("mvp", "stuart")) {
+    y <- read_tsv(paste0("data/genetics/", label, ".tsv"))
+    fit <- analyse_outcome(plan, y, ld)
+    fit$results$outcome <- label
+    fit$harmonized$outcome <- label
+    results[[label]] <- fit$results
+    harmonized[[label]] <- fit$harmonized
+}
+all <- do.call(rbind, results)
+write_tsv(all, file.path(out, "all_outcomes.tsv"))
+write_tsv(do.call(rbind, harmonized), file.path(out, "harmonization.tsv"))
+
+course_table(all, columns = c("gene", "outcome", "observed_variants", "beta", "se", "p"))
+```
+all_outcomes.tsv 包含每个蛋白、每个结局的估计与覆盖数；harmonization.tsv 可查看方向和排除情况。计算缺失保留 NA。
+
+读一行时先看 `outcome` 和 `observed_variants`，再看 `beta`、`se` 与 `p`。beta 为正表示每单位蛋白升高对应的疾病 log-OR 为正；单位仍需回看暴露来源。
+
+<details><summary>展开看：循环为什么得到两个结果表</summary>
+
+`label` 依次取两个结局名称；`results[[label]]` 保存对应结果，最后 `rbind` 按行合并，并用 `outcome` 保留来源。工具计划固定，各结局实际可匹配的工具数仍可能不同。可对照[循环读法](assets/reading_guide.html#loops)理解这一过程。
+
+</details>
+
+### 03.4｜应用发现阈值和外部支持规则
+
+<details><summary>展开看：为什么先看发现阈值，再看外部结果</summary>
+
+先在预定的 2709 个蛋白中控制发现阶段的多重检验，再查看候选的外部名义支持，最后核对方向。`candidate` 本身没有要求方向一致；`direction_agrees` 单独回答这个问题。`match()` 按 UniProt 找对应行，可参照[匹配说明](assets/reading_guide.html#matching)，不要把表格行号当作蛋白身份。
+
+</details>
+
+Stuart 外部结果按 UniProt 与 MVP 结果匹配，避免表格行序造成错配。发现阶段按默认 alpha=0.05 使用 Bonferroni 阈值，外部支持按默认阈值采用名义 P<0.05；效应方向单独判断，因此也能识别“显著但反向”的结果。
+
+```{r l03_s04}
+main <- results$mvp
+for (label in c("stuart")) {
+    v <- results[[label]][match(main$uniprot, results[[label]]$uniprot), ]
+    main[[paste0(label, "_beta")]] <- v$beta
+    main[[paste0(label, "_p")]] <- v$p
+}
+main$discovery <- main$p < settings$discovery_alpha/2709
+main$external_nominal <- main$stuart_p < settings$external_p
+main$candidate <- main$discovery & main$external_nominal
+main$direction_agrees <- ((main$stuart_p < settings$external_p) & main$beta * main$stuart_beta > 0)
+write_tsv(main, file.path(out, "all_proteins.tsv"))
+selected <- main[which(main$candidate), ]
+write_tsv(selected, file.path(out, "candidates.tsv"))
+
+course_table(selected, n = 12, columns = c("gene", "beta", "p", "stuart_p", "direction_agrees"))
+```
+> 默认参数参考结果：按上述规则得到7个候选：IL12B、SGSH、TNFAIP3、DDX58、IL7R、PRSS53、UBLCP1。这份名单由结果筛选产生，分析前没有按这些名称预选蛋白；本次候选名单以代码格输出为准。
+
+### 03.5｜比较两个结局的效应
+
+图中把同一蛋白在两个结局中的估计排在一起，用颜色区分数据来源。横轴为 log-OR，无关联值为0。比较时既要看点的位置，也要看区间宽度，才能同时了解估计差异与精度。
+
+```{r l03_s05}
+plotdata <- all[all$uniprot %in% selected$uniprot, ]
+plotdata$gene <- factor(plotdata$gene, levels = rev(selected$gene[order(selected$beta)]))
+p <- ggplot2::ggplot(plotdata, ggplot2::aes(x = beta, y = gene, colour = outcome)) + ggplot2::geom_vline(xintercept = 0, 
+    colour = "#A8B2B8", linetype = 2) + ggplot2::geom_pointrange(ggplot2::aes(xmin = CI_log_low, 
+    xmax = CI_log_high), position = ggplot2::position_dodge(0.55)) + ggplot2::scale_colour_manual(values = c(mvp = "#184E77", 
+    stuart = "#D97948")) + ggplot2::labs(x = "Log odds ratio per unit protein", 
+    y = NULL, colour = "Outcome", title = "Discovery and external outcomes", subtitle = "One observation per variant; signed-LD generalized IVW") + 
+    theme_course()
+save_plot(p, out, "discovery_and_validation", 8, 5.5)
+print(selected[, c("gene", "beta", "se", "p", "stuart_p", "direction_agrees")])
+```
+默认参数参考结果中，这七个候选在外部结果中的方向一致；本次方向以代码格输出为准。比较各数据集的估计及区间，可寻找效应偏移或精度差异。
+
+*两种颜色分别代表 MVP、Stuart；点为广义 IVW 的 log-OR，横线为95%区间，虚线为零效应。*
+
+原示例输出见 [results/03_proteome_mr/](../results/03_proteome_mr/)。
+
+### 练习与参考答案
+
+先预测收紧 LD 上限会怎样影响工具数量，再将 `max_abs_r` 从 0.95 改为 0.8，运行参数格并从 03.2 向下重跑。按蛋白比较工具覆盖、估计与候选标记，解释哪些变化符合预期。保留默认结果，只改一个参数；下面的问题帮助检查你是否理解筛选规则。
+
+1. **同一SNP在两个蛋白测量来源中都有记录，为什么不能作为两个独立疾病观测？**
+
+   <details><summary>参考答案</summary>
+   
+   它们可能共享同一份疾病 GWAS 效应。重复计权会把一份信息计算多次；这里先按暴露 F 固定一个来源，再处理不同变异之间的 LD。
+   
+   </details>
+
+2. **将发现阶段分母改为7，会发生什么？**
+
+   <details><summary>参考答案</summary>
+   
+   阈值会大幅放宽，但7是发现后的候选数，不是事先受检的蛋白数。该改法改变了多重检验问题，不能解释为同一次发现分析。
+   
+   </details>
+
+3. **外部P<0.05但beta与MVP反向，应查什么？**
+
+   <details><summary>参考答案</summary>
+   
+   核对变异、EA/OA、log-OR单位和数据来源后，还需考虑表型定义及样本差异。外部名义支持和方向一致性应分别报告，反向结果也按原方向呈现。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](03_proteome_mr.Rmd)
+
+本次结果保存在 `课程资源/work/results/本课目录/`。修改参数后，请从受影响的步骤继续运行。

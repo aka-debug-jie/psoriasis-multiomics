@@ -1,0 +1,241 @@
+---
+title: "11｜22种相关疾病：固定检验家族与候选结果"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+本课分析预先确定的 17 个蛋白与 22 个 MVP EUR 临床结局之间的遗传关联，并从中查看七个正式候选的结果。各蛋白的工具变量按 LD 规则选定后，用于各结局的等位基因协调和效应估计。主要多重检验家族包含 17×22 的完整 374 项；七个候选对应其中 154 项，其结果保留完整家族计算的 BH 值，也可另作探索性校正。
+
+本课会得到相关疾病关联表和效应比较图。
+
+本章默认代码在测试机上约需 4 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('11', root=root)
+data.frame(lesson = "11", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认 FDR 阈值为0.05，该参数只改变显著性标记；完整 374 项和候选 154 项检验的 BH 计算保持不变。
+
+```{r parameters}
+settings <- list(fdr = 0.05)
+settings
+```
+
+默认参数完整脚本：[11_clinical_mr.R](../lessons/11_clinical_mr.R)。
+
+正文中的数字来自 R 4.4.2 示例运行，单元格会显示当前会话的结果。建议用默认参数完成一遍分析，再另存调整参数后的结果，进行比较。
+
+公开教学面板采用 GWAS Catalog 中 22 个具有区域索引的 MVP 欧洲祖源表型，与科研版 FinnGen 面板分开。心肌梗死、基底细胞癌和甲状腺功能减退等是新增教学示例，宽泛表型按其实际名称展示。输入表列出编号、定义、样本量和差异。这些结局共享队列，部分还与 MVP 发现表型重叠，不能视为独立重复验证。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [family_17.tsv](../data/clinical/family_17.tsv) | 预先固定的 17 个蛋白分析家族。 |
+| [endpoints.tsv](../data/clinical/endpoints.tsv) | 22 个结局代码、表型定义、病例数及对照数。 |
+| [exposures.tsv](../data/genetics/exposures.tsv) | 蛋白暴露关联及遗传工具所需效应信息；仅保留固定 17 蛋白。 |
+| [primary_candidates.tsv](../data/genetics/primary_candidates.tsv) | 七个正式候选及其预先选择标记。 |
+| [clinical](../data/clinical) | 按 endpoints.tsv 代码命名的结局关联文件；每个结局参与 17 个蛋白的分析。 |
+
+### 方法说明
+
+`endpoints` 一行定义一种临床结局，关联文件一行记录一个变异的结局效应，最终结果一行代表一个蛋白与结局的组合。模型 `beta` 的单位是每分析单位蛋白变化对应的 log-OR。本章用于比较候选在不同结局中的关联方向，不能由热图直接判断治疗获益和风险。
+
+选定工具变量后，对各结局进行等位基因协调和广义 IVW 估计；没有可协调工具的组合保留 NA。多重检验范围在查看候选结果前就已确定，为 17 个蛋白与 22 个结局的组合，共 374 项。
+
+完整 374 行的 P 值参与 BH 校正后，才提取七个正式候选对应的 154 行，因此候选结果保留了完整家族中的校正值。单独对 154 项做 BH 可提供探索性结果，但不能替代主分析。
+
+热图用颜色表示 log odds ratio，用不同符号区分完整家族 BH 与候选子集探索性 BH。各表型代码应按自身定义解释；这些遗传关联不能直接当作因果效应或临床效用。
+
+### 11.1｜载入固定家族并选定工具变量
+
+读取 17 个蛋白、22 个结局、暴露数据和七个正式候选。核对规模及候选标记后，按蛋白内 LD 阈值选定工具变量。
+
+<details><summary>展开看：看疾病名称之前为什么先查结局定义</summary>
+
+同一大类疾病可有不同病例范围和对照排除条件。先在 `endpoints` 读 `phenocode`、`phenotype`、`num_cases`、`num_controls`，再解释结果。不能因为两个简称相近就合并，也不能把不同结局的 P 值差异全部归因于生物学效应大小。
+
+</details>
+
+```{r l11_s01}
+source("R/common.R")
+source("R/genetics.R")
+suppressPackageStartupMessages(library(ggplot2))
+output <- lesson_output("11_clinical_mr")
+family <- read_tsv("data/clinical/family_17.tsv")
+endpoints <- read_tsv("data/clinical/endpoints.tsv")
+exposures <- read_tsv("data/genetics/exposures.tsv")
+formal_candidates <- read_tsv("data/genetics/primary_candidates.tsv")
+ld <- load_ld()
+stopifnot(length(unique(family$uniprot)) == 17L, nrow(endpoints) == 22L, nrow(formal_candidates) == 
+    7L, all(as.character(formal_candidates$primary_selected) == "True"))
+exposures <- exposures[exposures$uniprot %in% family$uniprot, , drop = FALSE]
+stopifnot(setequal(unique(exposures$uniprot), family$uniprot))
+plan <- freeze_instruments(exposures, ld, max_abs_r = 0.95)
+write_tsv(plan, file.path(output, "frozen_instruments.tsv"))
+
+data.frame(proteins=nrow(family),endpoints=nrow(endpoints),candidates=nrow(formal_candidates))
+```
+后续各结局分析都从这份工具表出发。
+
+### 11.2｜逐结局协调并估计效应
+
+逐个读取结局文件，将预先选定的工具变量与结局数据协调，估计效应，并保留结果及协调后的数据。
+
+<details><summary>展开看：循环怎样把 22 个结局放进结果表</summary>
+
+每轮 `i` 指向结局表的一行，`code` 取出该行的 `phenocode`，再读取对应文件并调用 `analyse_outcome()`；`fits[[i]]` 保存该轮结果，之后再按行合并。运行后先看 `gene`、`observed_variants`，再读 `beta`、`se`、`p`。NA 表示不能估计，不代表效应为零。语法见[循环与列表](assets/reading_guide.html#loops)。
+
+</details>
+
+```{r l11_s02}
+fits <- vector("list", nrow(endpoints))
+harmonized <- vector("list", nrow(endpoints))
+for (i in seq_len(nrow(endpoints))) {
+    code <- endpoints$phenocode[i]
+    y <- read_tsv(file.path("data/clinical", paste0(code, ".tsv")))
+    fit <- analyse_outcome(plan, y, ld)
+    fit$results$phenocode <- code
+    fit$harmonized$phenocode <- code
+    fits[[i]] <- fit$results
+    harmonized[[i]] <- fit$harmonized
+}
+
+course_table(fits[[1]],columns=c("gene","beta","se","p","observed_variants"))
+```
+无法估计的组合仍保留在结果表中，对应效应字段为 NA。
+
+### 11.3｜在完整 374 项中校正
+
+合并全部蛋白与结局的结果，确认家族完整后，对全部可计算的 P 值做 BH 校正，固定 n=374；66 项无法估计的结果保留 NA。补充结局定义，并按预定顺序保存结果。
+
+```{r l11_s03}
+all_results <- do.call(rbind, fits)
+stopifnot(nrow(all_results) == 374L, setequal(unique(all_results$phenocode), endpoints$phenocode), 
+    setequal(unique(all_results$uniprot), family$uniprot))
+all_results$BH_original_family_374 <- p.adjust(all_results$p, method = "BH", n = 374L)
+all_results <- merge(all_results, endpoints, by = "phenocode", all.x = TRUE, sort = FALSE, 
+    suffixes = c("", "_endpoint"))
+all_results <- all_results[match(paste(rep(family$uniprot, each = nrow(endpoints)), rep(endpoints$phenocode, 
+    times = nrow(family))), paste(all_results$uniprot, all_results$phenocode)), ]
+write_tsv(all_results, file.path(output, "clinical_all_374.tsv"))
+
+data.frame(comparisons=nrow(all_results),estimable=sum(is.finite(all_results$p)))
+```
+主分析使用全家族 P 值的排序，校正在提取七个正式候选之前完成。
+
+<details><summary>展开看：为什么保留没有漂亮结果的比较</summary>
+
+17×22 定义了原先要回答的全部问题。先挑出显著候选再校正，会改变检验范围。主列 `BH_original_family_374` 用完整家族计算；候选的探索性列另用 154 项。比较两列时应保留列名，不能挑较小的一列统一称为主分析 FDR。
+
+</details>
+
+### 11.4｜提取候选并保留两种校正
+
+提取七个候选的 154 个组合，保留完整 374 项计算得到的 BH 值，并另算候选集的探索性 BH。
+
+```{r l11_s04}
+formal_ids <- unique(formal_candidates$uniprot)
+candidate_results <- all_results[all_results$uniprot %in% formal_ids, , drop = FALSE]
+stopifnot(nrow(candidate_results) == 154L, setequal(unique(candidate_results$uniprot), formal_ids))
+candidate_results$BH_candidate_family_exploratory <- p.adjust(candidate_results$p, method = "BH", 
+    n = 154L)
+candidate_results$candidate_family_size <- 154L
+write_tsv(candidate_results, file.path(output, "clinical_candidates_154.tsv"))
+write_tsv(do.call(rbind, harmonized), file.path(output, "harmonized_374.tsv"))
+
+course_table(candidate_results,columns=c("gene","phenocode","beta","p","BH_original_family_374","BH_candidate_family_exploratory"))
+```
+这两列校正值对应不同的检验范围：完整家族用于主分析，154 行候选子集用于探索。
+
+### 11.5｜绘制临床效应热图
+
+热图以结局和候选蛋白为坐标，颜色呈现效应的方向与大小，点形标出两种校正下达到阈值的结果。
+
+<details><summary>展开看：同一个蛋白跨疾病变号该怎样读</summary>
+
+先确认蛋白变化单位、等位基因协调和结局定义，再读方向与不确定性。正 beta 表示该结局优势增高，负值表示降低；这不是发病概率差。多个 MVP 结局可能共享样本或对照，也可能与前文分析共享疾病 GWAS，不能把多格同向当成多次完全独立验证。
+
+</details>
+
+```{r l11_s05}
+plot_data <- candidate_results
+plot_data$gene <- factor(plot_data$gene, levels = rev(formal_candidates$gene[order(formal_candidates$gene)]))
+plot_data$phenocode <- factor(plot_data$phenocode, levels = endpoints$phenocode)
+endpoint_labels <- vapply(sub(" [(]PheCode.*", "", endpoints$phenotype), function(x) paste(strwrap(x, width=38), collapse="\n"), "")
+names(endpoint_labels) <- endpoints$phenocode
+plot_data$marker <- ifelse(!is.na(plot_data$BH_original_family_374) & plot_data$BH_original_family_374 < settings$fdr, "Full family", ifelse(!is.na(plot_data$BH_candidate_family_exploratory) & plot_data$BH_candidate_family_exploratory < settings$fdr, "Exploratory only", "Not below either threshold"))
+plot <- ggplot(plot_data, aes(x = phenocode, y = gene, fill = beta)) + geom_tile(colour = "white", 
+    linewidth = 0.45) + geom_point(data = plot_data[plot_data$marker != "Not below either threshold", 
+    ], aes(shape = marker), size = 1.8, colour = "#263746") + scale_shape_manual(values = c(`Full family` = 16, 
+    `Exploratory only` = 1), name = NULL) + scale_fill_gradient2(low = "#2878A5", mid = "#F7F8F8", 
+    high = "#B64D4D", midpoint = 0, na.value = "#D9E2E7", name = "Log odds ratio") + scale_x_discrete(labels = endpoint_labels) + coord_flip() + 
+    labs(title = "Clinical associations across 22 outcomes", subtitle = paste0("FDR threshold = ",settings$fdr,"; full family vs candidate exploration"), 
+        x = NULL, y = NULL) + theme_course() + theme(axis.text.x = element_text(angle = 55, 
+    hjust = 1, size = 8), panel.grid = element_blank(), legend.position = "bottom")
+save_plot(plot, output, "clinical_effect_heatmap", width = 10, height = 9.5)
+```
+点形区分完整检验家族与候选子集探索性校正；是否低于阈值以参数设置和代码格输出为准。
+
+*横轴为 22 个结局，纵轴为七个候选蛋白；填色表示 log odds ratio，蓝色负向、红色正向，浅色接近零，灰色为 NA。实心点表示完整 374 项家族达到阈值，空心点表示仅 154 项候选子集探索性校正达到阈值；具体阈值由参数设置。*
+
+### 11.6｜汇总家族规模与显著项
+
+汇总完整结果行数、候选比较数，以及完整家族 BH 达到阈值的候选结果数。
+
+```{r l11_s06}
+cat(sprintf("Full family: %d; seven-candidate comparisons: %d; BH374 significant: %d\n", nrow(all_results), 
+    nrow(candidate_results), sum(candidate_results$BH_original_family_374 < settings$fdr, na.rm = TRUE)))
+```
+报告结果时同时说明表型定义、效应方向、区间和校正家族，不同结局分别解读。
+
+原示例输出见 [results/11_clinical_mr/](../results/11_clinical_mr/)。
+
+### 练习与参考答案
+
+先预测将 `fdr` 从 0.05 改为 0.01 后，热图颜色、点形和 BH 数值分别会怎样。实际运行修改后的参数格，再从 11.5 向下重跑；对照候选结果表与图，解释为什么显著标记减少或不变，效应和校正值却保持原样。保留 374 项主家族。
+
+1. **为什么不能只拿 154 个候选 P 值并设置 n=374 来代替完整家族 BH？**
+
+   <details><summary>参考答案</summary>
+   
+   BH 需要全家族全部可计算 P 值的排序，并固定 n=374。仅保留候选会丢失其他 154 个可计算检验的排序信息；其余 66 项继续保留 NA，不能用 0 填补。
+   
+   </details>
+
+2. **将完整家族 FDR 阈值从 0.05 收紧为 0.01，哪些量应保持不变？**
+
+   <details><summary>参考答案</summary>
+   
+   beta、SE、原始 P 和已计算的 374 项 BH 值保持不变，显著性标记和图中符号可能改变。改变判定阈值不需要重新定义检验家族，也不应把 n 改成 154。
+   
+   </details>
+
+3. **可以把 MVP 的“局部及系统性狼疮”直接标成 SLE 吗？**
+
+   <details><summary>参考答案</summary>
+   
+   不能。这个来源还包含局部狼疮；应保留实际表型名称，并结合 PheCode 定义和病例选择解释，不能仅因名称相近就当成系统性红斑狼疮。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](11_clinical_mr.Rmd)
+
+当前会话结果保存在 `课程资源/work/results/本课目录/`。修改上游参数后，请重跑相应步骤及后续单元格。

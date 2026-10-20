@@ -1,0 +1,346 @@
+---
+title: "10 | Functional enrichment and association evidence"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics course"
+    language: R
+    name: ir-psoriasis
+---
+
+Which functions involve the seven candidate genes, and how are these genes connected to other proteins and drug targets? This chapter examines functional enrichment, STRING associations, and curated drug-target records separately. The opportunity background contains 2,045 measurable proteins, mapping to 2,043 unique GeneIDs. Each annotation family then defines its own annotated background.
+
+You will produce enrichment plots, a STRING network, and a plot separating the classes of drug evidence.
+
+The default analysis took about 8 seconds on the test machine, excluding reading and interaction. See [Chapter 0](00_start.ipynb) for the test configuration.
+
+### Prepare this chapter
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('10', root=root)
+data.frame(lesson = "10", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Parameters
+
+The defaults are max_term_size=500 and FDR=0.05. You can reduce the upper term-size limit within 10–500. The full annotated background stays fixed, but BH adjustment must be recalculated over the retained terms.
+
+```{r parameters}
+settings <- list(fdr = 0.05, max_term_size = 500L, seed = 20261017L)
+settings
+```
+
+Complete default-parameter script: [10_functional.R](../lessons/10_functional.R).
+
+Numbers in the text refer to the R 4.4.2 example run; cells show the results from your current session. Complete one run with the defaults before changing parameters, and save the changed results separately for comparison.
+
+This public edition uses Reactome release 92 in place of the research KEGG snapshot. The hypergeometric test and family-wise BH adjustment are unchanged; pathway memberships and reference results differ.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [candidates.tsv](../data/functional/candidates.tsv) | GeneID, gene symbol, and protein ID for the seven candidates; these define the query set. |
+| [opportunity_background.tsv](../data/functional/opportunity_background.tsv) | Available proteins in the opportunity background: 2,045 proteins map to 2,043 distinct GeneIDs. |
+| [term_gene.tsv](../data/functional/term_gene.tsv) | Long-format term–gene memberships and descriptions for BP, MF, CC, and Reactome. |
+| [annotated_background.tsv](../data/functional/annotated_background.tsv) | Annotated background genes for each family, used to determine N and n separately. |
+| [string_induced_edges.tsv](../data/functional/string_induced_edges.tsv) | Human STRING association edges and combined scores; this input contains 77 edges. |
+| [drug_direct_targets.tsv](../data/functional/drug_direct_targets.tsv) | Direct drug-target records for the candidates; the reference input has 0 rows. Inspect the cell output for the current count. |
+| [drug_complex_components.tsv](../data/functional/drug_complex_components.tsv) | Records linking candidates to complex or family components; this input has 5 rows. |
+| [drug_network_associations.tsv](../data/functional/drug_network_associations.tsv) | STRING associations between candidates and drug targets; the reference input has 53 rows. Inspect the cell output for the current count. |
+
+### How the analysis works
+
+A candidate-table row describes one candidate. A `term_gene` row describes one gene's membership of a term, so a gene can occur many times. A network-table row describes an association edge. These tables have different units of observation. We assess candidate functions against an eligible background and keep network and drug evidence in separate categories.
+
+Enrichment requires specifying which genes could enter the candidate set and which have annotations. BP, MF, CC, and Reactome each use their full annotated background and the candidates annotated within that family. The supplied term table retains terms with 10–500 background genes. Filtering terms does not redefine the annotated background.
+
+Each hypergeometric test uses four counts: N is the annotated background size, K is the number of background genes in the term, n is the number of annotated candidates, and k is the overlap between candidates and the term. Terms with no candidate overlap remain in the right-tail tests and family-specific BH adjustment. The plot shows representative overlapping terms; its dashed line follows `settings$fdr`, which defaults to 0.05.
+
+STRING edges represent functional associations. Drug records are separated into direct targets, complex/family components, and network associations. A network link alone does not establish direct binding or drug efficacy.
+
+### 10.1 | Define candidates and the opportunity background
+
+Read the candidate table, opportunity background, term–gene memberships, and full family-specific annotated backgrounds. Check the candidate count, the number of unique GeneIDs, and that every candidate belongs to the background.
+
+```{r l10_s01}
+source("R/common.R")
+required <- c("ggplot2", "igraph")
+missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing)) stop("请先安装课程依赖：", paste(missing, collapse = ", "))
+out <- lesson_output("10_functional")
+data_dir <- "data/functional"
+input <- function(name) file.path(data_dir, name)
+candidates <- read_tsv(input("candidates.tsv"))
+background <- read_tsv(input("opportunity_background.tsv"))
+term_gene <- read_tsv(input("term_gene.tsv"))
+annotated_input <- read_tsv(input("annotated_background.tsv"))
+query <- unique(as.character(candidates$GeneID))
+background_genes <- unique(as.character(background$GeneID))
+stopifnot(length(query) == 7L, length(background_genes) == 2043L, all(query %in% background_genes), 
+    all(term_gene$family %in% c("BP", "MF", "CC", "Reactome")))
+stopifnot(settings$max_term_size>=10,settings$max_term_size<=500)
+term_key <- paste(term_gene$family,term_gene$term,sep="::")
+term_sizes <- table(term_key)
+term_gene <- term_gene[as.integer(term_sizes[term_key])<=settings$max_term_size,]
+
+
+data.frame(candidates=length(query),background_genes=length(background_genes))
+```
+The example has 7 candidates and 2,043 unique background GeneIDs. The test background is subsequently defined separately for each annotation family.
+
+<details><summary>Why not replace the background with the whole genome?</summary>
+
+The background represents genes that had an opportunity to enter the candidate set. Adding genes that were never measurable changes the comparison. `unique()` first removes duplicate GeneIDs; each annotation family then defines its eligible annotated set. Once 2,045 proteins map to 2,043 GeneIDs, the analysis counts genes.
+
+</details>
+
+### 10.2 | Test enrichment and adjust within each family
+
+Each family's N and n come from the independent annotated_background.tsv table. The term input contains memberships for terms with 10–500 background genes. After applying the current upper size limit, calculate hypergeometric right-tail P values and adjust across every eligible term in that family, including terms with zero overlap.
+
+<details><summary>Locate N, K, n, and k in the gene sets</summary>
+
+| Quantity | Set being counted | Output column |
+|---|---|---|
+| N | Full annotated background for the family | `background_annotated` |
+| K | Background genes in the current term | `term_background` |
+| n | Candidates in the annotated background | `query_annotated` |
+| k | Overlap of those candidates with the current term | `overlap` |
+
+Imagine drawing n genes from N background genes. The test asks how unusual it would be to draw at least k members of the term. `intersect()` finds the overlap, stored in `hits`, and `length()` counts it.
+
+</details>
+
+<details><summary>Why can equal hit counts have different P values?</summary>
+
+The same k has a different context when N, K, or n differs. `phyper(k-1, ..., lower.tail=FALSE)` gives the probability of at least k hits, and `p.adjust()` produces the within-family `fdr_bh`. Read the four counts before P and FDR. Enrichment alone does not show whether a pathway is activated or inhibited.
+
+</details>
+
+```{r l10_s02}
+families <- c("BP", "MF", "CC", "Reactome")
+results <- vector("list", length(families))
+names(results) <- families
+for (family in families) {
+    rows <- term_gene[term_gene$family == family, , drop = FALSE]
+    rows$GeneID <- as.character(rows$GeneID)
+    term_ids <- unique(as.character(rows$term))
+    annotated <- as.character(annotated_input$GeneID[annotated_input$family == family])
+    query_annotated <- intersect(query, annotated)
+    n <- length(query_annotated)
+    N <- length(annotated)
+    one <- lapply(term_ids, function(term_id) {
+        term_rows <- rows[rows$term == term_id, , drop = FALSE]
+        members <- unique(term_rows$GeneID)
+        hits <- sort(intersect(members, query_annotated))
+        K <- length(members)
+        k <- length(hits)
+        data.frame(family = family, term = term_id, description = as.character(term_rows$description[1]), 
+            overlap = k, query_annotated = n, term_background = K, background_annotated = N, 
+            p_value = stats::phyper(k - 1L, K, N - K, n, lower.tail = FALSE), gene_ids = paste(hits, 
+                collapse = ";"), stringsAsFactors = FALSE)
+    })
+    table <- do.call(rbind, one)
+    table$fdr_bh <- stats::p.adjust(table$p_value, method = "BH")
+    table <- table[order(table$fdr_bh, table$p_value, table$term), , drop = FALSE]
+    rownames(table) <- NULL
+    results[[family]] <- table
+    write_tsv(table, file.path(out, paste0("enrichment_", family, ".tsv")))
+}
+```
+
+### Combine the family results
+
+```{r functional_summary}
+enrichment <- do.call(rbind, results)
+write_tsv(enrichment, file.path(out, "enrichment_all_families.tsv"))
+
+course_table(enrichment, columns=c("family","term","overlap","background_annotated","p_value","fdr_bh"))
+```
+Combine results after testing each family. An unannotated gene is not a negative annotation. Tested terms with no candidate hits remain in the results.
+
+### 10.3 | Summarize tests and plot enrichment
+
+Count the tested terms and terms below the current FDR cutoff for each family. Plot representative terms with candidate overlap.
+
+```{r l10_s03}
+comparison <- do.call(rbind, lapply(families, function(f) data.frame(family = f, tested_terms = nrow(results[[f]]), 
+    significant = sum(results[[f]]$fdr_bh < settings$fdr))))
+write_tsv(comparison, file.path(out, "family_summary.tsv"))
+show <- do.call(rbind, lapply(results, function(z) head(z[z$overlap > 0, ], 6)))
+show$label <- factor(paste(show$family, show$description, sep = ": "), levels = rev(paste(show$family, 
+    show$description, sep = ": ")))
+p <- ggplot2::ggplot(show, ggplot2::aes(-log10(fdr_bh), label, size = overlap, colour = family)) + 
+    ggplot2::geom_vline(xintercept = -log10(settings$fdr), linetype = 2, colour = "grey65") + ggplot2::geom_point() + 
+    ggplot2::labs(x = "-log10(BH FDR)", y = NULL, title = "Functional enrichment", size = "Hits", 
+        colour = "Family") + theme_course()
+save_plot(p, out, "functional_enrichment", 11, 8)
+
+course_table(comparison)
+```
+> Default reference: BP, MF, CC, and Reactome have 1,888, 338, 282, and 342 tests; at FDR=0.05, the significant counts are 2, 0, 0, and 0. The cells display the current run.
+
+*The horizontal axis is −log10(BH FDR), and the dashed line marks the current FDR cutoff. Point size shows candidate hits; color distinguishes the four annotation families.*
+
+### 10.4 | Build the STRING induced network
+
+The input edges define an undirected graph. STRING combined scores weight the layout, which shows candidates and their network neighbors. Node positions serve only to display connections.
+
+```{r l10_s04}
+candidate_names <- as.character(candidates$gene_symbol)
+network <- read_tsv(input("string_induced_edges.tsv"))
+stopifnot(nrow(network) == 77L, all(network$ncbiTaxonId == 9606))
+graph <- igraph::graph_from_data_frame(data.frame(from = network$preferredName_A, to = network$preferredName_B, 
+    score = as.numeric(network$score)), directed = FALSE)
+set.seed(settings$seed)
+layout <- igraph::layout_with_fr(graph, weights = igraph::E(graph)$score)
+layout <- igraph::norm_coords(layout, xmin = -1, xmax = 1, ymin = -1, ymax = 1)
+vertices <- data.frame(name = igraph::V(graph)$name, x = layout[, 1], y = layout[, 2], candidate = igraph::V(graph)$name %in% 
+    candidate_names)
+edgelist <- as.data.frame(igraph::as_edgelist(graph), stringsAsFactors = FALSE)
+names(edgelist) <- c("from", "to")
+edges <- merge(edgelist, vertices[c("name", "x", "y")], by.x = "from", by.y = "name")
+names(edges)[names(edges) == "x"] <- "x"
+names(edges)[names(edges) == "y"] <- "y"
+edges <- merge(edges, vertices[c("name", "x", "y")], by.x = "to", by.y = "name", suffixes = c("", 
+    "_end"))
+names(edges)[names(edges) == "x_end"] <- "xend"
+names(edges)[names(edges) == "y_end"] <- "yend"
+score_key <- paste(network$preferredName_A, network$preferredName_B, sep = "|")
+reverse_key <- paste(network$preferredName_B, network$preferredName_A, sep = "|")
+edge_key <- paste(edges$from, edges$to, sep = "|")
+score_lookup <- c(stats::setNames(as.numeric(network$score), score_key), stats::setNames(as.numeric(network$score), 
+    reverse_key))
+edges$score <- unname(score_lookup[edge_key])
+```
+
+### Draw the network
+
+```{r functional_network_plot}
+network_plot <- ggplot2::ggplot() + ggplot2::geom_segment(data = edges, ggplot2::aes(x = x, 
+    y = y, xend = xend, yend = yend, linewidth = score), colour = "#9AA6B2", alpha = 0.48) + 
+    ggplot2::geom_point(data = vertices, ggplot2::aes(x = x, y = y, fill = candidate), shape = 21, 
+        size = 3.4, colour = "white", stroke = 0.7) + ggplot2::geom_text(data = vertices[vertices$candidate, 
+    , drop = FALSE], ggplot2::aes(x = x, y = y, label = name), nudge_y = 0.07, size = 3, fontface = "bold", 
+    check_overlap = TRUE) + ggplot2::scale_fill_manual(values = c(`FALSE` = "#A9B4BE", `TRUE` = "#D96B32"), 
+    labels = c("Network neighbor", "Candidate protein"), name = NULL) + ggplot2::scale_linewidth(range = c(0.25, 
+    1.2), guide = "none") + ggplot2::labs(title = "STRING induced functional association network", 
+    subtitle = "Candidate proteins are highlighted; edges are not direct drug effects", x = NULL, 
+    y = NULL) + ggplot2::coord_equal(ylim = c(-1.15, 1.15)) + theme_course() + ggplot2::theme_void(base_size = 12) + 
+    ggplot2::theme(legend.position = "bottom", plot.title = ggplot2::element_text(face = "bold"), 
+        plot.margin = ggplot2::margin(12, 12, 12, 12))
+save_plot(network_plot, out, "string_induced_network", width = 8.5, height = 7)
+
+data.frame(nodes=nrow(vertices),edges=nrow(network))
+```
+The 77 edges represent functional associations, not direct binding, direction of action, or drug effects.
+
+*Orange nodes are candidate proteins and grey nodes are network neighbors. Line width follows the STRING association score; it does not indicate direct binding or a causal direction.*
+
+### 10.5 | Separate the classes of drug evidence
+
+Deduplicate and count direct targets, complex/family components, and STRING links from candidates to drug targets. Display the counts for each candidate.
+
+<details><summary>What does a network connection to a drug target mean?</summary>
+
+Such a record belongs to `network`; it does not automatically become `direct`. `component` retains the complex or family-component relationship. Read `gene_symbol`, `evidence_class`, and `drug_count` together. Input rows and distinct drugs are different counts: 53 network records do not mean 53 drugs directly targeting the candidates.
+
+</details>
+
+```{r l10_s05}
+direct <- read_tsv(input("drug_direct_targets.tsv"))
+components <- read_tsv(input("drug_complex_components.tsv"))
+links <- read_tsv(input("drug_network_associations.tsv"))
+stopifnot(nrow(direct) == 0L, nrow(components) == 5L, nrow(links) == 53L)
+class_counts <- list(direct = data.frame(uniprot = as.character(direct$uniprot), drug = as.character(direct$molecule_chembl_id)), 
+    component = data.frame(uniprot = as.character(components$uniprot), drug = as.character(components$molecule_chembl_id)), 
+    network = data.frame(uniprot = as.character(links$candidate_uniprot), drug = as.character(links$molecule_chembl_id)))
+association_rows <- do.call(rbind, lapply(names(class_counts), function(class_name) {
+    x <- unique(class_counts[[class_name]])
+    data.frame(uniprot = x$uniprot, drug = x$drug, evidence_class = rep(class_name, nrow(x)), 
+        stringsAsFactors = FALSE)
+}))
+association_rows$gene_symbol <- candidates$gene_symbol[match(association_rows$uniprot, candidates$uniprot)]
+association_rows <- association_rows[!is.na(association_rows$gene_symbol), , drop = FALSE]
+write_tsv(association_rows, file.path(out, "drug_association_evidence.tsv"))
+counts <- as.data.frame(table(factor(association_rows$gene_symbol, levels = candidates$gene_symbol), 
+    factor(association_rows$evidence_class, levels = c("direct", "component", "network"))), 
+    stringsAsFactors = FALSE)
+names(counts) <- c("gene_symbol", "evidence_class", "drug_count")
+counts$drug_count <- as.integer(counts$drug_count)
+write_tsv(counts, file.path(out, "drug_association_counts.tsv"))
+```
+
+### Plot the drug-evidence classes
+
+```{r functional_drug_plot}
+drug_plot <- ggplot2::ggplot(counts, ggplot2::aes(x = gene_symbol, y = drug_count, fill = evidence_class)) + 
+    ggplot2::geom_col(position = "dodge", width = 0.72) + ggplot2::scale_fill_manual(values = c(direct = "#B44A4A", 
+    component = "#D99B31", network = "#4D8C78"), breaks = c("direct", "component", "network"), 
+    labels = c("Direct target", "Complex/family component", "STRING-associated target"), name = NULL) + 
+    ggplot2::labs(title = "Curated drug evidence by candidate", subtitle = "Unique molecule counts by evidence class; STRING links indicate association only", 
+        x = NULL, y = "Unique molecules") + theme_course() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 35, 
+    hjust = 1))
+save_plot(drug_plot, out, "drug_association_classes", width = 8.5, height = 5.4)
+
+course_table(counts, n=21)
+```
+The three input classes have 0, 5, and 53 rows. Network records remain separate from direct-target counts.
+
+*The horizontal axis lists candidate genes; the vertical axis counts distinct drugs within each evidence class. Colors separate direct targets, complex/family components, and STRING associations.*
+
+### 10.6 | Summarize the outputs
+
+Report candidate and background sizes, family-level enrichment results, network edges, and the row counts for the three drug-evidence classes. Compare these with the saved tables.
+
+```{r l10_s06}
+cat("Candidates:", length(query), "of", length(background_genes), "unique GeneIDs from 2045 proteins\n")
+print(comparison, row.names = FALSE, digits = 5)
+cat("STRING induced edges:", nrow(network), "\n")
+cat("Drug evidence rows: direct=", nrow(direct), ", complex/family components=", nrow(components), 
+    ", network associations=", nrow(links), "\n", sep = "")
+cat(course_output_path(), "\n")
+```
+Interpret enrichment tests, network associations, and drug records separately. Database associations alone do not establish a mechanism or drug efficacy.
+
+Reference outputs: [results/10_functional/](../results/10_functional/).
+
+### Exercises and answers
+
+Before changing `max_term_size` from 500 to 300, predict whether the number of tests, raw P values for retained terms, and BH-adjusted values will change. Change the parameter and rerun from the parameter cell. Match the two result tables by `family` and `term`, then explain why BH values may change even though the annotated background is fixed. Check whether the representative plotted terms change as well.
+
+1. **Why not use all 2,043 GeneIDs as the background for every GO family?**
+
+   <details><summary>Answer</summary>
+
+   Annotation coverage differs across families. N must count the family's full annotated background and n the candidates within it.
+
+   </details>
+
+2. **Which results need updating after reducing the upper term-size limit?**
+
+   <details><summary>Answer</summary>
+
+   N and n remain fixed. Filter terms using the new limit and repeat BH adjustment over the retained tests within each family. Removing other terms does not alter a retained term's raw P value, but it can alter its adjusted P value. The teaching input contains only terms of size 10–500; expanding this range requires preparing the original annotations again.
+
+   </details>
+
+3. **Do 53 network drug associations mean 53 drugs act directly on the candidates?**
+
+   <details><summary>Answer</summary>
+
+   No. This example has 0 direct-target rows, 5 complex/family-component rows, and 53 network-association rows. Network records link candidates to drug targets; they do not establish that the drug binds the candidate or has an effect through it.
+
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](10_functional.Rmd)
+
+Current results are saved under `课程资源/work/results/本课目录/`. After changing an upstream parameter, rerun the affected steps and subsequent cells.

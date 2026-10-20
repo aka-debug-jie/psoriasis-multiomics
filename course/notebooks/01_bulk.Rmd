@@ -1,0 +1,396 @@
+---
+title: "01｜Bulk RNA-seq 差异表达"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+本章比较银屑病皮损与正常皮肤的基因表达，学习如何把整数计数和样本资料转化为组间差异估计。数据来自 NCBI 重处理的 171 份样本，其中正常皮肤 81 份、皮损 90 份。默认参数示例检验了 37,065 个非全零基因，其中 4,266 个同时达到两项筛选阈值。这些差异描述了本批样本中的表达关联，可作为后续研究的线索。
+
+先把输入想成两张需要配合使用的表：计数矩阵记录“哪个基因在某份样本中读到了多少次”，样本表记录“这份样本来自哪一组”。这章的工作是把两张表对齐，再逐个基因估计皮损组与正常组的差异。样本是本课的观测单位，基因是重复进行检验的对象。
+
+如果还不熟悉 R 的符号，可以随时查阅[代码阅读速查](assets/reading_guide.html)。第一次学习先关注数据的行列和比较方向，函数参数的细节可以按需展开。
+
+本课会得到样本检查表、火山图和候选基因效应图。
+
+本章默认代码在测试机上约需 26 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+这一格负责找到课程文件夹并载入辅助函数。运行后先确认课号和输出位置；其中的路径查找代码可以先保留原样。
+
+<details><summary>展开看：source() 与 course_init() 做了什么</summary>
+
+`source()` 会执行一个本地 R 脚本，让里面定义的函数可以被当前会话使用。`course_init()` 是课程提供的初始化函数，负责选择已准备好的包库、设置工作目录和图形显示。它们属于运行准备，这一格还没有读取计数矩阵或拟合统计模型。
+
+</details>
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('01', root=root)
+data.frame(lesson = "01", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+调整阈值后，重新运行后面的统计与绘图步骤，即可比较筛选结果。练习中使用相同的原始数据和组间比较方向。
+
+```{r parameters}
+settings <- list(fdr = 0.05, abs_log2fc = 1)
+settings
+```
+
+默认参数完整脚本：[01_bulk.R](../lessons/01_bulk.R)。
+
+正文中的数值来自 R 4.4.2 下的示例运行，代码单元格会显示你本次运行的结果。第一次学习建议使用默认参数；做练习时另存结果，便于比较参数变化的影响。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [counts.tsv.gz](../data/bulk/counts.tsv.gz) | GeneID × 样本的原始整数计数；171个样本，每格表示该基因在该样本中的计数。 |
+| [samples.tsv](../data/bulk/samples.tsv) | 样本 GSM 与组织类型资料；用于匹配计数矩阵列并区分 normal 与 lesional psoriatic skin。 |
+| [gene_symbols.tsv](../data/bulk/gene_symbols.tsv) | GeneID、当前 NCBI 符号及别名；用于结果注释和候选基因映射。 |
+
+### 方法要点
+
+本课使用原始整数计数，并依据数据说明确认其来源；仅凭数值为整数，还不能判断它是否属于 raw counts。样本编号用于匹配组织信息，全零基因在建模前移除，本课不再额外过滤低表达基因。TMM 根据样本间组成差异计算标准化因子，减少测序深度和组成偏差对比较的影响。voom 将标准化计数转换为 log 表达并估计与均值相关的观测精度，limma 随后拟合线性模型，用经验贝叶斯方法收缩基因方差。
+
+模型系数定义为 psoriasis − normal，正值表示皮损组表达较高。BH 校正覆盖全部 37,065 个受检基因，默认筛选要求校正后 P < 0.05 且 |logFC| ≥ 1；本次阈值取自上方 settings。这里采用的是 voom 线性模型，与负二项模型不同。候选图展示调节后的 95% 区间；这些组间表达差异本身不构成因果证据。
+
+### 01.1｜载入依赖并设定比较
+
+这一段载入所需软件，设置输入文件、输出位置、候选列表和判定阈值。模型根据样本资料建立分组，以 normal 为参照，估计 psoriasis − normal 的差异。
+
+这里先给文件和阈值取名字，后面通过这些名字读取数据或筛选结果。`counts_file` 保存的是文件路径，`counts` 才是稍后读入的矩阵；`fdr_cutoff` 和 `logfc_cutoff` 是数值。
+
+<details><summary>展开看：library()、$ 和课程辅助函数</summary>
+
+`library(edgeR)` 载入分析包，之后才能调用它提供的 `DGEList()` 等函数。`settings$fdr` 从名为 `settings` 的列表中取出 `fdr`。`read_tsv()`、`write_tsv()`、`course_table()` 和 `save_plot()` 是课程辅助函数，分别负责读表、写表、显示部分记录和保存图形；实际建模仍使用代码中明确列出的分析函数。
+
+</details>
+
+```{r l01_s01}
+source("R/common.R")
+suppressPackageStartupMessages({
+    library(edgeR)
+    library(limma)
+    library(ggplot2)
+})
+output <- lesson_output("01_bulk")
+counts_file <- "data/bulk/counts.tsv.gz"
+samples_file <- "data/bulk/samples.tsv"
+annotation_file <- "data/bulk/gene_symbols.tsv"
+fdr_cutoff <- settings$fdr
+logfc_cutoff <- settings$abs_log2fc
+candidate_symbols <- c("IL12B", "SGSH", "TNFAIP3", "DDX58", "IL7R", "PRSS53", "UBLCP1")
+
+data.frame(input = c("counts", "samples"), file = c(counts_file, samples_file))
+```
+本格建立输出目录，读取本课参数，并列出 7 个候选符号。
+
+### 01.2｜校验计数并匹配样本
+
+把计数列与样本资料按 GSM 对齐，避免因行序不同而误配分组。检查 GeneID 唯一性、计数非负且为整数，并只允许正常皮肤和银屑病皮损进入比较。
+
+计数矩阵的列序和样本表的行序不一定相同。下面先用三条虚构的样本记录练习对齐；它们只说明 R 语法，不进入后续生物学分析。运行前先猜：对齐后，正常组会出现在哪一行？
+
+```{r demo_sample_alignment}
+demo_columns <- c("S1", "S2", "S3")
+demo_samples <- data.frame(sample = c("S3", "S1", "S2"), group = c("皮损", "正常", "皮损"))
+demo_samples
+demo_samples[match(demo_columns, demo_samples$sample), , drop = FALSE]
+```
+
+对齐后第一行应为 S1、正常组。接下来的正式数据使用同一个思路，只是匹配键换成真实的 GSM 样本编号。
+
+<details><summary>展开看：如何读 match() 和方括号</summary>
+
+`match(要查的编号, 被查表的编号)` 返回各编号在被查表中的位置。`metadata[位置, ]` 按这些位置取行，逗号后留空表示保留所有列。`raw[, -1]` 则保留所有行、去掉第一列，因为 GeneID 是行的标识，不是测量值。`drop = FALSE` 要求只剩一列时也保留表或矩阵结构。匹配不到的编号会得到 `NA`，因此正式代码还要检查样本是否全部匹配。
+
+</details>
+
+```{r l01_s02}
+raw <- read_tsv(counts_file)
+stopifnot(!anyDuplicated(raw$GeneID))
+counts <- as.matrix(raw[, -1, drop = FALSE])
+storage.mode(counts) <- "numeric"
+rownames(counts) <- as.character(raw$GeneID)
+stopifnot(all(is.finite(counts)), all(counts >= 0), all(counts == floor(counts)))
+metadata <- read_tsv(samples_file)
+metadata$included_in_counts <- metadata$gsm %in% colnames(counts)
+write_tsv(metadata, file.path(output, "sample_inclusion.tsv"))
+samples <- metadata[match(colnames(counts), metadata$gsm), , drop = FALSE]
+stopifnot(!anyNA(samples$gsm), !anyDuplicated(samples$gsm))
+stopifnot(all(samples$tissue_type %in% c("normal skin", "lesional psoriatic skin")))
+group <- factor(ifelse(samples$tissue_type == "normal skin", "normal", "psoriasis"), levels = c("normal", 
+    "psoriasis"))
+
+data.frame(group = names(table(group)), samples = as.integer(table(group)))
+```
+核对后得到 171 个样本，其中 81 份 normal、90 份 psoriasis；样本资料中未进入计数矩阵的记录不参与模型。
+
+### 01.3｜移除全零基因
+
+全零基因在所有样本中都没有观测计数，无法提供表达差异信息，因此不进入后续分析。只要一个基因至少有一个非零计数，本课就予以保留，不再设置额外的低表达阈值。
+
+`rowSums(counts)` 给每个基因计算跨样本的总计数；`> 0` 得到一串 TRUE/FALSE。把这串标记用在矩阵的行位置，就能保留有观测计数的基因。运行后比较 `input_genes` 与 `tested_genes`，看清有多少行进入模型。
+
+<details><summary>展开看：逻辑值为什么能筛选数据</summary>
+
+在 `counts[keep, ]` 中，`keep` 必须与矩阵行数对应。TRUE 所在的行被保留，FALSE 所在的行被去掉。这里的规则只判断是否全零；如果另设表达量门槛，就会成为不同的筛选规则。
+
+</details>
+
+```{r l01_s03}
+keep <- rowSums(counts) > 0
+y <- DGEList(counts = counts[keep, , drop = FALSE], group = group)
+
+data.frame(input_genes = nrow(counts), tested_genes = sum(keep))
+```
+筛选保留 37,065 个非全零基因；计数通过有限值、非负和整数检查。
+
+### 01.4｜标准化并拟合差异模型
+
+样本总量与组成差异会影响计数比较。TMM 用于计算样本标准化因子；voom 建立均值相关精度后，用 limma 线性模型估计分组系数，并以经验贝叶斯方法稳定方差估计。
+
+现在已知道样本分组，但还不能把原始计数大小直接当作组间效应：样本的测序读数总量和表达组成也会影响计数。TMM 先估计标准化因子，voom 再描述表达水平与观测精度的关系。之后，同一套分组设计会分别用于每个基因的模型。
+
+<details><summary>展开看：~group 怎样变成设计矩阵</summary>
+
+`group` 的水平顺序在前面设为 normal、psoriasis，因此 normal 是参照。`model.matrix(~group)` 生成截距列和 `grouppsoriasis` 列；后者把皮损样本编码为 1、正常样本编码为 0。模型中这个分组系数表示 psoriasis − normal。改变参考水平会改变系数的表达方式，所以不能只看正负号而忽略比较方向。
+
+</details>
+
+这一步在测试机上约需 12 秒。出现 `[*]` 时正在计算，请等待后再运行下一格。
+
+```{r l01_s04}
+y <- calcNormFactors(y, method = "TMM")
+design <- model.matrix(~group)
+v <- voom(y, design, span = 0.5, adaptive.span = FALSE,
+          plot = FALSE, save.plot = TRUE)
+voom_points <- data.frame(mean_log_count=v$voom.xy$x, sqrt_SD=v$voom.xy$y)
+voom_line <- data.frame(mean_log_count=v$voom.line$x, sqrt_SD=v$voom.line$y)
+voom_plot <- ggplot(voom_points,aes(mean_log_count,sqrt_SD)) +
+  geom_point(size=.25,alpha=.3,colour="#71818B") +
+  geom_line(data=voom_line,colour="#168D91",linewidth=.8) +
+  labs(x="Mean log2 count",y="Square root of residual SD",title="Voom mean–variance trend") + theme_course()
+save_plot(voom_plot,output,"voom_mean_variance",7,5)
+```
+
+### 拟合模型并查看系数
+
+`lmFit()` 为每个基因拟合线性模型，`eBayes()` 利用跨基因的信息稳定方差估计；`topTable()` 把结果整理成表。运行后先看 `logFC` 的正负和大小，再看 `P.Value` 与 `adj.P.Val`。显示出来的几行是预览，完整结果仍保存在 `result`。
+
+<details><summary>展开看：logFC 和校正后 P 值分别回答什么</summary>
+
+这里 logFC 使用 log2 尺度：1 对应约 2 倍，−1 对应约 1/2。P 值描述当前模型下数据与零差异假设的相容程度；同时检验很多基因时，BH 校正还考虑整组检验的多重性。筛选时联合使用效应大小与校正后 P 值，让变化幅度和统计证据都参与判断。FDR 控制针对结果集合，不能读成某一个基因为假的概率。
+
+</details>
+
+```{r bulk_fit}
+fit <- eBayes(lmFit(v, design))
+result <- topTable(fit, coef = "grouppsoriasis", number = Inf, adjust.method = "BH", sort.by = "none")
+result$GeneID <- rownames(result)
+
+course_table(result, columns = c("logFC", "P.Value", "adj.P.Val"))
+```
+输出给出 psoriasis 相对 normal 的 logFC，以及全部 37,065 个基因的 BH 校正结果。本课将 voom 的平滑跨度固定为 0.5，以沿用参考版本的方法；这样可避免 limma 新版本默认采用自适应跨度后，观测权重随之变化。
+
+### 01.5｜注释基因并汇总样本标准化
+
+模型中的 GeneID 会映射到当前基因符号，未能映射的记录也会保留。查看注释时，应留意旧符号和别名，避免把同一基因认作不同基因。每个样本的文库大小和 TMM 因子另存为一张表，供检查标准化过程使用。
+
+```{r l01_s05}
+annotation <- read_tsv(annotation_file)
+annotation$GeneID <- as.character(annotation$GeneID)
+match_id <- match(result$GeneID, annotation$GeneID)
+result$Symbol <- annotation$Symbol[match_id]
+result$annotation_status <- ifelse(is.na(match_id), "unmapped", "current_NCBI_symbol")
+result$significant <- result$adj.P.Val < fdr_cutoff & abs(result$logFC) >= logfc_cutoff
+result$contrast <- "psoriasis - normal"
+result$source_mode <- "NCBI_reprocessed_171_of_174"
+write_tsv(result, file.path(output, "all_gene_differential_expression.tsv"))
+sample_qc <- data.frame(gsm = samples$gsm, group = group, library_size = y$samples$lib.size, 
+    TMM_factor = y$samples$norm.factors)
+write_tsv(sample_qc, file.path(output, "library_normalization.tsv"))
+
+course_table(sample_qc)
+```
+结果表记录当前符号、显著性和 psoriasis − normal 方向；样本标准化表逐样本保留 library size 与 TMM factor。
+
+### 01.6｜查看文库分布与全基因结果
+
+样本 QC 图展示两组文库大小的分布，火山图展示全基因的效应方向、效应大小和 BH 校正结果。结合图中的两类阈值线，可以识别同时满足统计显著性和预设效应大小要求的基因。
+
+```{r l01_s06}
+qc_plot <- ggplot(sample_qc, aes(x = group, y = library_size/1e+06, colour = group)) + geom_boxplot(width = 0.48, 
+    outlier.shape = NA, alpha = 0.12, show.legend = FALSE) + geom_jitter(width = 0.12, height = 0, 
+    alpha = 0.68, size = 1.5) + scale_colour_manual(values = c(normal = "#2C7FB8", psoriasis = "#C44536")) + 
+    labs(title = "Bulk sample library sizes", subtitle = sprintf("%d NCBI-reprocessed samples", nrow(sample_qc)), x = NULL, 
+        y = "Library size (millions of reads)") + theme_course()
+save_plot(qc_plot, output, "sample_qc", width = 6.5, height = 5)
+```
+
+火山图将各基因的表达差异与校正后显著性放在同一张图中。
+
+```{r l01_volcano}
+volcano <- ggplot(result, aes(x = logFC, y = -log10(pmax(adj.P.Val, .Machine$double.xmin)))) + 
+    geom_point(aes(colour = significant), alpha = 0.62, size = 1.15) + geom_vline(xintercept = c(-logfc_cutoff, 
+    logfc_cutoff), linetype = 2, colour = "#68737D") + geom_hline(yintercept = -log10(fdr_cutoff), 
+    linetype = 2, colour = "#68737D") + scale_colour_manual(values = c(`FALSE` = "#AAB2B8", 
+    `TRUE` = "#B23A48"), breaks = c(FALSE, TRUE), labels = c("Other genes", "Meets both cutoffs"), 
+    name = "Differential expression") + labs(title = "Psoriatic lesional skin vs normal skin", 
+    subtitle = sprintf("%d tested genes; %d meet FDR < %g and |log2FC| >= %g", nrow(result), sum(result$significant), fdr_cutoff, logfc_cutoff), x = "log2 fold change (psoriasis - normal)", 
+    y = "-log10 adjusted P") + theme_course()
+save_plot(volcano, output, "bulk_volcano", width = 7.4, height = 6)
+```
+> 默认参数参考结果：37,065 个受检基因中，4,266 个同时满足 adj.P.Val < 0.05 与 |logFC| ≥ 1。
+
+本次筛选数量显示在图的副标题和下方汇总表中。样本 QC 图不替代身份或批次核查。
+
+*横轴为 normal 与 psoriasis，纵轴为文库大小（百万 reads），点为样本、箱线概括组内分布；171 份样本分为 81 份 normal 和 90 份 psoriasis。*
+
+*横轴为 psoriasis − normal 的 log2 fold change，纵轴为 −log10(BH 校正 P 值)；颜色标出同时越过当前效应和显著性阈值的基因。*
+
+### 01.7｜估计候选基因效应
+
+当前符号及别名用于将候选列表映射到唯一 GeneID，效应和调节后的区间均从同一个拟合模型中提取。图中保留全部 7 个候选，方便比较表达变化的方向、大小，以及是否同时达到两项筛选阈值。
+
+```{r l01_s07}
+candidate_rows <- lapply(candidate_symbols, function(target) {
+    alias_hit <- !is.na(annotation$Synonyms) & vapply(annotation$Synonyms, function(x) {
+        target %in% strsplit(x, "|", fixed = TRUE)[[1]]
+    }, logical(1))
+    ids <- unique(annotation$GeneID[annotation$Symbol == target | alias_hit])
+    if (length(ids) != 1L) 
+        stop("候选基因无法唯一映射：", target)
+    row <- result[result$GeneID == ids, , drop = FALSE]
+    i <- match(ids, rownames(fit$coefficients))
+    se <- fit$stdev.unscaled[i, "grouppsoriasis"] * sqrt(fit$s2.post[i])
+    critical <- qt(0.975, df = fit$df.total[i])
+    data.frame(candidate = target, GeneID = ids, Symbol = row$Symbol, logFC = row$logFC, lower95 = row$logFC - 
+        critical * se, upper95 = row$logFC + critical * se, adj.P.Val = row$adj.P.Val, significant = row$significant)
+})
+candidates <- do.call(rbind, candidate_rows)
+write_tsv(candidates, file.path(output, "candidate_effects.tsv"))
+```
+
+### 画出候选基因的效应和区间
+
+```{r bulk_candidate_plot}
+candidate_plot <- ggplot(candidates, aes(x = logFC, y = reorder(candidate, logFC), colour = significant)) + 
+    geom_vline(xintercept = 0, colour = "#68737D", linewidth = 0.4) + geom_errorbar(aes(xmin = lower95, 
+    xmax = upper95), orientation = "y", width = 0.18, linewidth = 0.7) + geom_point(size = 3) + 
+    scale_colour_manual(values = c(`FALSE` = "#2C7FB8", `TRUE` = "#B23A48"), breaks = c(FALSE, 
+        TRUE), labels = c("Does not meet both cutoffs", "Meets both cutoffs"), name = "Differential expression") + 
+    labs(title = "Effect estimates for seven candidate genes", subtitle = "Moderated 95% confidence intervals; psoriasis - normal", 
+        x = "log2 fold change", y = NULL) + theme_course()
+save_plot(candidate_plot, output, "candidate_effects", width = 7.2, height = 4.8)
+cat(sprintf("samples=%d; normal=%d; psoriasis=%d; raw_genes=%d; tested_genes=%d; significant=%d\n", 
+    ncol(counts), sum(group == "normal"), sum(group == "psoriasis"), nrow(counts), sum(keep), 
+    sum(result$significant)))
+
+course_table(candidates)
+```
+> 默认参数参考结果：IL12B、DDX58（当前符号 RIGI）、IL7R 和 PRSS53 满足两项阈值且 logFC 为正；其他 3 个候选未同时满足联合标准。
+
+*横轴为 psoriasis − normal 的 log2 fold change，点和横向区间表示估计值及调节后 95% 区间，颜色表示是否同时达到本次设置的两项阈值。*
+
+原示例输出见 [results/01_bulk/](../results/01_bulk/)。
+
+下表链接指向随课程提供的示例结果；本次运行的输出目录显示在第一个代码单元格中：
+
+| 输出 | 阅读内容 |
+|---|---|
+| [sample_inclusion.tsv](../results/01_bulk/sample_inclusion.tsv) | 样本是否进入计数矩阵的记录；可见 171 个纳入样本及未纳入样本。 |
+| [library_normalization.tsv](../results/01_bulk/library_normalization.tsv) | 逐样本文库大小（counts）和 TMM 标准化因子。 |
+| [all_gene_differential_expression.tsv](../results/01_bulk/all_gene_differential_expression.tsv) | 全部受检基因的 logFC、P 值、BH 校正值和显著性标记。 |
+| [candidate_effects.tsv](../results/01_bulk/candidate_effects.tsv) | 7 个候选基因的 log2 fold change、95% 区间、校正后 P 值及联合阈值判定。 |
+
+### 比较两种筛选阈值
+
+先做一个预测：把 |log2FC| 门槛从 1 降到 0.5，进入筛选集合的基因会增加、减少，还是不变？模型系数和 P 值是否也需要变化？先写下判断，再运行下表核对。
+
+下表只改变结果筛选的效应门槛，使用同一个拟合模型。因此 logFC 和 P 值保持不变，显著基因数量可能改变。
+
+```{r threshold_comparison}
+threshold_comparison <- data.frame(
+  abs_log2FC = c(settings$abs_log2fc, 0.5),
+  FDR = settings$fdr,
+  significant_genes = vapply(c(settings$abs_log2fc, 0.5), function(cutoff) {
+    sum(result$adj.P.Val < settings$fdr & abs(result$logFC) >= cutoff)
+  }, integer(1))
+)
+threshold_comparison
+```
+
+想比较完整的两轮分析，可以按下面的步骤操作。代码示例可复制到自己新建的代码格中：
+
+1. 先运行默认参数下的全章，保存结果和参数：
+
+```r
+baseline_snapshot <- course_snapshot("baseline", settings)
+```
+
+2. 把本课参数中的 `abs_log2fc` 改为 `0.5`，从参数格开始向下重跑。完成后保存第二份快照：
+
+```r
+changed_snapshot <- course_snapshot("logfc_05", settings)
+```
+
+3. 在同一内核中新建一格，读取两份已保存的结果并比较。这里按 GeneID 对齐，避免把不同排序误认为效应改变：
+
+```r
+before <- read_tsv(file.path(baseline_snapshot, "all_gene_differential_expression.tsv"))
+after <- read_tsv(file.path(changed_snapshot, "all_gene_differential_expression.tsv"))
+after <- after[match(before$GeneID, after$GeneID), ]
+data.frame(
+  run = c("baseline", "logfc_05"),
+  significant_genes = c(sum(before$significant), sum(after$significant))
+)
+all.equal(before$logFC, after$logFC)
+all.equal(before$P.Value, after$P.Value)
+```
+
+两个快照目录还保留 `parameters.txt`，可查看当时的参数。若中途重启了内核，可从文件列表找到快照目录，将路径重新赋给 `baseline_snapshot` 和 `changed_snapshot`。
+
+### 练习与参考答案
+
+1. **概念：为什么先移除全零基因，而不把这一步说成低表达过滤？**
+
+   <details><summary>参考答案</summary>
+   
+   全零基因在所有样本中没有观测计数，不能提供模型信息；低表达过滤还需指定额外表达标准。本流程只按行和大于零筛选。
+   
+   </details>
+
+2. **把绝对 log2FC 阈值从 1 改成 0.5，哪些结果会改变？**
+
+   <details><summary>参考答案</summary>
+   
+   效应大小门槛变宽，火山图的竖线和 significant 联合标记会据此变化；模型系数和 P 值本身不因该阈值改变。
+   
+   </details>
+
+3. **排错：若 DDX58 无法匹配到唯一基因，先检查哪项输入？**
+
+   <details><summary>参考答案</summary>
+   
+   检查 gene_symbols.tsv 中 GeneID、Symbol 和 Synonyms，确认 GeneID 23586 的当前符号 RIGI 及 DDX58 别名记录，并核对别名拆分与候选列表。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](01_bulk.Rmd)
+
+本次结果保存在 `课程资源/work/results/本课目录/`。修改参数后，请从受影响的步骤继续运行。

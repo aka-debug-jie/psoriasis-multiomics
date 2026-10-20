@@ -1,0 +1,343 @@
+family	term	description	overlap	query_annotated	term_background	background_annotated	p_value	gene_ids	fdr_bh
+Reactome	R-HSA-168928	DDX58/IFIH1-mediated induction of interferon-alpha/beta	2	5	16	1485	0.00106863056337768	23586;7128	0.365471652675165
+Reactome	R-HSA-5688426	Deubiquitination	2	5	23	1485	0.00223172487274685	23586;7128	0.381624953239711
+Reactome	R-HSA-1280215	Cytokine Signaling in Immune system	3	5	182	1485	0.0150143951534078	23586;3575;3593	1
+Reactome	R-HSA-5663084	Diseases of carbohydrate metabolism	1	5	10	1485	0.0332638349201407	6448	1
+Reactome	R-HSA-9020591	Interleukin-12 signaling	1	5	10	1485	0.0332638349201407	3593	1
+Reactome	R-HSA-168256	Immune System	4	5	467	1485	0.0363493489274034	23586;3575;3593;7128	1
+Reactome	R-HSA-9692916	SARS-CoV-1 activates/modulates innate immune responses	1	5	11	1485	0.0365409066661742	23586	1
+Reactome	R-HSA-1169408	ISG15 antiviral mechanism	1	5	12	1485	0.0398090854088263	23586	1
+Reactome	R-HSA-168643	Nucleotide-binding domain, leucine rich repeat containing receptor (NLR) signaling pathways	1	5	12	1485	0.0398090854088263	7128	1
+Reactome	R-HSA-2024096	HS-GAG degradation	1	5	12	1485	0.0398090854088263	6448	1
+Reactome	R-HSA-447115	Interleukin-12 family signaling	1	5	13	1485	0.0430683892601201	3593	1
+Reactome	R-HSA-5689880	Ub-specific processing proteases	1	5	14	1485	0.0463188363074702	23586	1
+Reactome	R-HSA-9692914	SARS-CoV-1-host interactions	1	5	14	1485	0.0463188363074702	23586	1
+Reactome	R-HSA-9705671	SARS-CoV-2 activates/modulates innate and adaptive immune responses	1	5	15	1485	0.0495604446136994	23586	1
+Reactome	R-HSA-1169410	Antiviral mechanism by IFN-stimulated genes	1	5	18	1485	0.0592324173453539	23586	1
+Reactome	R-HSA-9678108	SARS-CoV-1 Infection	1	5	18	1485	0.0592324173453539	23586	1
+Reactome	R-HSA-9705683	SARS-CoV-2-host interactions	1	5	18	1485	0.0592324173453539	23586	1
+Reactome	R-HSA-8856825	Cargo recognition for clathrin-mediated endocytosis	1	5	19	1485	0.062438850824068	3575	1
+Reactome	R-HSA-449147	Signaling by Interleukins	2	5	129	1485	0.0628939477206342	3575;3593	1
+Reactome	R-HSA-9833110	RSV-host interactions	1	5	20	1485	0.0656365355074785	23586	1
+Reactome	R-HSA-1638091	Heparan sulfate/heparin (HS-GAG) metabolism	1	5	21	1485	0.0688254893112068	6448	1
+Reactome	R-HSA-9820952	Respiratory Syncytial Virus Infection Pathway	1	5	25	1485	0.0814943531854712	23586	1
+Reactome	R-HSA-6783783	Interleukin-10 signaling	1	5	26	1485	0.0846399204690822	3593	1
+Reactome	R-HSA-8856828	Clathrin-mediated endocytosis	1	5	26	1485	0.0846399204690822	3575	1
+Reactome	R-HSA-73887	Death Receptor Signaling	1	5	27	1485	0.0877768638533555	7128	1
+Reactome	R-HSA-6785807	Interleukin-4 and Interleukin-13 signaling	1	5	32	1485	0.103332842495187	3593	1
+Reactome	R-HSA-913531	Interferon Signaling	1	5	32	1485	0.103332842495187	23586	1
+Reactome	R-HSA-9694516	SARS-CoV-2 Infection	1	5	33	1485	0.106418414269119	23586	1
+Reactome	R-HSA-1630316	Glycosaminoglycan metabolism	1	5	44	1485	0.139802545135724	6448	1
+Reactome	R-HSA-597592	Post-translational protein modification	2	5	206	1485	0.14412738258205	23586;7128	1
+Reactome	R-HSA-9679506	SARS-CoV Infections	1	5	54	1485	0.169278763690615	23586	1
+Reactome	R-HSA-199991	Membrane Trafficking	1	5	66	1485	0.203577718136521	3575	1
+Reactome	R-HSA-5668914	Diseases of metabolism	1	5	69	1485	0.211972826593686	6448	1
+Reactome	R-HSA-71387	Metabolism of carbohydrates and carbohydrate derivatives	1	5	71	1485	0.21753012429199	6448	1
+Reactome	R-HSA-1643685	Disease	2	5	268	1485	0.223099922349549	23586;6448	1
+Reactome	R-HSA-168249	Innate Immune System	2	5	268	1485	0.223099922349549	23586;7128	1
+Reactome	R-HSA-392499	Metabolism of proteins	2	5	278	1485	0.236575908882432	23586;7128	1
+Reactome	R-HSA-5653656	Vesicle-mediated transport	1	5	83	1485	0.25021922129009	3575	1
+Reactome	R-HSA-9824446	Viral Infection Pathways	1	5	83	1485	0.25021922129009	23586	1
+Reactome	R-HSA-5663205	Infectious disease	1	5	116	1485	0.334517494523379	23586	1
+Reactome	R-HSA-1430728	Metabolism	1	5	353	1485	0.743146345605627	6448	1
+Reactome	R-HSA-162582	Signal Transduction	1	5	363	1485	0.75431218698285	7128	1
+Reactome	R-HSA-109581	Apoptosis	0	5	37	1485	1		1
+Reactome	R-HSA-109582	Hemostasis	0	5	138	1485	1		1
+Reactome	R-HSA-109606	Intrinsic Pathway for Apoptosis	0	5	14	1485	1		1
+Reactome	R-HSA-111465	Apoptotic cleavage of cellular proteins	0	5	11	1485	1		1
+Reactome	R-HSA-112314	Neurotransmitter receptors and postsynaptic signal transmission	0	5	13	1485	1		1
+Reactome	R-HSA-112315	Transmission across Chemical Synapses	0	5	21	1485	1		1
+Reactome	R-HSA-112316	Neuronal System	0	5	33	1485	1		1
+Reactome	R-HSA-114608	Platelet degranulation 	0	5	51	1485	1		1
+Reactome	R-HSA-1227986	Signaling by ERBB2	0	5	14	1485	1		1
+Reactome	R-HSA-1236394	Signaling by ERBB4	0	5	12	1485	1		1
+Reactome	R-HSA-1236974	ER-Phagosome pathway	0	5	14	1485	1		1
+Reactome	R-HSA-1236975	Antigen processing-Cross presentation	0	5	20	1485	1		1
+Reactome	R-HSA-1257604	PIP3 activates AKT signaling	0	5	50	1485	1		1
+Reactome	R-HSA-1266738	Developmental Biology	0	5	191	1485	1		1
+Reactome	R-HSA-1280218	Adaptive Immune System	0	5	126	1485	1		1
+Reactome	R-HSA-140534	Caspase activation via Death Receptors in the presence of ligand	0	5	11	1485	1		1
+Reactome	R-HSA-140837	Intrinsic Pathway of Fibrin Clot Formation	0	5	11	1485	1		1
+Reactome	R-HSA-140875	Common Pathway of Fibrin Clot Formation	0	5	14	1485	1		1
+Reactome	R-HSA-140877	Formation of Fibrin Clot (Clotting Cascade)	0	5	22	1485	1		1
+Reactome	R-HSA-1428517	Aerobic respiration and respiratory electron transport	0	5	14	1485	1		1
+Reactome	R-HSA-1433557	Signaling by SCF-KIT	0	5	11	1485	1		1
+Reactome	R-HSA-1442490	Collagen degradation	0	5	19	1485	1		1
+Reactome	R-HSA-1474228	Degradation of the extracellular matrix	0	5	51	1485	1		1
+Reactome	R-HSA-1474244	Extracellular matrix organization	0	5	115	1485	1		1
+Reactome	R-HSA-1474290	Collagen formation	0	5	24	1485	1		1
+Reactome	R-HSA-1483206	Glycerophospholipid biosynthesis	0	5	13	1485	1		1
+Reactome	R-HSA-1483257	Phospholipid metabolism	0	5	19	1485	1		1
+Reactome	R-HSA-1500931	Cell-Cell communication	0	5	30	1485	1		1
+Reactome	R-HSA-156580	Phase II - Conjugation of compounds	0	5	30	1485	1		1
+Reactome	R-HSA-156590	Glutathione conjugation	0	5	16	1485	1		1
+Reactome	R-HSA-1566948	Elastic fibre formation	0	5	18	1485	1		1
+Reactome	R-HSA-157118	Signaling by NOTCH	0	5	21	1485	1		1
+Reactome	R-HSA-15869	Metabolism of nucleotides	0	5	29	1485	1		1
+Reactome	R-HSA-1592389	Activation of Matrix Metalloproteinases	0	5	16	1485	1		1
+Reactome	R-HSA-162587	HIV Life Cycle	0	5	10	1485	1		1
+Reactome	R-HSA-162906	HIV Infection	0	5	16	1485	1		1
+Reactome	R-HSA-163125	Post-translational modification: synthesis of GPI-anchored proteins	0	5	26	1485	1		1
+Reactome	R-HSA-163685	Integration of energy metabolism	0	5	10	1485	1		1
+Reactome	R-HSA-1638074	Keratan sulfate/keratin metabolism	0	5	15	1485	1		1
+Reactome	R-HSA-163841	Gamma carboxylation, hypusinylation, hydroxylation, and arylsulfatase activation	0	5	12	1485	1		1
+Reactome	R-HSA-1640170	Cell Cycle	0	5	34	1485	1		1
+Reactome	R-HSA-1650814	Collagen biosynthesis and modifying enzymes	0	5	15	1485	1		1
+Reactome	R-HSA-166016	Toll Like Receptor 4 (TLR4) Cascade	0	5	35	1485	1		1
+Reactome	R-HSA-166058	MyD88:MAL(TIRAP) cascade initiated on plasma membrane	0	5	25	1485	1		1
+Reactome	R-HSA-1660662	Glycosphingolipid metabolism	0	5	13	1485	1		1
+Reactome	R-HSA-166166	MyD88-independent TLR4 cascade 	0	5	21	1485	1		1
+Reactome	R-HSA-166520	Signaling by NTRKs	0	5	17	1485	1		1
+Reactome	R-HSA-166658	Complement cascade	0	5	30	1485	1		1
+Reactome	R-HSA-166663	Initial triggering of complement	0	5	11	1485	1		1
+Reactome	R-HSA-166786	Creation of C4 and C2 activators	0	5	10	1485	1		1
+Reactome	R-HSA-168138	Toll Like Receptor 9 (TLR9) Cascade	0	5	20	1485	1		1
+Reactome	R-HSA-168142	Toll Like Receptor 10 (TLR10) Cascade	0	5	16	1485	1		1
+Reactome	R-HSA-168164	Toll Like Receptor 3 (TLR3) Cascade	0	5	18	1485	1		1
+Reactome	R-HSA-168176	Toll Like Receptor 5 (TLR5) Cascade	0	5	16	1485	1		1
+Reactome	R-HSA-168179	Toll Like Receptor TLR1:TLR2 Cascade	0	5	27	1485	1		1
+Reactome	R-HSA-168181	Toll Like Receptor 7/8 (TLR7/8) Cascade	0	5	20	1485	1		1
+Reactome	R-HSA-168188	Toll Like Receptor TLR6:TLR2 Cascade	0	5	25	1485	1		1
+Reactome	R-HSA-168898	Toll-like Receptor Cascades	0	5	41	1485	1		1
+Reactome	R-HSA-170834	Signaling by TGF-beta Receptor Complex	0	5	15	1485	1		1
+Reactome	R-HSA-174824	Plasma lipoprotein assembly, remodeling, and clearance	0	5	16	1485	1		1
+Reactome	R-HSA-177929	Signaling by EGFR	0	5	14	1485	1		1
+Reactome	R-HSA-1793185	Chondroitin sulfate/dermatan sulfate metabolism	0	5	23	1485	1		1
+Reactome	R-HSA-181438	Toll Like Receptor 2 (TLR2) Cascade	0	5	27	1485	1		1
+Reactome	R-HSA-1852241	Organelle biogenesis and maintenance	0	5	14	1485	1		1
+Reactome	R-HSA-186797	Signaling by PDGF	0	5	18	1485	1		1
+Reactome	R-HSA-187037	Signaling by NTRK1 (TRKA)	0	5	12	1485	1		1
+Reactome	R-HSA-190236	Signaling by FGFR	0	5	18	1485	1		1
+Reactome	R-HSA-193704	p75 NTR receptor-mediated signalling	0	5	13	1485	1		1
+Reactome	R-HSA-194138	Signaling by VEGF	0	5	26	1485	1		1
+Reactome	R-HSA-194315	Signaling by Rho GTPases	0	5	59	1485	1		1
+Reactome	R-HSA-195258	RHO GTPase Effectors	0	5	24	1485	1		1
+Reactome	R-HSA-195721	Signaling by WNT	0	5	23	1485	1		1
+Reactome	R-HSA-196849	Metabolism of water-soluble vitamins and cofactors	0	5	24	1485	1		1
+Reactome	R-HSA-196854	Metabolism of vitamins and cofactors	0	5	45	1485	1		1
+Reactome	R-HSA-1971475	A tetrasaccharide linker sequence is required for GAG synthesis	0	5	13	1485	1		1
+Reactome	R-HSA-198933	Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell	0	5	47	1485	1		1
+Reactome	R-HSA-1989781	PPARA activates gene expression	0	5	11	1485	1		1
+Reactome	R-HSA-199418	Negative regulation of the PI3K/AKT network	0	5	41	1485	1		1
+Reactome	R-HSA-199977	ER to Golgi Anterograde Transport	0	5	14	1485	1		1
+Reactome	R-HSA-199992	trans-Golgi Network Vesicle Budding	0	5	14	1485	1		1
+Reactome	R-HSA-201681	TCF dependent signaling in response to WNT	0	5	15	1485	1		1
+Reactome	R-HSA-2022090	Assembly of collagen fibrils and other multimeric structures	0	5	21	1485	1		1
+Reactome	R-HSA-2022377	Metabolism of Angiotensinogen to Angiotensins	0	5	10	1485	1		1
+Reactome	R-HSA-2022854	Keratan sulfate biosynthesis	0	5	13	1485	1		1
+Reactome	R-HSA-2022928	HS-GAG biosynthesis	0	5	10	1485	1		1
+Reactome	R-HSA-202403	TCR signaling	0	5	16	1485	1		1
+Reactome	R-HSA-202733	Cell surface interactions at the vascular wall	0	5	50	1485	1		1
+Reactome	R-HSA-2029480	Fcgamma receptor (FCGR) dependent phagocytosis	0	5	16	1485	1		1
+Reactome	R-HSA-2029482	Regulation of actin dynamics for phagocytic cup formation	0	5	12	1485	1		1
+Reactome	R-HSA-204005	COPII-mediated vesicle transport	0	5	11	1485	1		1
+Reactome	R-HSA-211859	Biological oxidations	0	5	56	1485	1		1
+Reactome	R-HSA-211945	Phase I - Functionalization of compounds	0	5	19	1485	1		1
+Reactome	R-HSA-212436	Generic Transcription Pathway	0	5	88	1485	1		1
+Reactome	R-HSA-2129379	Molecules associated with elastic fibres	0	5	16	1485	1		1
+Reactome	R-HSA-2132295	MHC class II antigen presentation	0	5	15	1485	1		1
+Reactome	R-HSA-2142753	Arachidonate metabolism	0	5	16	1485	1		1
+Reactome	R-HSA-216083	Integrin cell surface interactions	0	5	33	1485	1		1
+Reactome	R-HSA-2173782	Binding and Uptake of Ligands by Scavenger Receptors	0	5	18	1485	1		1
+Reactome	R-HSA-2173789	TGF-beta receptor signaling activates SMADs	0	5	13	1485	1		1
+Reactome	R-HSA-2187338	Visual phototransduction	0	5	23	1485	1		1
+Reactome	R-HSA-2219528	PI3K/AKT Signaling in Cancer	0	5	38	1485	1		1
+Reactome	R-HSA-2219530	Constitutive Signaling by Aberrant PI3K in Cancer	0	5	32	1485	1		1
+Reactome	R-HSA-2262752	Cellular responses to stress	0	5	72	1485	1		1
+Reactome	R-HSA-2404192	Signaling by Type 1 Insulin-like Growth Factor 1 Receptor (IGF1R)	0	5	10	1485	1		1
+Reactome	R-HSA-2454202	Fc epsilon receptor (FCERI) signaling	0	5	16	1485	1		1
+Reactome	R-HSA-2555396	Mitotic Metaphase and Anaphase	0	5	12	1485	1		1
+Reactome	R-HSA-2559583	Cellular Senescence	0	5	15	1485	1		1
+Reactome	R-HSA-2682334	EPH-Ephrin signaling	0	5	16	1485	1		1
+Reactome	R-HSA-2871796	FCERI mediated MAPK activation	0	5	10	1485	1		1
+Reactome	R-HSA-2980736	Peptide hormone metabolism	0	5	22	1485	1		1
+Reactome	R-HSA-3000157	Laminin interactions	0	5	10	1485	1		1
+Reactome	R-HSA-3000170	Syndecan interactions	0	5	11	1485	1		1
+Reactome	R-HSA-3000171	Non-integrin membrane-ECM interactions	0	5	22	1485	1		1
+Reactome	R-HSA-3000178	ECM proteoglycans	0	5	34	1485	1		1
+Reactome	R-HSA-3000480	Scavenging by Class A Receptors	0	5	10	1485	1		1
+Reactome	R-HSA-3560782	Diseases associated with glycosaminoglycan metabolism	0	5	19	1485	1		1
+Reactome	R-HSA-3560783	Defective B4GALT7 causes EDS, progeroid type	0	5	11	1485	1		1
+Reactome	R-HSA-3560801	Defective B3GAT3 causes JDSSDHD	0	5	11	1485	1		1
+Reactome	R-HSA-3700989	Transcriptional Regulation by TP53	0	5	31	1485	1		1
+Reactome	R-HSA-372790	Signaling by GPCR	0	5	88	1485	1		1
+Reactome	R-HSA-373076	Class A/1 (Rhodopsin-like receptors)	0	5	55	1485	1		1
+Reactome	R-HSA-373080	Class B/2 (Secretin family receptors)	0	5	12	1485	1		1
+Reactome	R-HSA-373752	Netrin-1 signaling	0	5	17	1485	1		1
+Reactome	R-HSA-373755	Semaphorin interactions	0	5	15	1485	1		1
+Reactome	R-HSA-373760	L1CAM interactions	0	5	19	1485	1		1
+Reactome	R-HSA-375165	NCAM signaling for neurite out-growth	0	5	14	1485	1		1
+Reactome	R-HSA-375276	Peptide ligand-binding receptors	0	5	51	1485	1		1
+Reactome	R-HSA-376176	Signaling by ROBO receptors	0	5	20	1485	1		1
+Reactome	R-HSA-3781865	Diseases of glycosylation	0	5	42	1485	1		1
+Reactome	R-HSA-380108	Chemokine receptors bind chemokines	0	5	23	1485	1		1
+Reactome	R-HSA-381119	Unfolded Protein Response (UPR)	0	5	14	1485	1		1
+Reactome	R-HSA-381426	Regulation of Insulin-like Growth Factor (IGF) transport and uptake by Insulin-like Growth Factor Binding Proteins (IGFBPs)	0	5	60	1485	1		1
+Reactome	R-HSA-382551	Transport of small molecules	0	5	45	1485	1		1
+Reactome	R-HSA-388396	GPCR downstream signalling	0	5	75	1485	1		1
+Reactome	R-HSA-388841	Regulation of T cell activation by CD28 family	0	5	13	1485	1		1
+Reactome	R-HSA-3906995	Diseases associated with O-glycosylation of proteins	0	5	17	1485	1		1
+Reactome	R-HSA-3928665	EPH-ephrin mediated repulsion of cells	0	5	14	1485	1		1
+Reactome	R-HSA-397014	Muscle contraction	0	5	20	1485	1		1
+Reactome	R-HSA-400206	Regulation of lipid metabolism by PPARalpha	0	5	11	1485	1		1
+Reactome	R-HSA-416476	G alpha (q) signalling events	0	5	25	1485	1		1
+Reactome	R-HSA-416700	Other semaphorin interactions	0	5	11	1485	1		1
+Reactome	R-HSA-418555	G alpha (s) signalling events	0	5	14	1485	1		1
+Reactome	R-HSA-418594	G alpha (i) signalling events	0	5	42	1485	1		1
+Reactome	R-HSA-418990	Adherens junctions interactions	0	5	14	1485	1		1
+Reactome	R-HSA-419037	NCAM1 interactions	0	5	12	1485	1		1
+Reactome	R-HSA-421270	Cell-cell junction organization	0	5	15	1485	1		1
+Reactome	R-HSA-422475	Axon guidance	0	5	85	1485	1		1
+Reactome	R-HSA-425407	SLC-mediated transmembrane transport	0	5	10	1485	1		1
+Reactome	R-HSA-428157	Sphingolipid metabolism	0	5	17	1485	1		1
+Reactome	R-HSA-432722	Golgi Associated Vesicle Biogenesis	0	5	10	1485	1		1
+Reactome	R-HSA-4420097	VEGFA-VEGFR2 Pathway	0	5	21	1485	1		1
+Reactome	R-HSA-4420332	Defective B3GALT6 causes EDSP2 and SEMDJL1	0	5	12	1485	1		1
+Reactome	R-HSA-446193	Biosynthesis of the N-glycan precursor (dolichol lipid-linked oligosaccharide, LLO) and transfer to a nascent protein	0	5	16	1485	1		1
+Reactome	R-HSA-446203	Asparagine N-linked glycosylation	0	5	47	1485	1		1
+Reactome	R-HSA-446219	Synthesis of substrates in N-glycan biosythesis	0	5	16	1485	1		1
+Reactome	R-HSA-446652	Interleukin-1 family signaling	0	5	28	1485	1		1
+Reactome	R-HSA-446728	Cell junction organization	0	5	19	1485	1		1
+Reactome	R-HSA-448424	Interleukin-17 signaling	0	5	12	1485	1		1
+Reactome	R-HSA-449836	Other interleukin signaling	0	5	15	1485	1		1
+Reactome	R-HSA-451927	Interleukin-2 family signaling	0	5	11	1485	1		1
+Reactome	R-HSA-453279	Mitotic G1 phase and G1/S transition	0	5	11	1485	1		1
+Reactome	R-HSA-499943	Interconversion of nucleotide di- and triphosphates	0	5	10	1485	1		1
+Reactome	R-HSA-500792	GPCR ligand binding	0	5	67	1485	1		1
+Reactome	R-HSA-5083635	Defective B3GALTL causes PpS	0	5	13	1485	1		1
+Reactome	R-HSA-512988	Interleukin-3, Interleukin-5 and GM-CSF signaling	0	5	11	1485	1		1
+Reactome	R-HSA-5173105	O-linked glycosylation	0	5	32	1485	1		1
+Reactome	R-HSA-5173214	O-glycosylation of TSR domain-containing proteins	0	5	13	1485	1		1
+Reactome	R-HSA-5218859	Regulated Necrosis	0	5	15	1485	1		1
+Reactome	R-HSA-5260271	Diseases of Immune System	0	5	12	1485	1		1
+Reactome	R-HSA-5357769	Caspase activation via extrinsic apoptotic signalling pathway	0	5	16	1485	1		1
+Reactome	R-HSA-5357801	Programmed Cell Death	0	5	42	1485	1		1
+Reactome	R-HSA-5358351	Signaling by Hedgehog	0	5	14	1485	1		1
+Reactome	R-HSA-556833	Metabolism of lipids	0	5	100	1485	1		1
+Reactome	R-HSA-5576891	Cardiac conduction	0	5	11	1485	1		1
+Reactome	R-HSA-5602358	Diseases associated with the TLR signaling cascade	0	5	12	1485	1		1
+Reactome	R-HSA-5603041	IRAK4 deficiency (TLR2/4)	0	5	10	1485	1		1
+Reactome	R-HSA-5607764	CLEC7A (Dectin-1) signaling	0	5	12	1485	1		1
+Reactome	R-HSA-5617833	Cilium Assembly	0	5	12	1485	1		1
+Reactome	R-HSA-5621480	Dectin-2 family	0	5	10	1485	1		1
+Reactome	R-HSA-5621481	C-type lectin receptors (CLRs)	0	5	21	1485	1		1
+Reactome	R-HSA-5628897	TP53 Regulates Metabolic Genes	0	5	10	1485	1		1
+Reactome	R-HSA-5633008	TP53 Regulates Transcription of Cell Death Genes	0	5	11	1485	1		1
+Reactome	R-HSA-5654736	Signaling by FGFR1	0	5	11	1485	1		1
+Reactome	R-HSA-5654738	Signaling by FGFR2	0	5	11	1485	1		1
+Reactome	R-HSA-5663202	Diseases of signal transduction by growth factor receptors and second messengers	0	5	78	1485	1		1
+Reactome	R-HSA-5668541	TNFR2 non-canonical NF-kB pathway	0	5	22	1485	1		1
+Reactome	R-HSA-5669034	TNFs bind their physiological receptors	0	5	14	1485	1		1
+Reactome	R-HSA-5673001	RAF/MAP kinase cascade	0	5	45	1485	1		1
+Reactome	R-HSA-5683057	MAPK family signaling cascades	0	5	49	1485	1		1
+Reactome	R-HSA-5684996	MAPK1/MAPK3 signaling	0	5	46	1485	1		1
+Reactome	R-HSA-5686938	Regulation of TLR by endogenous ligand	0	5	11	1485	1		1
+Reactome	R-HSA-5693532	DNA Double-Strand Break Repair	0	5	11	1485	1		1
+Reactome	R-HSA-6794362	Protein-protein interactions at synapses	0	5	12	1485	1		1
+Reactome	R-HSA-6798695	Neutrophil degranulation	0	5	147	1485	1		1
+Reactome	R-HSA-6802957	Oncogenic MAPK signaling	0	5	10	1485	1		1
+Reactome	R-HSA-6803157	Antimicrobial peptides	0	5	27	1485	1		1
+Reactome	R-HSA-6805567	Keratinization	0	5	23	1485	1		1
+Reactome	R-HSA-6806667	Metabolism of fat-soluble vitamins	0	5	20	1485	1		1
+Reactome	R-HSA-6806834	Signaling by MET	0	5	17	1485	1		1
+Reactome	R-HSA-6809371	Formation of the cornified envelope	0	5	23	1485	1		1
+Reactome	R-HSA-6811442	Intra-Golgi and retrograde Golgi-to-ER traffic	0	5	15	1485	1		1
+Reactome	R-HSA-6811558	PI5P, PP2A and IER3 Regulate PI3K/AKT Signaling	0	5	39	1485	1		1
+Reactome	R-HSA-68882	Mitotic Anaphase	0	5	12	1485	1		1
+Reactome	R-HSA-68886	M Phase	0	5	19	1485	1		1
+Reactome	R-HSA-69278	Cell Cycle, Mitotic	0	5	29	1485	1		1
+Reactome	R-HSA-69620	Cell Cycle Checkpoints	0	5	16	1485	1		1
+Reactome	R-HSA-70171	Glycolysis	0	5	11	1485	1		1
+Reactome	R-HSA-70326	Glucose metabolism	0	5	13	1485	1		1
+Reactome	R-HSA-71291	Metabolism of amino acids and derivatives	0	5	42	1485	1		1
+Reactome	R-HSA-72766	Translation	0	5	12	1485	1		1
+Reactome	R-HSA-73857	RNA Polymerase II Transcription	0	5	88	1485	1		1
+Reactome	R-HSA-73894	DNA Repair	0	5	23	1485	1		1
+Reactome	R-HSA-74160	Gene expression (Transcription)	0	5	95	1485	1		1
+Reactome	R-HSA-74751	Insulin receptor signalling cascade	0	5	10	1485	1		1
+Reactome	R-HSA-74752	Signaling by Insulin receptor	0	5	12	1485	1		1
+Reactome	R-HSA-75153	Apoptotic execution phase	0	5	11	1485	1		1
+Reactome	R-HSA-75205	Dissolution of Fibrin Clot	0	5	10	1485	1		1
+Reactome	R-HSA-76002	Platelet activation, signaling and aggregation	0	5	68	1485	1		1
+Reactome	R-HSA-76005	Response to elevated platelet cytosolic Ca2+	0	5	52	1485	1		1
+Reactome	R-HSA-877300	Interferon gamma signaling	0	5	16	1485	1		1
+Reactome	R-HSA-8848021	Signaling by PTK6	0	5	14	1485	1		1
+Reactome	R-HSA-8863795	Downregulation of ERBB2 signaling	0	5	11	1485	1		1
+Reactome	R-HSA-8875878	MET promotes cell motility	0	5	11	1485	1		1
+Reactome	R-HSA-8878166	Transcriptional regulation by RUNX2	0	5	13	1485	1		1
+Reactome	R-HSA-8878171	Transcriptional regulation by RUNX1	0	5	18	1485	1		1
+Reactome	R-HSA-8935690	Digestion	0	5	12	1485	1		1
+Reactome	R-HSA-8939211	ESR-mediated signaling	0	5	29	1485	1		1
+Reactome	R-HSA-8948216	Collagen chain trimerization	0	5	10	1485	1		1
+Reactome	R-HSA-8953854	Metabolism of RNA	0	5	21	1485	1		1
+Reactome	R-HSA-8953897	Cellular responses to stimuli	0	5	82	1485	1		1
+Reactome	R-HSA-8956319	Nucleotide catabolism	0	5	13	1485	1		1
+Reactome	R-HSA-8957275	Post-translational protein phosphorylation	0	5	50	1485	1		1
+Reactome	R-HSA-8957322	Metabolism of steroids	0	5	17	1485	1		1
+Reactome	R-HSA-8963743	Digestion and absorption	0	5	12	1485	1		1
+Reactome	R-HSA-8978868	Fatty acid metabolism	0	5	33	1485	1		1
+Reactome	R-HSA-8980692	RHOA GTPase cycle	0	5	14	1485	1		1
+Reactome	R-HSA-9006925	Intracellular signaling by second messengers	0	5	57	1485	1		1
+Reactome	R-HSA-9006927	Signaling by Non-Receptor Tyrosine Kinases	0	5	14	1485	1		1
+Reactome	R-HSA-9006931	Signaling by Nuclear Receptors	0	5	41	1485	1		1
+Reactome	R-HSA-9006934	Signaling by Receptor Tyrosine Kinases	0	5	112	1485	1		1
+Reactome	R-HSA-9006936	Signaling by TGFB family members	0	5	25	1485	1		1
+Reactome	R-HSA-9007101	Rab regulation of trafficking	0	5	10	1485	1		1
+Reactome	R-HSA-9009391	Extra-nuclear estrogen signaling	0	5	17	1485	1		1
+Reactome	R-HSA-9012999	RHO GTPase cycle	0	5	42	1485	1		1
+Reactome	R-HSA-9013148	CDC42 GTPase cycle	0	5	11	1485	1		1
+Reactome	R-HSA-9013149	RAC1 GTPase cycle	0	5	18	1485	1		1
+Reactome	R-HSA-9013423	RAC3 GTPase cycle	0	5	10	1485	1		1
+Reactome	R-HSA-9018519	Estrogen-dependent gene expression	0	5	11	1485	1		1
+Reactome	R-HSA-9020702	Interleukin-1 signaling	0	5	16	1485	1		1
+Reactome	R-HSA-9033241	Peroxisomal protein import	0	5	14	1485	1		1
+Reactome	R-HSA-913709	O-linked glycosylation of mucins	0	5	17	1485	1		1
+Reactome	R-HSA-937061	TRIF (TICAM1)-mediated TLR4 signaling 	0	5	21	1485	1		1
+Reactome	R-HSA-948021	Transport to the Golgi and subsequent modification	0	5	26	1485	1		1
+Reactome	R-HSA-9609507	Protein localization	0	5	18	1485	1		1
+Reactome	R-HSA-9612973	Autophagy	0	5	11	1485	1		1
+Reactome	R-HSA-9614085	FOXO-mediated transcription	0	5	15	1485	1		1
+Reactome	R-HSA-9615017	FOXO-mediated transcription of oxidative stress, metabolic and neuronal genes	0	5	10	1485	1		1
+Reactome	R-HSA-9634638	Estrogen-dependent nuclear events downstream of ESR-membrane signaling	0	5	10	1485	1		1
+Reactome	R-HSA-9645723	Diseases of programmed cell death	0	5	10	1485	1		1
+Reactome	R-HSA-9658195	Leishmania infection	0	5	31	1485	1		1
+Reactome	R-HSA-9662851	Anti-inflammatory response favouring Leishmania parasite infection	0	5	16	1485	1		1
+Reactome	R-HSA-9664323	FCGR3A-mediated IL10 synthesis	0	5	10	1485	1		1
+Reactome	R-HSA-9664407	Parasite infection	0	5	11	1485	1		1
+Reactome	R-HSA-9664417	Leishmania phagocytosis	0	5	11	1485	1		1
+Reactome	R-HSA-9664422	FCGR3A-mediated phagocytosis	0	5	11	1485	1		1
+Reactome	R-HSA-9664433	Leishmania parasite growth and survival	0	5	16	1485	1		1
+Reactome	R-HSA-9675108	Nervous system development	0	5	86	1485	1		1
+Reactome	R-HSA-9679191	Potential therapeutics for SARS	0	5	17	1485	1		1
+Reactome	R-HSA-9700206	Signaling by ALK in cancer	0	5	15	1485	1		1
+Reactome	R-HSA-9709957	Sensory Perception	0	5	30	1485	1		1
+Reactome	R-HSA-9711123	Cellular response to chemical stress	0	5	28	1485	1		1
+Reactome	R-HSA-9716542	Signaling by Rho GTPases, Miro GTPases and RHOBTB3	0	5	59	1485	1		1
+Reactome	R-HSA-9725370	Signaling by ALK fusions and activated point mutants	0	5	15	1485	1		1
+Reactome	R-HSA-9725554	Differentiation of Keratinocytes in Interfollicular Epidermis in Mammalian Skin	0	5	15	1485	1		1
+Reactome	R-HSA-9730414	MITF-M-regulated melanocyte development	0	5	20	1485	1		1
+Reactome	R-HSA-9734767	Developmental Cell Lineages	0	5	45	1485	1		1
+Reactome	R-HSA-9748784	Drug ADME	0	5	24	1485	1		1
+Reactome	R-HSA-975138	TRAF6 mediated induction of NFkB and MAP kinases upon TLR7/8 or 9 activation	0	5	20	1485	1		1
+Reactome	R-HSA-975155	MyD88 dependent cascade initiated on endosome	0	5	20	1485	1		1
+Reactome	R-HSA-9755511	KEAP1-NFE2L2 pathway	0	5	17	1485	1		1
+Reactome	R-HSA-975634	Retinoid metabolism and transport	0	5	20	1485	1		1
+Reactome	R-HSA-975871	MyD88 cascade initiated on plasma membrane	0	5	16	1485	1		1
+Reactome	R-HSA-9759194	Nuclear events mediated by NFE2L2	0	5	14	1485	1		1
+Reactome	R-HSA-977225	Amyloid fiber formation	0	5	17	1485	1		1
+Reactome	R-HSA-9772572	Early SARS-CoV-2 Infection Events	0	5	11	1485	1		1
+Reactome	R-HSA-977606	Regulation of Complement cascade	0	5	23	1485	1		1
+Reactome	R-HSA-9820448	Developmental Cell Lineages of the Exocrine Pancreas	0	5	32	1485	1		1
+Reactome	R-HSA-9820960	Respiratory syncytial virus (RSV) attachment and entry	0	5	14	1485	1		1
+Reactome	R-HSA-9824439	Bacterial Infection Pathways	0	5	13	1485	1		1
+Reactome	R-HSA-9824443	Parasitic Infection Pathways	0	5	31	1485	1		1
+Reactome	R-HSA-983168	Antigen processing: Ubiquitination & Proteasome degradation	0	5	12	1485	1		1
+Reactome	R-HSA-983169	Class I MHC mediated antigen processing & presentation	0	5	32	1485	1		1
+Reactome	R-HSA-983705	Signaling by the B Cell Receptor (BCR)	0	5	14	1485	1		1
+Reactome	R-HSA-9840310	Glycosphingolipid catabolism	0	5	11	1485	1		1
+Reactome	R-HSA-9843745	Adipogenesis	0	5	11	1485	1		1
+Reactome	R-HSA-9855142	Cellular responses to mechanical stimuli	0	5	10	1485	1		1
+Reactome	R-HSA-9856649	Transcriptional and post-translational regulation of MITF-M expression and activity	0	5	11	1485	1		1
+Reactome	R-HSA-9856651	MITF-M-dependent gene expression	0	5	10	1485	1		1
+Reactome	R-HSA-9925561	Developmental Lineage of Pancreatic Acinar Cells	0	5	18	1485	1		1
+Reactome	R-HSA-9925563	Developmental Lineage of Pancreatic Ductal Cells	0	5	12	1485	1		1

@@ -1,0 +1,216 @@
+term	description	overlap	query_annotated	term_background	background_annotated	p_value	gene_ids	fdr_bh
+hsa05162	Measles - Homo sapiens (human)	3	5	27	1265	8.4442350953409877e-05	23586;3593;7128	0.018155105454983122
+hsa04622	RIG-I-like receptor signaling pathway - Homo sapiens (human)	2	5	15	1265	0.0012865094675725132	23586;3593	0.13829976776404518
+hsa04064	NF-kappa B signaling pathway - Homo sapiens (human)	2	5	34	1265	0.0066679948052855709	23586;7128	0.37062158372858095
+hsa05168	Herpes simplex virus 1 infection - Homo sapiens (human)	2	5	38	1265	0.0083022913720097215	23586;3593	0.37062158372858095
+hsa05169	Epstein-Barr virus infection - Homo sapiens (human)	2	5	43	1265	0.01057881495556353	23586;7128	0.37062158372858095
+hsa05164	Influenza A - Homo sapiens (human)	2	5	44	1265	0.011064732142069936	23586;3593	0.37062158372858095
+hsa04630	JAK-STAT signaling pathway - Homo sapiens (human)	2	5	46	1265	0.012066749237674729	3575;3593	0.37062158372858095
+hsa05171	Coronavirus disease - Homo sapiens (human)	2	5	52	1265	0.015310428573139878	23586;3593	0.41146776790313422
+hsa05200	Pathways in cancer - Homo sapiens (human)	2	5	105	1265	0.057816128812212708	3575;3593	0.98242234561133024
+hsa04623	Cytosolic DNA-sensing pathway - Homo sapiens (human)	1	5	15	1265	0.057988637998936665	23586	0.98242234561133024
+hsa05143	African trypanosomiasis - Homo sapiens (human)	1	5	15	1265	0.057988637998936665	3593	0.98242234561133024
+hsa05134	Legionellosis - Homo sapiens (human)	1	5	16	1265	0.061756683446940942	3593	0.98242234561133024
+hsa05321	Inflammatory bowel disease - Homo sapiens (human)	1	5	17	1265	0.065512661495592067	3593	0.98242234561133024
+hsa04658	Th1 and Th2 cell differentiation - Homo sapiens (human)	1	5	18	1265	0.069256601153061675	3593	0.98242234561133024
+hsa05140	Leishmaniasis - Homo sapiens (human)	1	5	18	1265	0.069256601153061675	3593	0.98242234561133024
+hsa04060	Cytokine-cytokine receptor interaction - Homo sapiens (human)	2	5	129	1265	0.084013245548220775	3575;3593	0.98242234561133024
+hsa04625	C-type lectin receptor signaling pathway - Homo sapiens (human)	1	5	26	1265	0.098778201974952892	3593	0.98242234561133024
+hsa05160	Hepatitis C - Homo sapiens (human)	1	5	27	1265	0.10241509381524767	23586	0.98242234561133024
+hsa04068	FoxO signaling pathway - Homo sapiens (human)	1	5	28	1265	0.10604023479337674	3575	0.98242234561133024
+hsa05142	Chagas disease - Homo sapiens (human)	1	5	28	1265	0.10604023479337674	3593	0.98242234561133024
+hsa05133	Pertussis - Homo sapiens (human)	1	5	30	1265	0.11325537811083602	3593	0.98242234561133024
+hsa05145	Toxoplasmosis - Homo sapiens (human)	1	5	30	1265	0.11325537811083602	3593	0.98242234561133024
+hsa04217	Necroptosis - Homo sapiens (human)	1	5	32	1265	0.1204238593618118	7128	0.98242234561133024
+hsa04620	Toll-like receptor signaling pathway - Homo sapiens (human)	1	5	32	1265	0.1204238593618118	3593	0.98242234561133024
+hsa04657	IL-17 signaling pathway - Homo sapiens (human)	1	5	34	1265	0.12754590524415563	7128	0.98242234561133024
+hsa05146	Amoebiasis - Homo sapiens (human)	1	5	34	1265	0.12754590524415563	3593	0.98242234561133024
+hsa04621	NOD-like receptor signaling pathway - Homo sapiens (human)	1	5	36	1265	0.13462174172028502	7128	0.98242234561133024
+hsa04936	Alcoholic liver disease - Homo sapiens (human)	1	5	36	1265	0.13462174172028502	3593	0.98242234561133024
+hsa04640	Hematopoietic cell lineage - Homo sapiens (human)	1	5	37	1265	0.1381424018434734	3575	0.98242234561133024
+hsa04668	TNF signaling pathway - Homo sapiens (human)	1	5	38	1265	0.14165159401837785	7128	0.98242234561133024
+hsa05161	Hepatitis B - Homo sapiens (human)	1	5	38	1265	0.14165159401837785	23586	0.98242234561133024
+hsa04142	Lysosome biogenesis - Homo sapiens (human)	1	5	42	1265	0.15557424332913766	6448	1
+hsa05205	Proteoglycans in cancer - Homo sapiens (human)	1	5	49	1265	0.17950380985120337	3593	1
+hsa05152	Tuberculosis - Homo sapiens (human)	1	5	54	1265	0.19626176802246484	3593	1
+hsa05417	Lipid and atherosclerosis - Homo sapiens (human)	1	5	56	1265	0.2028877774281802	3593	1
+hsa04151	PI3K-Akt signaling pathway - Homo sapiens (human)	1	5	98	1265	0.3322519393342161	3575	1
+hsa01100	Metabolic pathways - Homo sapiens (human)	1	5	286	1265	0.72301570059952835	6448	1
+hsa00010	Glycolysis / Gluconeogenesis - Homo sapiens (human)	0	5	28	1265	1		1
+hsa00030	Pentose phosphate pathway - Homo sapiens (human)	0	5	11	1265	1		1
+hsa00051	Fructose and mannose metabolism - Homo sapiens (human)	0	5	15	1265	1		1
+hsa00052	Galactose metabolism - Homo sapiens (human)	0	5	11	1265	1		1
+hsa00071	Fatty acid degradation - Homo sapiens (human)	0	5	15	1265	1		1
+hsa00230	Purine metabolism - Homo sapiens (human)	0	5	26	1265	1		1
+hsa00240	Pyrimidine metabolism - Homo sapiens (human)	0	5	18	1265	1		1
+hsa00270	Cysteine and methionine metabolism - Homo sapiens (human)	0	5	16	1265	1		1
+hsa00280	Valine, leucine and isoleucine degradation - Homo sapiens (human)	0	5	12	1265	1		1
+hsa00350	Tyrosine metabolism - Homo sapiens (human)	0	5	15	1265	1		1
+hsa00480	Glutathione metabolism - Homo sapiens (human)	0	5	19	1265	1		1
+hsa00514	Other types of O-glycan biosynthesis - Homo sapiens (human)	0	5	14	1265	1		1
+hsa00520	Amino sugar and nucleotide sugar metabolism - Homo sapiens (human)	0	5	15	1265	1		1
+hsa00564	Glycerophospholipid metabolism - Homo sapiens (human)	0	5	10	1265	1		1
+hsa00590	Arachidonic acid metabolism - Homo sapiens (human)	0	5	17	1265	1		1
+hsa00600	Sphingolipid metabolism - Homo sapiens (human)	0	5	11	1265	1		1
+hsa00620	Pyruvate metabolism - Homo sapiens (human)	0	5	18	1265	1		1
+hsa00760	Nicotinate and nicotinamide metabolism - Homo sapiens (human)	0	5	12	1265	1		1
+hsa00830	Retinol metabolism - Homo sapiens (human)	0	5	10	1265	1		1
+hsa00860	Porphyrin metabolism - Homo sapiens (human)	0	5	10	1265	1		1
+hsa00980	Metabolism of xenobiotics by cytochrome P450 - Homo sapiens (human)	0	5	24	1265	1		1
+hsa00982	Drug metabolism - cytochrome P450 - Homo sapiens (human)	0	5	17	1265	1		1
+hsa00983	Drug metabolism - other enzymes - Homo sapiens (human)	0	5	21	1265	1		1
+hsa01200	Carbon metabolism - Homo sapiens (human)	0	5	29	1265	1		1
+hsa01230	Biosynthesis of amino acids - Homo sapiens (human)	0	5	18	1265	1		1
+hsa01232	Nucleotide metabolism - Homo sapiens (human)	0	5	28	1265	1		1
+hsa01240	Biosynthesis of cofactors - Homo sapiens (human)	0	5	32	1265	1		1
+hsa01250	Biosynthesis of nucleotide sugars - Homo sapiens (human)	0	5	13	1265	1		1
+hsa01521	EGFR tyrosine kinase inhibitor resistance - Homo sapiens (human)	0	5	26	1265	1		1
+hsa01522	Endocrine resistance - Homo sapiens (human)	0	5	18	1265	1		1
+hsa01524	Platinum drug resistance - Homo sapiens (human)	0	5	17	1265	1		1
+hsa03272	Virion - Hepatitis viruses - Homo sapiens (human)	0	5	12	1265	1		1
+hsa03320	PPAR signaling pathway - Homo sapiens (human)	0	5	20	1265	1		1
+hsa04010	MAPK signaling pathway - Homo sapiens (human)	0	5	70	1265	1		1
+hsa04012	ErbB signaling pathway - Homo sapiens (human)	0	5	22	1265	1		1
+hsa04014	Ras signaling pathway - Homo sapiens (human)	0	5	49	1265	1		1
+hsa04015	Rap1 signaling pathway - Homo sapiens (human)	0	5	47	1265	1		1
+hsa04020	Calcium signaling pathway - Homo sapiens (human)	0	5	38	1265	1		1
+hsa04022	cGMP-PKG signaling pathway - Homo sapiens (human)	0	5	14	1265	1		1
+hsa04024	cAMP signaling pathway - Homo sapiens (human)	0	5	28	1265	1		1
+hsa04061	Viral protein interaction with cytokine and cytokine receptor - Homo sapiens (human)	0	5	57	1265	1		1
+hsa04062	Chemokine signaling pathway - Homo sapiens (human)	0	5	48	1265	1		1
+hsa04066	HIF-1 signaling pathway - Homo sapiens (human)	0	5	39	1265	1		1
+hsa04070	Phosphatidylinositol signaling system - Homo sapiens (human)	0	5	11	1265	1		1
+hsa04071	Sphingolipid signaling pathway - Homo sapiens (human)	0	5	21	1265	1		1
+hsa04072	Phospholipase D signaling pathway - Homo sapiens (human)	0	5	26	1265	1		1
+hsa04080	Neuroactive ligand-receptor interaction - Homo sapiens (human)	0	5	37	1265	1		1
+hsa04081	Hormone signaling - Homo sapiens (human)	0	5	30	1265	1		1
+hsa04110	Cell cycle - Homo sapiens (human)	0	5	13	1265	1		1
+hsa04114	Oocyte meiosis - Homo sapiens (human)	0	5	10	1265	1		1
+hsa04115	p53 signaling pathway - Homo sapiens (human)	0	5	17	1265	1		1
+hsa04137	Mitophagy - animal - Homo sapiens (human)	0	5	12	1265	1		1
+hsa04140	Autophagy - animal - Homo sapiens (human)	0	5	18	1265	1		1
+hsa04141	Protein processing in endoplasmic reticulum - Homo sapiens (human)	0	5	26	1265	1		1
+hsa04144	Endocytosis - Homo sapiens (human)	0	5	38	1265	1		1
+hsa04145	Phagocytosis - Homo sapiens (human)	0	5	51	1265	1		1
+hsa04146	Peroxisome - Homo sapiens (human)	0	5	17	1265	1		1
+hsa04148	Efferocytosis - Homo sapiens (human)	0	5	36	1265	1		1
+hsa04152	AMPK signaling pathway - Homo sapiens (human)	0	5	12	1265	1		1
+hsa04210	Apoptosis - Homo sapiens (human)	0	5	35	1265	1		1
+hsa04211	Longevity regulating pathway - Homo sapiens (human)	0	5	11	1265	1		1
+hsa04215	Apoptosis - multiple species - Homo sapiens (human)	0	5	11	1265	1		1
+hsa04218	Cellular senescence - Homo sapiens (human)	0	5	22	1265	1		1
+hsa04261	Adrenergic signaling in cardiomyocytes - Homo sapiens (human)	0	5	15	1265	1		1
+hsa04270	Vascular smooth muscle contraction - Homo sapiens (human)	0	5	18	1265	1		1
+hsa04310	Wnt signaling pathway - Homo sapiens (human)	0	5	27	1265	1		1
+hsa04350	TGF-beta signaling pathway - Homo sapiens (human)	0	5	25	1265	1		1
+hsa04360	Axon guidance - Homo sapiens (human)	0	5	46	1265	1		1
+hsa04370	VEGF signaling pathway - Homo sapiens (human)	0	5	16	1265	1		1
+hsa04371	Apelin signaling pathway - Homo sapiens (human)	0	5	16	1265	1		1
+hsa04380	Osteoclast differentiation - Homo sapiens (human)	0	5	39	1265	1		1
+hsa04382	Cornified envelope formation - Homo sapiens (human)	0	5	32	1265	1		1
+hsa04390	Hippo signaling pathway - Homo sapiens (human)	0	5	17	1265	1		1
+hsa04510	Focal adhesion - Homo sapiens (human)	0	5	61	1265	1		1
+hsa04512	ECM-receptor interaction - Homo sapiens (human)	0	5	34	1265	1		1
+hsa04514	Cell adhesion molecule (CAM) interaction - Homo sapiens (human)	0	5	59	1265	1		1
+hsa04517	IgSF CAM signaling - Homo sapiens (human)	0	5	80	1265	1		1
+hsa04518	Integrin signaling - Homo sapiens (human)	0	5	57	1265	1		1
+hsa04519	Cadherin signaling - Homo sapiens (human)	0	5	53	1265	1		1
+hsa04520	Adherens junction - Homo sapiens (human)	0	5	20	1265	1		1
+hsa04530	Tight junction - Homo sapiens (human)	0	5	11	1265	1		1
+hsa04540	Gap junction - Homo sapiens (human)	0	5	13	1265	1		1
+hsa04550	Signaling pathways regulating pluripotency of stem cells - Homo sapiens (human)	0	5	17	1265	1		1
+hsa04610	Complement and coagulation cascades - Homo sapiens (human)	0	5	49	1265	1		1
+hsa04611	Platelet activation - Homo sapiens (human)	0	5	23	1265	1		1
+hsa04612	Antigen processing and presentation - Homo sapiens (human)	0	5	11	1265	1		1
+hsa04613	Neutrophil extracellular trap formation - Homo sapiens (human)	0	5	31	1265	1		1
+hsa04614	Renin-angiotensin system - Homo sapiens (human)	0	5	10	1265	1		1
+hsa04650	Natural killer cell mediated cytotoxicity - Homo sapiens (human)	0	5	26	1265	1		1
+hsa04659	Th17 cell differentiation - Homo sapiens (human)	0	5	24	1265	1		1
+hsa04660	T cell receptor signaling pathway - Homo sapiens (human)	0	5	21	1265	1		1
+hsa04662	B cell receptor signaling pathway - Homo sapiens (human)	0	5	23	1265	1		1
+hsa04664	Fc epsilon RI signaling pathway - Homo sapiens (human)	0	5	16	1265	1		1
+hsa04666	Fc gamma R-mediated phagosome formation - Homo sapiens (human)	0	5	24	1265	1		1
+hsa04670	Leukocyte transendothelial migration - Homo sapiens (human)	0	5	21	1265	1		1
+hsa04672	Intestinal immune network for IgA production - Homo sapiens (human)	0	5	15	1265	1		1
+hsa04714	Thermogenesis - Homo sapiens (human)	0	5	10	1265	1		1
+hsa04722	Neurotrophin signaling pathway - Homo sapiens (human)	0	5	23	1265	1		1
+hsa04728	Dopaminergic synapse - Homo sapiens (human)	0	5	11	1265	1		1
+hsa04750	Inflammatory mediator regulation of TRP channels - Homo sapiens (human)	0	5	16	1265	1		1
+hsa04810	Regulation of actin cytoskeleton - Homo sapiens (human)	0	5	50	1265	1		1
+hsa04820	Cytoskeleton in muscle cells - Homo sapiens (human)	0	5	49	1265	1		1
+hsa04910	Insulin signaling pathway - Homo sapiens (human)	0	5	17	1265	1		1
+hsa04912	GnRH signaling pathway - Homo sapiens (human)	0	5	16	1265	1		1
+hsa04913	Ovarian steroidogenesis - Homo sapiens (human)	0	5	10	1265	1		1
+hsa04915	Estrogen signaling pathway - Homo sapiens (human)	0	5	18	1265	1		1
+hsa04917	Prolactin signaling pathway - Homo sapiens (human)	0	5	12	1265	1		1
+hsa04918	Thyroid hormone synthesis - Homo sapiens (human)	0	5	14	1265	1		1
+hsa04919	Thyroid hormone signaling pathway - Homo sapiens (human)	0	5	16	1265	1		1
+hsa04920	Adipocytokine signaling pathway - Homo sapiens (human)	0	5	12	1265	1		1
+hsa04921	Oxytocin signaling pathway - Homo sapiens (human)	0	5	17	1265	1		1
+hsa04922	Glucagon signaling pathway - Homo sapiens (human)	0	5	11	1265	1		1
+hsa04925	Aldosterone synthesis and secretion - Homo sapiens (human)	0	5	10	1265	1		1
+hsa04926	Relaxin signaling pathway - Homo sapiens (human)	0	5	28	1265	1		1
+hsa04928	Parathyroid hormone synthesis, secretion and action - Homo sapiens (human)	0	5	17	1265	1		1
+hsa04931	Insulin resistance - Homo sapiens (human)	0	5	15	1265	1		1
+hsa04932	Non-alcoholic fatty liver disease - Homo sapiens (human)	0	5	19	1265	1		1
+hsa04933	AGE-RAGE signaling pathway in diabetic complications - Homo sapiens (human)	0	5	31	1265	1		1
+hsa04934	Cushing syndrome - Homo sapiens (human)	0	5	14	1265	1		1
+hsa04935	Growth hormone synthesis, secretion and action - Homo sapiens (human)	0	5	19	1265	1		1
+hsa04970	Salivary secretion - Homo sapiens (human)	0	5	18	1265	1		1
+hsa04972	Pancreatic secretion - Homo sapiens (human)	0	5	27	1265	1		1
+hsa04974	Protein digestion and absorption - Homo sapiens (human)	0	5	29	1265	1		1
+hsa04975	Fat digestion and absorption - Homo sapiens (human)	0	5	15	1265	1		1
+hsa04979	Cholesterol metabolism - Homo sapiens (human)	0	5	14	1265	1		1
+hsa05010	Alzheimer disease - Homo sapiens (human)	0	5	39	1265	1		1
+hsa05012	Parkinson disease - Homo sapiens (human)	0	5	21	1265	1		1
+hsa05014	Amyotrophic lateral sclerosis - Homo sapiens (human)	0	5	28	1265	1		1
+hsa05016	Huntington disease - Homo sapiens (human)	0	5	22	1265	1		1
+hsa05017	Spinocerebellar ataxia - Homo sapiens (human)	0	5	14	1265	1		1
+hsa05020	Prion disease - Homo sapiens (human)	0	5	24	1265	1		1
+hsa05022	Pathways of neurodegeneration - multiple diseases - Homo sapiens (human)	0	5	48	1265	1		1
+hsa05034	Alcoholism - Homo sapiens (human)	0	5	10	1265	1		1
+hsa05100	Bacterial invasion of epithelial cells - Homo sapiens (human)	0	5	12	1265	1		1
+hsa05120	Epithelial cell signaling in Helicobacter pylori infection - Homo sapiens (human)	0	5	14	1265	1		1
+hsa05130	Pathogenic Escherichia coli infection - Homo sapiens (human)	0	5	34	1265	1		1
+hsa05131	Shigellosis - Homo sapiens (human)	0	5	41	1265	1		1
+hsa05132	Salmonella infection - Homo sapiens (human)	0	5	41	1265	1		1
+hsa05135	Yersinia infection - Homo sapiens (human)	0	5	31	1265	1		1
+hsa05144	Malaria - Homo sapiens (human)	0	5	24	1265	1		1
+hsa05150	Staphylococcus aureus infection - Homo sapiens (human)	0	5	27	1265	1		1
+hsa05163	Human cytomegalovirus infection - Homo sapiens (human)	0	5	41	1265	1		1
+hsa05165	Human papillomavirus infection - Homo sapiens (human)	0	5	56	1265	1		1
+hsa05166	Human T-cell leukemia virus 1 infection - Homo sapiens (human)	0	5	30	1265	1		1
+hsa05167	Kaposi sarcoma-associated herpesvirus infection - Homo sapiens (human)	0	5	34	1265	1		1
+hsa05170	Human immunodeficiency virus 1 infection - Homo sapiens (human)	0	5	37	1265	1		1
+hsa05202	Transcriptional misregulation in cancer - Homo sapiens (human)	0	5	31	1265	1		1
+hsa05203	Viral carcinogenesis - Homo sapiens (human)	0	5	23	1265	1		1
+hsa05204	Chemical carcinogenesis - DNA adducts - Homo sapiens (human)	0	5	10	1265	1		1
+hsa05206	MicroRNAs in cancer - Homo sapiens (human)	0	5	39	1265	1		1
+hsa05207	Chemical carcinogenesis - receptor activation - Homo sapiens (human)	0	5	26	1265	1		1
+hsa05208	Chemical carcinogenesis - reactive oxygen species - Homo sapiens (human)	0	5	29	1265	1		1
+hsa05210	Colorectal cancer - Homo sapiens (human)	0	5	17	1265	1		1
+hsa05211	Renal cell carcinoma - Homo sapiens (human)	0	5	11	1265	1		1
+hsa05212	Pancreatic cancer - Homo sapiens (human)	0	5	15	1265	1		1
+hsa05213	Endometrial cancer - Homo sapiens (human)	0	5	11	1265	1		1
+hsa05214	Glioma - Homo sapiens (human)	0	5	14	1265	1		1
+hsa05215	Prostate cancer - Homo sapiens (human)	0	5	31	1265	1		1
+hsa05218	Melanoma - Homo sapiens (human)	0	5	16	1265	1		1
+hsa05219	Bladder cancer - Homo sapiens (human)	0	5	12	1265	1		1
+hsa05220	Chronic myeloid leukemia - Homo sapiens (human)	0	5	13	1265	1		1
+hsa05221	Acute myeloid leukemia - Homo sapiens (human)	0	5	11	1265	1		1
+hsa05222	Small cell lung cancer - Homo sapiens (human)	0	5	19	1265	1		1
+hsa05223	Non-small cell lung cancer - Homo sapiens (human)	0	5	14	1265	1		1
+hsa05224	Breast cancer - Homo sapiens (human)	0	5	17	1265	1		1
+hsa05225	Hepatocellular carcinoma - Homo sapiens (human)	0	5	21	1265	1		1
+hsa05226	Gastric cancer - Homo sapiens (human)	0	5	22	1265	1		1
+hsa05230	Central carbon metabolism in cancer - Homo sapiens (human)	0	5	19	1265	1		1
+hsa05231	Choline metabolism in cancer - Homo sapiens (human)	0	5	17	1265	1		1
+hsa05235	PD-L1 expression and PD-1 checkpoint pathway in cancer - Homo sapiens (human)	0	5	20	1265	1		1
+hsa05322	Systemic lupus erythematosus - Homo sapiens (human)	0	5	19	1265	1		1
+hsa05323	Rheumatoid arthritis - Homo sapiens (human)	0	5	28	1265	1		1
+hsa05410	Hypertrophic cardiomyopathy - Homo sapiens (human)	0	5	16	1265	1		1
+hsa05412	Arrhythmogenic right ventricular cardiomyopathy - Homo sapiens (human)	0	5	14	1265	1		1
+hsa05414	Dilated cardiomyopathy - Homo sapiens (human)	0	5	16	1265	1		1
+hsa05415	Diabetic cardiomyopathy - Homo sapiens (human)	0	5	25	1265	1		1
+hsa05416	Viral myocarditis - Homo sapiens (human)	0	5	13	1265	1		1
+hsa05418	Fluid shear stress and atherosclerosis - Homo sapiens (human)	0	5	35	1265	1		1

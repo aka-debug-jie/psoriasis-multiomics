@@ -1,0 +1,20 @@
+{
+  "status": "post_hoc_method_extension_authorized_20261017",
+  "input": "research/data/processed/substitute_mr",
+  "output": "research/results/covariance_resolution",
+  "LD_prefix": "research/data/processed/LD/EUR",
+  "plink": "research/tools/plink-1.9.0/plink",
+  "same_variant_rule": "largest exposure F; then cohort, assay and rsid lexical ties; outcome independent",
+  "exposure_combination": "one representative source per unique variant; no cross-platform exposure meta-analysis",
+  "branches": {"unique_variant_givw": 0.95, "ld_pruned_givw": 0.31622776601683794},
+  "max_LD_condition_number": 10000,
+  "missing_or_unstable_LD": "freeze strongest exposure instrument only; never fill missing LD with zero",
+  "outcome_missing": "use available members of the frozen set, record partial coverage, never substitute a rejected member",
+  "exposure_error_correlations": [0, 0.5, 1],
+  "exposure_outcome_error_correlations": [-0.1, 0, 0.1],
+  "correlation_grid_role": "stress tests, not estimated sample overlap or exhaustive uncertainty bounds",
+  "mvp_scenarios": ["CI_Wald", "P_equivalent", "CI_compatible_only"],
+  "P_equivalent_role": "SE=abs(logOR)/normal_isf(source_P/2), sensitivity only, not recovered source SE; undefined cases remain missing",
+  "primary_results_preserved": true,
+  "seed": 20261017
+}

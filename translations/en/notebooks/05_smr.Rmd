@@ -1,0 +1,267 @@
+---
+title: "05 | SMR and HEIDI: Association and Regional Heterogeneity"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics Course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+Could the association between a gene's genetically predicted expression and disease be explained by the same genetic signal? In this chapter, we run SMR and HEIDI across the complete cis regions of two genes, ERAP2 and LIPA, using blood GTEx / eQTL Catalogue data. SMR tests the association between expression and disease, while HEIDI checks whether the association ratios across different instruments are heterogeneous. To understand these tests, read their results together.
+
+This lesson produces SMR and HEIDI result tables and a plot showing how the two tests relate.
+
+The default code for this chapter takes about 3 seconds on the test machine, excluding reading and hands-on work. See [Chapter 0](00_start.ipynb) for the test machine configuration.
+
+### Prepare for this lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('05', root=root)
+data.frame(lesson = "05", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Parameters for this lesson
+
+The default primary analysis uses BESD that preserves the fixed reference order, with a HEIDI LD upper limit of 0.9. When changing the LD threshold, save the results separately and compare them with the default-parameter results.
+
+```{r parameters}
+settings <- list(heidi_ld_upper = 0.9)
+settings
+```
+
+Full script with the default parameters: [05_smr.R](../lessons/05_smr.R).
+
+The values in the text come from an example run under R 4.4.2; code cells show the results from your current run. For your first pass, use the default parameters. When doing the exercises, save the results separately so you can compare the effects of parameter changes.
+
+The public-data edition uses reprocessed GTEx whole blood from eQTL Catalogue QTD000356 (670 participants; variant-level an/2 is 636–670). ERAP2 and LIPA were chosen as teaching examples using exposure eQTL strength, before examining disease effects. Their inputs and results are separate from the original research eQTLGen analysis.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [public_eqtl.besd](../data/smr/public_eqtl.besd) | Exact binary subset for two probes; accompanying epi and esi files store probe and SNP information and preserve the fixed binary precision and variant order. |
+| [eqtl_flist.txt](../data/smr/eqtl_flist.txt) | Index for two readable ESD tables, used to learn the text-to-BESD conversion; contains 7131 and 7199 cis associations. |
+| [mvp_regional.ma](../data/smr/mvp_regional.ma) | Effect allele, frequency, log-OR, SE, P, and N for the corresponding MVP regions. |
+| [EUR_two_regions.bed](../data/smr/EUR_two_regions.bed) | Regional LD reference for 503 people in 1000G EUR; matching bim/fam files with the same prefix are required. |
+
+### Method essentials
+
+Each row in ESD represents an association between one SNP and one expression probe. Each row in the disease table contains GWAS statistics for one SNP; each row in the final SMR table corresponds to one probe. Expression effects retain the scale used by the eQTL source, while disease effects are on the log-OR scale. This analysis examines the relationship between genetically predicted expression and disease; it is not a direct protein-concentration experiment.
+
+SMR selects the strongest eligible eQTL and uses its expression and disease effects to construct an association test. The instrument P threshold of 5×10⁻⁸ and the SMR association P threshold of 0.05 apply at different stages. HEIDI compares effect ratios across multiple regional variants; this example uses HEIDI P>0.01 as the decision criterion. A larger HEIDI P means that no clear heterogeneity was detected. It is not the probability that a shared mechanism is true. Instrument thresholds, LD filtering, and the number of included variants all affect the results.
+
+This lesson also includes a format exercise that converts ESD to BESD. Conversion reorders SNPs by genomic position, and the order can affect HEIDI pruning when LD values are tied. Therefore, the primary analysis directly uses the BESD subset that preserves the fixed reference order, while the converted output is saved separately.
+
+### 05.1 | Set up the external tool and output location
+
+This lesson uses the SMR program bundled with the course. `tool_path()` locates the executable for the operating system, and `run_tool()` passes arguments to the program.
+
+```{r l05_s01}
+source("R/common.R")
+out <- lesson_output("05_smr")
+data_dir <- "data/smr"
+smr <- tool_path("smr")
+besd_prefix <- file.path(out, "eqtl_two_probes")
+besd_log <- file.path(out, "make_besd.log")
+smr_log <- file.path(out, "smr_heidi.log")
+
+data.frame(tool="SMR", state="matching executable found")
+```
+
+This section sets the program location, input directory, and output prefix. The format conversion and primary analysis use different output names, making it easy to tell which data each one uses.
+
+### 05.2 | Specify the three thresholds and regional parameters
+
+<details><summary>Expand: Which parameters determine which variants enter the tests?</summary>
+
+`peqtl_smr` selects the SMR instrument. `peqtl_heidi`, together with the LD lower and upper limits, affects which variants HEIDI uses; the cis window restricts the genomic range. These parameters filter variants before calculation, whereas SMR P<0.05 and HEIDI P>0.01 are applied after results are produced. Changing the included variants does not guarantee that HEIDI P will increase or decrease in a particular direction.
+
+</details>
+
+When reading the parameters, distinguish instrument selection from association decisions. `peqtl_smr` selects the eQTL instrument, and `peqtl_heidi` filters variants for HEIDI. After obtaining the results, apply the SMR P<0.05 and HEIDI P>0.01 decision rules.
+
+```{r l05_s02}
+parameters <- list(peqtl_smr = 5e-08, heidi_skip_threshold = 1, peqtl_heidi = 0.0015654, heidi_ld_upper = settings$heidi_ld_upper, 
+    heidi_ld_lower = 0.05, cis_window_kb = 2000, frequency_difference = 0.2, frequency_exclusion_fraction = 0.05, 
+    threads = 2L)
+required <- c("eqtl_flist.txt", "mvp_regional.ma", "EUR_two_regions.bed", "EUR_two_regions.bim", 
+    "EUR_two_regions.fam", "reference_results.tsv")
+stopifnot(all(file.exists(file.path(data_dir, required))))
+
+as.data.frame(parameters)
+```
+
+Use the parameter table to find the LD limits, cis window, and frequency-difference threshold. `threads=2` controls computing resources; it does not change this lesson's statistical decision rules.
+
+### 05.3 | Convert ESD tables to BESD
+
+<details><summary>Expand: What are ESD and the three accompanying BESD files for?</summary>
+
+ESD is a readable association table, and `flist` maps each table to a probe. BESD stores binary statistics, EPI stores probe information, and ESI stores SNP information. The program finds this set of files using their shared prefix. Format conversion does not add samples, so precision and ordering still need to be checked. The primary analysis uses a frozen reference BESD generated from the same sorted ESD tables.
+
+</details>
+
+This section converts ESD to BESD. ESD records each SNP's alleles, frequency, effect, SE, and P; `flist` identifies the probe corresponding to each file. After conversion, check that all three accompanying files—besd, epi, and esi—are present.
+
+```{r l05_s03}
+run_tool(smr, c("--make-besd", "--eqtl-flist", file.path(data_dir, "eqtl_flist.txt"), "--out", 
+    besd_prefix), besd_log)
+stopifnot(all(file.exists(paste0(besd_prefix, c(".besd", ".epi", ".esi")))))
+
+data.frame(file=paste0("eqtl_two_probes",c(".besd",".epi",".esi")), generated=TRUE)
+```
+
+The generated `eqtl_two_probes` files let you inspect the format-conversion result. The primary analysis uses `public_eqtl`, a frozen BESD generated from the same ESD tables; the classroom conversion is saved separately for comparison.
+
+### 05.4 | Run SMR and HEIDI for the two genes
+
+SMR receives the genotype reference, disease summary statistics, and the eQTL file prefix that preserves the fixed reference order. `raw` stores the results from this run; `reference` contains a previous run of the same inputs for comparison and is not used in the SMR calculation.
+
+```{r l05_s04}
+args <- c("--bfile", file.path(data_dir, "EUR_two_regions"), "--gwas-summary", file.path(data_dir, 
+    "mvp_regional.ma"), "--beqtl-summary", file.path(data_dir, "public_eqtl"), "--peqtl-smr", 
+    parameters$peqtl_smr, "--heidi-skip-thresh", parameters$heidi_skip_threshold, "--peqtl-heidi", 
+    parameters$peqtl_heidi, "--ld-upper-limit", parameters$heidi_ld_upper, "--ld-lower-limit", 
+    parameters$heidi_ld_lower, "--cis-wind", parameters$cis_window_kb, "--diff-freq", parameters$frequency_difference, 
+    "--diff-freq-prop", parameters$frequency_exclusion_fraction, "--thread-num", parameters$threads, 
+    "--extract-probe", file.path(data_dir, "probes.txt"), "--out", file.path(out, "two_probe"))
+run_tool(smr, args, smr_log)
+raw <- read_tsv(file.path(out, "two_probe.smr"))
+reference <- read_tsv(file.path(data_dir, "reference_results.tsv"))
+stopifnot(all(c("probeID", "p_SMR", "p_HEIDI", "b_SMR", "se_SMR", "topSNP") %in% names(raw)), 
+    setequal(raw$probeID, c("ENSG00000164308", "ENSG00000107798")), setequal(reference$probeID, 
+        raw$probeID))
+
+course_table(raw)
+```
+
+Each probe should have a topSNP, SMR beta/SE/P, and HEIDI P. If the run fails, inspect the corresponding program log and first check the input prefixes and tool version.
+
+When reading the table, first check `probeID` and `topSNP`, then read the direction of `b_SMR` and the value of `p_SMR`. Also check `p_HEIDI` and `nsnp_HEIDI`; the latter records the number of variants actually used by HEIDI.
+
+### 05.5 | Interpret association and heterogeneity separately
+
+<details><summary>Expand: What does significant SMR and non-significant HEIDI mean?</summary>
+
+These results indicate an expression–disease association, while the variants currently included provide no clear evidence of heterogeneity. Failing to reject the heterogeneity null hypothesis does not prove a shared causal variant, rule out horizontal pleiotropy, or establish an expression-mediated mechanism. HEIDI's statistical power also depends on the number of variants and data precision.
+
+</details>
+
+The results from this run are aligned with the reference results by `probeID`; differences are listed and the nominal decision rule is applied. If HEIDI is NA, the decision remains NA, indicating that the heterogeneity criterion cannot be assessed from these results.
+
+```{r l05_s05}
+columns <- c("topSNP", "b_SMR", "se_SMR", "p_SMR", "p_HEIDI")
+comparison <- merge(raw[c("probeID", columns)], reference[c("probeID", columns)], by = "probeID", 
+    suffixes = c("_teaching", "_reference"), sort = TRUE)
+for (column in columns) {
+    left <- comparison[[paste0(column, "_teaching")]]
+    right <- comparison[[paste0(column, "_reference")]]
+    comparison[[paste0(column, "_absolute_difference")]] <- if (is.numeric(left)) 
+        abs(left - right)
+    else as.numeric(left != right)
+}
+write_tsv(comparison, file.path(out, "reference_comparison.tsv"))
+comparison$heidi_status <- ifelse(is.na(comparison$p_HEIDI_teaching), "not_computed", "computed")
+comparison$nominal_SMR_and_HEIDI_rule <- ifelse(is.na(comparison$p_HEIDI_teaching), NA, comparison$p_SMR_teaching < 
+    0.05 & comparison$p_HEIDI_teaching > 0.01)
+write_tsv(comparison, file.path(out, "two_probe_results.tsv"))
+print(comparison[c("probeID", "topSNP_teaching", "b_SMR_teaching", "p_SMR_teaching", "p_HEIDI_teaching", 
+    "heidi_status", "nominal_SMR_and_HEIDI_rule")], row.names = FALSE)
+
+course_table(comparison, columns=c("probeID","p_SMR_teaching","p_HEIDI_teaching","nominal_SMR_and_HEIDI_rule"))
+```
+
+> Default reference: ERAP2 has SMR P=0.06074 and HEIDI P=0.2481; LIPA has SMR P=0.7503 and HEIDI P=0.2011. Neither passes the combined SMR<0.05 / HEIDI>0.01 rule. A non-significant HEIDI test alone is not positive evidence of an expression–disease association.
+
+### 05.6 | Compare results across tool versions
+
+When comparing results across versions, check the P-value ranges, top variants, and decisions for this example, as well as the specific numerical values. The bundled program and example reference results both use SMR1.4.3. Results from the current run are saved independently so that different computing environments can be compared. A successful run means the calculation completed; whether the values agree across versions must still be determined from the results.
+
+```{r l05_s06}
+stopifnot(all(is.finite(raw$p_SMR)), all(raw$p_SMR >= 0 & raw$p_SMR <= 1), all(is.finite(raw$p_HEIDI)), 
+    all(raw$p_HEIDI >= 0 & raw$p_HEIDI <= 1), all(comparison$topSNP_absolute_difference == 
+        0))
+fields <- c("b_SMR", "se_SMR", "p_SMR", "p_HEIDI")
+within_tolerance <- all(vapply(fields, function(k) {
+    a <- comparison[[paste0(k, "_teaching")]]
+    b <- comparison[[paste0(k, "_reference")]]
+    all(abs(a - b) <= 1e-10 + 1e-08 * abs(b))
+}, logical(1)))
+version_check <- data.frame(platform = .Platform$OS.type, valid_P_and_topSNP = TRUE, decision_matches_reference = identical(comparison$nominal_SMR_and_HEIDI_rule, c(FALSE,FALSE)), numeric_matches_Linux_1_4_3 = within_tolerance, 
+    status = if (within_tolerance) "matched_reference" else "computed_with_reference_difference")
+write_tsv(version_check, file.path(out, "version_comparison.tsv"))
+if (isTRUE(getOption("teaching.reference", FALSE))) stopifnot(within_tolerance)
+
+course_table(version_check)
+```
+
+`version_comparison.tsv` records whether the current results match the reference values, making differences due to versions or computing environments easier to inspect. It summarizes the comparison only; it does not adjust SMR or HEIDI statistics.
+
+### 05.7 | Distinguish the two tests in one plot
+
+<details><summary>Expand: Why does a higher point on the plot not mean stronger support for a candidate?</summary>
+
+Both axes use negative logarithms, but the tests address different questions. A larger x value is stronger evidence against no expression–disease association; a larger y value indicates more evidence that the instruments are heterogeneous. The joint rule for this lesson means crossing the threshold horizontally but not vertically. Return to the result table to check the number of variants and the exact P values.
+
+</details>
+
+The plot converts both SMR and HEIDI P values to the −log10 scale. Moving right indicates stronger evidence of an SMR association, while moving up indicates stronger detected heterogeneity by HEIDI. The two coordinates represent different questions and cannot be interpreted using the same “larger is better” rule.
+
+```{r l05_s07}
+plotdata <- data.frame(gene = c("ERAP2", "LIPA"), SMR = c(raw$p_SMR[match("ENSG00000164308", 
+    raw$probeID)], raw$p_SMR[match("ENSG00000107798", raw$probeID)]), HEIDI = c(raw$p_HEIDI[match("ENSG00000164308", 
+    raw$probeID)], raw$p_HEIDI[match("ENSG00000107798", raw$probeID)]))
+p <- ggplot2::ggplot(plotdata, ggplot2::aes(-log10(SMR), -log10(HEIDI), label = gene)) + ggplot2::geom_vline(xintercept = -log10(0.05), 
+    linetype = 2, colour = "grey60") + ggplot2::geom_hline(yintercept = -log10(0.01), linetype = 2, 
+    colour = "grey60") + ggplot2::geom_point(size = 3, colour = "#197D8D") + ggplot2::geom_text(nudge_x = 0.15, 
+    hjust = 0) + ggplot2::expand_limits(x = 4) + ggplot2::labs(x = "-log10(SMR P)", y = "-log10(HEIDI P)", 
+    title = "Association and heterogeneity answer different questions") + theme_course()
+save_plot(p, out, "SMR_HEIDI", 7, 4.5)
+```
+
+In this example, neither gene reaches the SMR association threshold, although neither HEIDI test detects heterogeneity. Read the two tests together.
+
+*The x-axis is −log10(SMR P), and the y-axis is −log10(HEIDI P); the dashed lines mark the 0.05 and 0.01 thresholds, respectively.*
+
+See the original example output in [results/05_smr/](../results/05_smr/).
+
+### Exercises and answer key
+
+First predict which variants and results might be affected by changing `heidi_ld_upper` from 0.9 to 0.8. Then run the parameter cell and rerun from 05.2 onward. Record topSNP, nsnp_HEIDI, SMR P, and HEIDI P, and explain which changes are expected. If the new parameter makes HEIDI impossible to calculate, the finite-value check in 05.6 will stop. Record that status and restore the default parameter; do not replace NA with a number to pass the check.
+
+1. **Why do HEIDI P>0.01 and SMR P<0.05 point in opposite directions?**
+
+   <details><summary>Answer</summary>
+   
+   The two tests have different null hypotheses. SMR tests for no expression–disease association, while HEIDI tests whether the effect ratios of the instruments under consideration show no heterogeneity. Interpret each P value according to its own question.
+   
+   </details>
+
+2. **If `heidi_ld_upper` is changed from 0.9 to 0.8, which outputs should be compared?**
+
+   <details><summary>Answer</summary>
+   
+   Save the exercise results separately, then compare the number of included variants, HEIDI P, and whether the test can still be computed. Changing the LD filter may change the instrument set. Section 05.6 checks the reference values using the original parameters; after changing parameters, record and explain the differences, without requiring the results to match the original example value for value.
+   
+   </details>
+
+3. **If text ESD and BESD contain the same SNPs, why might their results still differ?**
+
+   <details><summary>Answer</summary>
+   
+   Text output may reduce precision, and conversion also reorders SNPs; order can affect HEIDI LD pruning in tied cases. Check numerical precision, order, and the variants ultimately included in the test.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source file](05_smr.Rmd)
+
+This run's results are saved in `课程资源/work/results/本课目录/`. After changing parameters, resume from the affected step.

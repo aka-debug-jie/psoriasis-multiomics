@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>课程入口</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #20312d; background: #f4f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.65; }
+    main { width: min(920px, calc(100% - 32px)); margin: 48px auto; }
+    header, section { padding: 28px; margin-bottom: 18px; border: 1px solid #dce7e2; border-radius: 16px; background: #fff; }
+    header { background: #eaf4ef; }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: clamp(1.8rem, 5vw, 2.5rem); }
+    h2 { margin-bottom: 12px; font-size: 1.2rem; }
+    .muted { color: #536660; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; padding: 0; list-style: none; counter-reset: step; }
+    .steps li { padding: 14px; border-radius: 10px; background: #f4f7f5; }
+    .steps li::before { counter-increment: step; content: counter(step) "  "; color: #28765c; font-weight: 700; }
+    a { color: #17684f; }
+    .lessons { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 10px; padding: 0; list-style: none; }
+    .lessons li { padding: 12px 14px; border: 1px solid #e2eae6; border-radius: 10px; }
+    .lessons a { font-weight: 650; text-decoration: none; }
+    .lessons a:hover { text-decoration: underline; }
+    .formats { margin-top: 5px; font-size: .9rem; }
+    .formats a { margin-right: 10px; }
+    code { padding: 2px 5px; border-radius: 5px; background: #edf2ef; }
+    @media (max-width: 560px) { main { margin: 20px auto; } header, section { padding: 20px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>课程入口</h1>
+    <p class="muted">先读带结果的课程展示，也可以打开空白练习本，亲手逐格运行 R。第一次使用 Jupyter，请从第 0 章开始。</p>
+  </header>
+
+  <section>
+    <h2>开始学习</h2>
+    <ol class="steps">
+      <li>解压后，先打开本目录中的“运行课程”入口。Windows 运行 <code>.bat</code>，Mac 运行 <code>.command</code>。</li>
+      <li>等待浏览器打开 Jupyter，在课程文件夹中打开 <code>00_start.ipynb</code>。</li>
+      <li>按第 0 章的说明学习界面操作，再按 Shift+Enter 逐格运行。初次打开没有输出，运行后才会出现结果。</li>
+    </ol>
+    <p class="muted">运行入口使用课程包内置环境，不需要另外安装软件。练习结果保存在 <code>课程资源/work/results/</code>。保存 Notebook 后，下次打开会保留你的修改和输出；也可另存副本继续练习。</p>
+  </section>
+
+  <section>
+    <h2>选择适合你的电脑</h2>
+    <p class="muted">课程包分为 Windows、Mac Intel 和 Mac ARM 三种，请按电脑系统与处理器选择对应的压缩包。Mac 首次打开运行入口时，按系统提示确认打开即可。</p>
+  </section>
+
+  <section>
+    <h2>课程预览与文件</h2>
+    <p class="muted">每章先讲分析目的，再解释关键代码和结果。遇到陌生符号，可以查看<a href="课程资源/course/notebooks/assets/reading_guide.html">R 代码阅读速查</a>；“展开看”中提供更细的讲解。</p>
+    <p class="muted">点击章节标题可看已运行的展示页。逐格练习请先打开“运行课程”，在 Jupyter 中使用 ipynb；Rmd 保留给习惯 R Markdown 的同学。</p>
+    <ul class="lessons">
+      <li><a href="课程资源/course/notebooks/00_start.nb.html">00 · 第一次使用 Jupyter</a><div class="formats"><a href="课程资源/course/notebooks/00_start.Rmd">Rmd</a><a href="课程资源/course/notebooks/00_start.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/01_bulk.nb.html">01 · Bulk RNA-seq</a><div class="formats"><a href="课程资源/course/notebooks/01_bulk.Rmd">Rmd</a><a href="课程资源/course/notebooks/01_bulk.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/02_single_mr.nb.html">02 · 单靶点 MR</a><div class="formats"><a href="课程资源/course/notebooks/02_single_mr.Rmd">Rmd</a><a href="课程资源/course/notebooks/02_single_mr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/03_proteome_mr.nb.html">03 · 蛋白组发现与验证</a><div class="formats"><a href="课程资源/course/notebooks/03_proteome_mr.Rmd">Rmd</a><a href="课程资源/course/notebooks/03_proteome_mr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/04_sensitivity.nb.html">04 · 敏感性分析</a><div class="formats"><a href="课程资源/course/notebooks/04_sensitivity.Rmd">Rmd</a><a href="课程资源/course/notebooks/04_sensitivity.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/05_smr.nb.html">05 · SMR 与 HEIDI</a><div class="formats"><a href="课程资源/course/notebooks/05_smr.Rmd">Rmd</a><a href="课程资源/course/notebooks/05_smr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/06_colocalization.nb.html">06 · 共定位</a><div class="formats"><a href="课程资源/course/notebooks/06_colocalization.Rmd">Rmd</a><a href="课程资源/course/notebooks/06_colocalization.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/07_single_cell.nb.html">07 · 单细胞</a><div class="formats"><a href="课程资源/course/notebooks/07_single_cell.Rmd">Rmd</a><a href="课程资源/course/notebooks/07_single_cell.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/08_pgs.nb.html">08 · 靶点遗传评分</a><div class="formats"><a href="课程资源/course/notebooks/08_pgs.Rmd">Rmd</a><a href="课程资源/course/notebooks/08_pgs.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/09_cox.nb.html">09 · Cox 生存分析</a><div class="formats"><a href="课程资源/course/notebooks/09_cox.Rmd">Rmd</a><a href="课程资源/course/notebooks/09_cox.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/10_functional.nb.html">10 · 功能与药物关联</a><div class="formats"><a href="课程资源/course/notebooks/10_functional.Rmd">Rmd</a><a href="课程资源/course/notebooks/10_functional.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/11_clinical_mr.nb.html">11 · 相关疾病 MR</a><div class="formats"><a href="课程资源/course/notebooks/11_clinical_mr.Rmd">Rmd</a><a href="课程资源/course/notebooks/11_clinical_mr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/12_evidence.nb.html">12 · 综合证据</a><div class="formats"><a href="课程资源/course/notebooks/12_evidence.Rmd">Rmd</a><a href="课程资源/course/notebooks/12_evidence.ipynb">ipynb</a></div></li>
+    </ul>
+  </section>
+  <p class="muted"><a href="课程资源/help.html">运行与退出说明</a></p>
+</main>
+</body>
+</html>

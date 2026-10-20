@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>运行与退出说明</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #20312d; background: #f4f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.7; }
+    main { width: min(740px, calc(100% - 32px)); margin: 48px auto; padding: 30px; border: 1px solid #dce7e2; border-radius: 16px; background: white; }
+    h1 { margin-top: 0; font-size: 1.8rem; }
+    h2 { margin-top: 28px; font-size: 1.15rem; }
+    p { color: #435750; }
+    a { color: #17684f; }
+    code { padding: 2px 5px; border-radius: 5px; background: #edf2ef; }
+    @media (max-width: 560px) { main { margin: 20px auto; padding: 22px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>运行与退出说明</h1>
+  <p>回到解压后的课程包根目录，打开适合电脑系统的运行入口：Windows 使用 <code>.bat</code>，Mac 使用 <code>.command</code>。课程使用包内置环境，开始学习不需要另外安装软件。</p>
+
+  <h2>Mac 首次打开</h2>
+  <p>首次打开时，macOS 可能要求批准这个下载文件。按系统提供的“打开”或针对该文件的“仍要打开”操作；学校管理的电脑若限制运行，请联系管理员。无需另装 R 或 Jupyter。</p>
+
+  <h2>结束学习</h2>
+  <p>在 Jupyter 页面选择 <strong>File → Shut Down</strong> 关闭服务。也可以切回启动课程时打开的运行窗口，按 <strong>Ctrl+C</strong>。</p>
+
+  <h2>练习文件</h2>
+  <p>课程运行产生的结果保存在 <code>课程资源/work/results/</code>。Windows 按 Ctrl+S、Mac 按 Cmd+S 保存 Notebook；下次打开会保留代码和已保存的输出。已保存输出不代表 R 内核仍保留变量。</p>
+  <p>想从原稿重新练习，可在初始化后运行 <code>course_fresh_notebook('01')</code> 创建第 1 章的新副本，再从左侧文件列表打开。该操作不覆盖已有练习。</p>
+  <p>完成一轮分析后，运行 <code>course_snapshot('baseline', settings)</code> 保存本课结果和参数。快照放在 <code>课程资源/work/snapshots/</code>，再次保存会建立新目录。</p>
+  <p>界面操作和排错示例见<a href="course/notebooks/00_start.nb.html">第 0 章</a>。</p>
+  <p>读代码时遇到陌生符号，可查看<a href="course/notebooks/assets/reading_guide.html">R 代码阅读速查</a>。各章的“展开看”说明可按需打开，代码格仍按页面顺序执行。</p>
+  <p><a href="../查看课程.html">返回课程入口</a></p>
+<h2>第一次运行前</h2>
+<p>请完整解压到本地可写目录。Windows 遇到目录过深时，会自动选择当前用户的短缓存目录存放运行环境；Notebook 和结果仍留在课程文件夹。入口固定使用内置 R 4.4.2，不需要修改电脑上已有的 R 或 Python。</p>
+<h2>启动中断时</h2>
+<ul><li><code>ARCH</code>：重新选择与处理器匹配的课程包。</li><li><code>PATH</code> 或 <code>CACHE</code>：把完整文件夹移到 <code>D:\course</code> 等较短的本地路径。</li><li><code>WRITE</code>：移到自己有写入权限的文件夹。</li><li><code>SPACE</code>：释放对应磁盘空间后重试。</li><li><code>PACKAGE</code>：重新下载并解压到新文件夹，原有练习先保留。</li><li><code>BUSY</code>：等待另一个启动窗口准备完成后，再打开入口。</li></ul>
+<p>首次准备意外中断后，可重新打开运行入口。反馈问题时附课程版本、系统和错误编号；移除个人路径与令牌，不要发送整个 work 文件夹。</p>
+
+</main>
+</body>
+</html>

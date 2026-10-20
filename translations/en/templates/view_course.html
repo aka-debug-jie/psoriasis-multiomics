@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Course Portal</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #20312d; background: #f4f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.65; }
+    main { width: min(920px, calc(100% - 32px)); margin: 48px auto; }
+    header, section { padding: 28px; margin-bottom: 18px; border: 1px solid #dce7e2; border-radius: 16px; background: #fff; }
+    header { background: #eaf4ef; }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: clamp(1.8rem, 5vw, 2.5rem); }
+    h2 { margin-bottom: 12px; font-size: 1.2rem; }
+    .muted { color: #536660; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; padding: 0; list-style: none; counter-reset: step; }
+    .steps li { padding: 14px; border-radius: 10px; background: #f4f7f5; }
+    .steps li::before { counter-increment: step; content: counter(step) "  "; color: #28765c; font-weight: 700; }
+    a { color: #17684f; }
+    .lessons { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 10px; padding: 0; list-style: none; }
+    .lessons li { padding: 12px 14px; border: 1px solid #e2eae6; border-radius: 10px; }
+    .lessons a { font-weight: 650; text-decoration: none; }
+    .lessons a:hover { text-decoration: underline; }
+    .formats { margin-top: 5px; font-size: .9rem; }
+    .formats a { margin-right: 10px; }
+    code { padding: 2px 5px; border-radius: 5px; background: #edf2ef; }
+    @media (max-width: 560px) { main { margin: 20px auto; } header, section { padding: 20px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Course Portal</h1>
+    <p class="muted">Start with the course previews, which include results, or open a blank practice notebook and run the R code cells yourself. If this is your first time using Jupyter, begin with Chapter 0.</p>
+  </header>
+
+  <section>
+    <h2>Get started</h2>
+    <ol class="steps">
+      <li>After extracting the package, open the “Run Course” launcher in this folder. On Windows, run <code>.bat</code>; on Mac, run <code>.command</code>.</li>
+      <li>Wait for Jupyter to open in your browser, then open <code>00_start.ipynb</code> in the course folder.</li>
+      <li>Follow Chapter 0 to learn the interface, then press Shift+Enter to run cells one by one. There is no output when you first open the notebook; results appear after you run the cells.</li>
+    </ol>
+    <p class="muted">The launcher uses the environment bundled with the course package, so no additional software installation is needed. Practice results are saved in <code>课程资源/work/results/</code>. After saving a Notebook, your changes and outputs will still be there when you reopen it; you can also save a copy to continue practicing.</p>
+  </section>
+
+  <section>
+    <h2>Choose the package for your computer</h2>
+    <p class="muted">The course package comes in versions for Windows, Intel-based Mac, and Apple silicon Mac. Choose the archive that matches your operating system and processor. The first time you open the launcher on a Mac, follow the system prompt to confirm.</p>
+  </section>
+
+  <section>
+    <h2>Course previews and files</h2>
+    <p class="muted">Each chapter first introduces the analysis goal, then explains key code and results. If you encounter an unfamiliar symbol, see the <a href="课程资源/course/notebooks/assets/reading_guide.html">R Code Quick Guide</a>; the “Expand” sections provide more detail.</p>
+    <p class="muted">Click a chapter title to view the rendered preview. To practice cell by cell, first open the “Run Course” launcher, then use the ipynb file in Jupyter. The Rmd files are available for readers who prefer R Markdown.</p>
+    <ul class="lessons">
+      <li><a href="课程资源/course/notebooks/00_start.nb.html">00 · Your First Jupyter Session</a><div class="formats"><a href="课程资源/course/notebooks/00_start.Rmd">Rmd</a><a href="课程资源/course/notebooks/00_start.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/01_bulk.nb.html">01 · Bulk RNA-seq</a><div class="formats"><a href="课程资源/course/notebooks/01_bulk.Rmd">Rmd</a><a href="课程资源/course/notebooks/01_bulk.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/02_single_mr.nb.html">02 · Single-target MR</a><div class="formats"><a href="课程资源/course/notebooks/02_single_mr.Rmd">Rmd</a><a href="课程资源/course/notebooks/02_single_mr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/03_proteome_mr.nb.html">03 · Proteomics Discovery and Validation</a><div class="formats"><a href="课程资源/course/notebooks/03_proteome_mr.Rmd">Rmd</a><a href="课程资源/course/notebooks/03_proteome_mr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/04_sensitivity.nb.html">04 · Sensitivity Analysis</a><div class="formats"><a href="课程资源/course/notebooks/04_sensitivity.Rmd">Rmd</a><a href="课程资源/course/notebooks/04_sensitivity.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/05_smr.nb.html">05 · SMR and HEIDI</a><div class="formats"><a href="课程资源/course/notebooks/05_smr.Rmd">Rmd</a><a href="课程资源/course/notebooks/05_smr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/06_colocalization.nb.html">06 · Colocalization</a><div class="formats"><a href="课程资源/course/notebooks/06_colocalization.Rmd">Rmd</a><a href="课程资源/course/notebooks/06_colocalization.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/07_single_cell.nb.html">07 · Single-cell Analysis</a><div class="formats"><a href="课程资源/course/notebooks/07_single_cell.Rmd">Rmd</a><a href="课程资源/course/notebooks/07_single_cell.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/08_pgs.nb.html">08 · Target Genetic Score</a><div class="formats"><a href="课程资源/course/notebooks/08_pgs.Rmd">Rmd</a><a href="课程资源/course/notebooks/08_pgs.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/09_cox.nb.html">09 · Cox Survival Analysis</a><div class="formats"><a href="课程资源/course/notebooks/09_cox.Rmd">Rmd</a><a href="课程资源/course/notebooks/09_cox.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/10_functional.nb.html">10 · Functional and Drug Associations</a><div class="formats"><a href="课程资源/course/notebooks/10_functional.Rmd">Rmd</a><a href="课程资源/course/notebooks/10_functional.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/11_clinical_mr.nb.html">11 · MR of Related Diseases</a><div class="formats"><a href="课程资源/course/notebooks/11_clinical_mr.Rmd">Rmd</a><a href="课程资源/course/notebooks/11_clinical_mr.ipynb">ipynb</a></div></li>
+      <li><a href="课程资源/course/notebooks/12_evidence.nb.html">12 · Integrated Evidence</a><div class="formats"><a href="课程资源/course/notebooks/12_evidence.Rmd">Rmd</a><a href="课程资源/course/notebooks/12_evidence.ipynb">ipynb</a></div></li>
+    </ul>
+  </section>
+  <p class="muted"><a href="课程资源/help.html">Run and Shut Down</a></p>
+</main>
+</body>
+</html>

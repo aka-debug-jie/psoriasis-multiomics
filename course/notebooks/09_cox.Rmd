@@ -1,0 +1,263 @@
+---
+title: "09｜Cox 比例风险模型与生存资料"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+本章用肺癌随访资料分析基线年龄、性别和 ECOG 活动能力与死亡时间的关联，练习事件编码、缺失值处理和风险比解释。原始资料含 228 人、165 例死亡；排除 1 名 ECOG 缺失者后，完整病例主模型包括 227 人和 164 例死亡。KM 曲线描述未经调整的生存过程，Cox 模型估计控制其他变量后的关联。
+
+本课会得到Kaplan–Meier 曲线、Cox 风险比及模型诊断。
+
+本章默认代码在测试机上约需 4 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('09', root=root)
+data.frame(lesson = "09", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认 ties="efron"。改为 "breslow" 可比较并列事件时间的处理方法；比较时使用相同的完整病例。
+
+```{r parameters}
+settings <- list(ties = "efron")
+settings
+```
+
+默认参数完整脚本：[09_cox.R](../lessons/09_cox.R)。
+
+正文中的数字来自 R 4.4.2 示例运行，单元格会显示当前会话的结果。建议用默认参数完成一遍分析，再另存调整参数后的结果，进行比较。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [lung_ncctg228.tsv](../data/cox/lung_ncctg228.tsv) | 228 人肺癌随访表；time 单位为天，status=2 为死亡、status=1 为删失，sex=1/2 分别为男/女。 |
+
+### 方法说明
+
+`dat` 一行代表一个人；`time` 是观察到的随访天数，`event` 记录是否观察到死亡。`analysis` 是纳入模型的完整病例，`fit` 保存拟合结果。本章用有时间信息的结局练习模型解释，不能把本数据的人与其他章节的遗传参考样本配对。
+
+生存分析同时需要随访时间和事件状态。本例 time 以天计，status=2 表示死亡、1 表示删失。分析时将事件转为 0/1 指示量，并构造 Surv(time,event)。完整病例分析排除 1 名 ECOG 缺失者。
+
+Cox 模型纳入年龄、性别和 ECOG，以男性为参照，年龄按每岁、ECOG 按每级估计效应，默认用 Efron 方法处理并列事件时间。HR=exp(beta) 表示模型条件下的相对瞬时风险，不能解释为生存概率差。KM 图为方便展示而合并 ECOG≥2，主模型仍使用连续等级。
+
+cox.zph 根据 Schoenfeld 残差检查比例风险假设。未检出偏离，只说明本次检验没有发现明确的违背证据，不能证明假设成立。
+
+### 09.1｜读取随访资料并定义死亡事件
+
+根据数据字典核实字段和取值，将随访天数与事件状态分别读取。明确编码死亡为 1、删失为 0，可以直接检查事件含义，无需依赖程序对原始编码的推断。
+
+<details><summary>展开看：删失的人还提供信息吗</summary>
+
+删失表示观察结束时尚未记录到该事件，只知道事件时间晚于已观察时间。这个人此前仍参与风险集，不能把其随访天数当死亡时间，也不能当作永远不会死亡。KM 和 Cox 的解释还依赖适当的删失机制假设；仅凭 `event=0` 无法验证该假设。
+
+</details>
+
+```{r l09_s01}
+source("R/common.R")
+required <- c("survival", "ggplot2", "scales")
+missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing)) stop("请先安装课程依赖：", paste(missing, collapse = ", "))
+out <- lesson_output("09_cox")
+data_file <- "data/cox/lung_ncctg228.tsv"
+if (!file.exists(data_file)) stop("找不到课程数据：", data_file)
+dat <- read_tsv(data_file)
+stopifnot(nrow(dat) == 228L, all(dat$status %in% c(1, 2)), all(dat$time > 0), all(dat$sex %in% 
+    c(1, 2)))
+dat$event <- as.integer(dat$status == 2)
+stopifnot(sum(dat$event) == 165L)
+
+data.frame(people=nrow(dat),deaths=sum(dat$event))
+```
+原始 228 人中 status==2 的死亡事件为 165 例；status==1 作为删失。
+
+### 09.2｜统计缺失并确定完整病例
+
+主模型使用 time、event、age、sex 和 ph.ecog。逐字段汇总缺失值，并记录完整病例筛选前后的人数，这样就能看清模型使用了哪些样本。
+
+```{r l09_s02}
+model_vars <- c("time", "event", "age", "sex", "ph.ecog")
+missing_by_variable <- data.frame(variable = c("time", "age", "sex", "ph.ecog"), missing_n = vapply(dat[c("time", 
+    "age", "sex", "ph.ecog")], function(x) sum(is.na(x)), integer(1)), stringsAsFactors = FALSE)
+cc <- complete.cases(dat[model_vars])
+exclusion <- data.frame(group = c("原始样本", "纳入主模型（完整病例）", "因模型变量缺失而排除"), 
+    n = c(nrow(dat), sum(cc), sum(!cc)), stringsAsFactors = FALSE)
+write_tsv(missing_by_variable, file.path(out, "missing_by_variable.tsv"))
+write_tsv(exclusion, file.path(out, "sample_flow.tsv"))
+analysis <- dat[cc, , drop = FALSE]
+stopifnot(nrow(analysis) == 227L, sum(analysis$event) == 164L)
+analysis$sex_f <- factor(analysis$sex, levels = c(1, 2), labels = c("男", "女"))
+
+course_table(exclusion)
+```
+ECOG 缺失 1 人，其余相关字段无缺失；主模型包含 227 人，其中死亡 164 例。
+
+### 09.3｜构造生存对象并拟合 Cox 模型
+
+将性别设为以男性为参照的因子，用时间和事件构造 Surv 对象。Cox 模型同时纳入年龄、性别和 ECOG；相应系数表示年龄每增加 1 岁、女性相对男性，以及 ECOG 每增加 1 级的对数风险变化。
+
+<details><summary>展开看：模型公式里的波浪号和加号怎样读</summary>
+
+`surv_obj ~ age + sex_f + ph.ecog` 的左边是时间与事件对象，右边列出同时纳入的变量；加号表示模型项，不是把年龄和性别数值相加。`sex_f` 的参照由因子水平确定。ECOG 在这里按数值进入，相当于假设每升一级具有相同的 log-HR 变化。语法见[模型公式](assets/reading_guide.html#formulas)。
+
+</details>
+
+```{r l09_s03}
+surv_obj <- survival::Surv(time = analysis$time, event = analysis$event)
+fit <- survival::coxph(surv_obj ~ age + sex_f + ph.ecog, data = analysis, ties = settings$ties, x = TRUE)
+
+summary(fit)$coefficients
+```
+模型使用完整病例，默认以 Efron 方法处理并列事件时间；ECOG 按连续等级进入模型。
+
+### 09.4｜整理 HR、区间和检验结果
+
+对模型 beta 及其区间上下限取指数，得到 HR 和对应区间。代码检查 HR 与 exp(beta) 一致、HR 位于区间内后，保存模型结果表。
+
+<details><summary>展开看：HR 小于 1 应怎样解释</summary>
+
+先读 `term` 确认比较和单位，再读 `HR`、`CI95_low`、`CI95_high`、`p_value`。HR 比较的是仍处于风险集中者在某时点的瞬时死亡风险。默认示例的女性相对男性 HR=0.575，不能写成死亡概率降低 42.5 个百分点，也不能直接推出寿命延长多少天。
+
+</details>
+
+```{r l09_s04}
+coef_table <- summary(fit)$coefficients
+ci <- exp(stats::confint(fit))
+model_results <- data.frame(term = rownames(coef_table), beta = unname(stats::coef(fit)), HR = exp(unname(stats::coef(fit))), 
+    CI95_low = ci[, 1], CI95_high = ci[, 2], p_value = coef_table[, "Pr(>|z|)"], row.names = NULL, 
+    check.names = FALSE)
+stopifnot(all(is.finite(model_results$HR)), isTRUE(all.equal(model_results$HR, exp(model_results$beta))), 
+    all(model_results$CI95_low <= model_results$HR), all(model_results$HR <= model_results$CI95_high))
+write_tsv(model_results, file.path(out, "cox_model.tsv"))
+
+course_table(model_results)
+```
+> 默认参数参考结果：年龄 HR=1.011（P=0.232），女性相对男性 HR=0.575（P=0.001），ECOG 每升1级 HR=1.590（P<0.001）；均为控制其他模型变量后的关联。本次结果以代码格输出为准。
+
+*横轴为对数刻度 HR，点为调整后的 HR、横线为 95% 区间，虚线标记 HR=1；呈现年龄、女性相对男性、ECOG 每级的模型估计。*
+
+### 09.5｜绘制 ECOG 分组 Kaplan–Meier 曲线
+
+KM 曲线描述各 ECOG 组未经调整的生存过程。为便于展示，ECOG≥2 合并为 2+；Cox 模型中的 ECOG 仍按连续等级处理。
+
+```{r l09_s05}
+analysis$ecog_group <- factor(ifelse(analysis$ph.ecog >= 2, "2+", as.character(analysis$ph.ecog)), 
+    levels = c("0", "1", "2+"))
+km <- survival::survfit(survival::Surv(time, event) ~ ecog_group, data = analysis)
+km_summary <- summary(km)
+km_data <- data.frame(time = km_summary$time, surv = km_summary$surv, strata = sub("^ecog_group=", 
+    "ECOG ", km_summary$strata))
+km_data <- rbind(data.frame(time = 0, surv = 1, strata = unique(km_data$strata)), km_data)
+km_plot <- ggplot2::ggplot(km_data, ggplot2::aes(x = time, y = surv, colour = strata)) + ggplot2::geom_step(linewidth = 0.9) + 
+    ggplot2::scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2), labels = scales::label_percent(accuracy = 1)) + 
+    ggplot2::scale_colour_manual(values = c(`ECOG 0` = "#2878B5", `ECOG 1` = "#E07A2D", `ECOG 2+` = "#48976A")) + 
+    ggplot2::labs(title = "Survival by baseline ECOG", subtitle = "NCCTG lung cancer example; complete cases; death is the event", 
+        x = "Follow-up since enrollment (days)", y = "Survival probability", colour = "Baseline ECOG") + 
+    theme_course()
+save_plot(km_plot, out, "km_by_ecog", width = 7.2, height = 5.2)
+```
+横轴为入组后的随访天数，纵轴为生存概率；曲线是未调整描述，不等同于多变量模型结果。
+
+*横轴为随访时间（天），纵轴为生存概率，颜色区分 ECOG 0、1、2+；2+ 合并只用于 KM 展示，不能据此解释调整后效应。*
+
+### 09.6｜检查比例风险假设
+
+用 cox.zph 根据 Schoenfeld 残差检查比例风险假设。变量行反映各协变量的检验结果，GLOBAL 行给出全模型的检验结果，两者都需要查看。
+
+<details><summary>展开看：比例风险是否要求死亡风险不随时间变</summary>
+
+模型允许基础风险随时间变化；比例风险假设约束的是协变量对应的风险比。`ph_table` 中先找 `term`，再看各变量和 `GLOBAL` 的 `p`。较大的 P 值只是未检出明显偏离，不能证明假设成立，也不能替代对研究设计和变量关系的检查。
+
+</details>
+
+```{r l09_s06}
+ph <- survival::cox.zph(fit, transform = "km")
+stopifnot(all(c("age", "sex_f", "ph.ecog", "GLOBAL") %in% rownames(ph$table)))
+ph_table <- as.data.frame(ph$table)
+ph_table$term <- rownames(ph$table)
+rownames(ph_table) <- NULL
+write_tsv(ph_table, file.path(out, "ph_test.tsv"))
+
+course_table(ph_table)
+```
+> 默认参数参考结果：GLOBAL P=0.216；年龄、性别、ECOG 的 P 值分别约为 0.665、0.129、0.152。该次检验未显示明显偏离证据，本次结果以代码格输出为准。
+
+### 09.7｜输出模型摘要和风险比图
+
+汇总数据来源、分析样本和 PH 检验结果，并绘制风险比图。阅读时注意标签与系数的对应关系，尤其是女性相对男性的比较方向，以及 ECOG 每级的变化单位。
+
+```{r l09_s07}
+cat("数据来源：survival::lung；survival ", as.character(utils::packageVersion("survival")), 
+    "\n", sep = "")
+cat("原始样本：", nrow(dat), "；死亡事件：", sum(dat$event), "；完整病例：", 
+    sum(cc), "；完整病例死亡事件：", sum(analysis$event), "\n", sep = "")
+print(model_results, row.names = FALSE, digits = 4)
+cat("\nPH 检验（cox.zph）：\n")
+print(ph)
+cat(course_output_path(), "\n")
+model_results$label <- c("Age (per year)", "Female vs male", "ECOG (per grade)")
+p <- ggplot2::ggplot(model_results, ggplot2::aes(HR, label)) + ggplot2::geom_vline(xintercept = 1, 
+    linetype = 2, colour = "grey65") + ggplot2::geom_pointrange(ggplot2::aes(xmin = CI95_low, 
+    xmax = CI95_high), colour = "#197D8D") + ggplot2::scale_x_log10() + ggplot2::labs(x = "Hazard ratio (95% CI)", 
+    y = NULL, title = "Cox model: adjusted associations") + theme_course()
+save_plot(p, out, "hazard_ratios", 7, 3.6)
+```
+本例以入组后的随访天数为时间轴。若要改用年龄时间轴，需要入组年龄、退出年龄及延迟入组设置，不能直接用随访天数代替年龄。
+
+原示例输出见 [results/09_cox/](../results/09_cox/)。
+
+以下链接指向随包提供的示例结果，当前会话的输出目录见首格：
+
+| 输出 | 阅读内容 |
+|---|---|
+| [missing_by_variable.tsv](../results/09_cox/missing_by_variable.tsv) | 主模型字段的逐变量缺失人数；ECOG 有 1 个缺失。 |
+| [sample_flow.tsv](../results/09_cox/sample_flow.tsv) | 完整病例筛选前后样本数：228 人、227 人纳入、1 人排除。 |
+| [cox_model.tsv](../results/09_cox/cox_model.tsv) | 各协变量的 beta、HR、95% 置信区间和 Wald P 值。 |
+| [ph_test.tsv](../results/09_cox/ph_test.tsv) | Schoenfeld 残差比例风险检验的变量行及 GLOBAL 行。 |
+
+### 练习与参考答案
+
+先预测将 `ties` 从 `"efron"` 改为 `"breslow"` 后，分析人数、事件数和 HR 哪些可能变化。实际运行修改后的参数格，再从 09.3 向下重跑，比较 `cox_model.tsv` 与 PH 检验。解释变化是否来自并列事件时间的处理，同时确认比较仍使用同一批 227 个完整病例。
+
+1. **为什么要把 status 转换为 0/1 事件指示量？**
+
+   <details><summary>参考答案</summary>
+   
+   原始 status==2 表示死亡、1 表示删失。Surv 支持自动识别部分 1/2 编码，但明确转换更便于检查事件定义。筛选后的子集也可能只保留一种取值，因此不能仅凭数值大小判断事件含义。
+   
+   </details>
+
+2. **把 Cox 公式改为只含 age 与 sex_f，比较结果时应说明什么？**
+
+   <details><summary>参考答案</summary>
+   
+   比较时保留本次 227 个完整病例，只改变公式，用 fit 的系数或 HR 表观察协变量调整带来的变化。若继续运行，比例风险检验中检查变量名称的语句也要与新公式对应，末尾森林图的标签需改为保留的两个系数。模型间的差异不能单独解释为某变量的因果效应。
+   
+   </details>
+
+3. **若模型样本数是 228 而非 227，应检查哪处筛选？**
+
+   <details><summary>参考答案</summary>
+   
+   检查 complete.cases() 是否覆盖 time、event、age、sex、ph.ecog，并查看 missing_by_variable.tsv 中 ph.ecog 的 1 个缺失。确认样本差异来自何处，不要未经说明填补缺失值。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](09_cox.Rmd)
+
+当前会话结果保存在 `课程资源/work/results/本课目录/`。修改上游参数后，请重跑相应步骤及后续单元格。

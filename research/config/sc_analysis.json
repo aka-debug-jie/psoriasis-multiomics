@@ -1,0 +1,91 @@
+{
+  "random_seed": 20261016,
+  "approved_parameters": "research/config/reconstruction_defaults.json",
+  "sc": {
+    "normalization": "LogNormalize",
+    "scale_factor": 10000,
+    "variable_features_method": "vst",
+    "nfeatures": 2000,
+    "PCs": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "k_param": 20,
+    "algorithm": 1,
+    "resolution": 0.8,
+    "seed": 20261016,
+    "batch_correction": false,
+    "counts": "research/data/processed/sc_analysis/counts.mtx.gz",
+    "features": "research/data/processed/sc_analysis/features.tsv",
+    "cells": "research/data/processed/sc_analysis/cells.tsv",
+    "input_manifest": "research/data/processed/sc_analysis/run.json",
+    "marker_panels": {
+      "Keratinocytes": [
+        "KRT14",
+        "KRT5",
+        "KRT10",
+        "KRT1",
+        "SBSN",
+        "KLK7"
+      ],
+      "Fibroblasts": [
+        "DCN",
+        "LUM"
+      ],
+      "Vascular endothelial cells": [
+        "CLDN5",
+        "VWF"
+      ],
+      "Immune cells": [
+        "HLA-DPB1",
+        "CD3D",
+        "CD3E"
+      ],
+      "Melanocytes": [
+        "MLANA",
+        "DCT"
+      ],
+      "Pericytes": [
+        "ACTA2",
+        "TAGLN"
+      ]
+    },
+    "marker_source": "paper Figure 4B; KLA-DPB1 spelling resolved as HLA-DPB1",
+    "annotation": "cluster_marker_evidence_requires_review",
+    "umap": {
+      "n_neighbors": 30,
+      "min_dist": 0.3,
+      "metric": "cosine",
+      "implementation": "uwot"
+    },
+    "save_checkpoint": true
+  }
+}

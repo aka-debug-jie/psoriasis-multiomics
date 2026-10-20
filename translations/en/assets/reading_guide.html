@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R Code Reading Quick Reference</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; color: #20312d; background: #f4f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.65; }
+    main { width: min(920px, calc(100% - 32px)); margin: 40px auto; }
+    header, section { padding: 24px; margin-bottom: 14px; border: 1px solid #dce7e2; border-radius: 14px; background: #fff; }
+    header { background: #eaf4ef; }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: clamp(1.7rem, 5vw, 2.3rem); }
+    h2 { margin-bottom: 8px; font-size: 1.15rem; }
+    .muted { color: #536660; }
+    a { color: #17684f; }
+    nav { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 16px 0 0; }
+    nav a { font-size: .92rem; }
+    .code-scroll { max-width: 100%; overflow-x: auto; border-radius: 8px; background: #f1f5f2; }
+    pre { width: max-content; min-width: 100%; margin: 0; padding: 12px 14px; color: #20312d; font: .9rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    @media (max-width: 560px) { main { margin: 18px auto; } header, section { padding: 18px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>R Code Reading Quick Reference</h1>
+    <p class="muted">This page helps you recognize common syntax; it does not run code. The examples are for reading syntax only. To practice, return to the notebook and run the cells.</p>
+    <p><a href="../00_start.nb.html">Back to Chapter 0: Your First Steps with Jupyter</a></p>
+    <nav aria-label="Contents">
+      <a href="#assignment">Assignment</a><a href="#columns">Columns</a><a href="#subset">Selecting rows and columns</a><a href="#logic">Logical conditions</a><a href="#matching">Matching</a><a href="#factors">Factors</a><a href="#formulas">Formulas</a><a href="#functions">Functions</a><a href="#loops">Loops</a><a href="#uncertainty">Uncertainty fields</a><a href="#course-helpers">Course helper functions</a>
+    </nav>
+  </header>
+
+  <section id="assignment">
+    <h2>Assignment: store a result in an object</h2>
+    <p><code>&lt;-</code> stores the value on the right under the object name on the left; later code can use that name.</p>
+    <div class="code-scroll"><pre><code>demo_table &lt;- data.frame(gene=c("A", "B"), sample_1=c(10, 20))
+n_gene &lt;- nrow(demo_table)</code></pre></div>
+  </section>
+
+  <section id="columns">
+    <h2>Columns: use <code>$</code> to access a field</h2>
+    <p>Append <code>$column_name</code> to a data frame to get that column as a vector. The column name must match a field in the table.</p>
+    <div class="code-scroll"><pre><code>demo_table$gene
+demo_table$sample_1</code></pre></div>
+  </section>
+
+  <section id="subset">
+    <h2>Select rows and columns: <code>[row, column]</code></h2>
+    <p>Select rows before the comma and columns after it. A blank keeps everything; a negative index excludes that position. When selecting one column, <code>drop=FALSE</code> keeps the table structure.</p>
+    <div class="code-scroll"><pre><code>demo_table[1, , drop=FALSE]
+demo_table[, -1]
+demo_table[, "gene", drop=FALSE]</code></pre></div>
+  </section>
+
+  <section id="logic">
+    <h2>Logical conditions: account for missing values when filtering</h2>
+    <p><code>==</code> tests equality, <code>&amp;</code> requires both conditions, <code>|</code> accepts either condition, and <code>%in%</code> checks whether a value belongs to a set. <code>NA</code> means missing and must not be treated as 0.</p>
+    <div class="code-scroll"><pre><code>keep &lt;- dat$p &lt; 0.05 &amp; dat$group %in% c("A", "B")
+dat[!is.na(keep) &amp; keep, ]</code></pre></div>
+  </section>
+
+  <section id="matching">
+    <h2>Matching: look up positions by ID</h2>
+    <p>For each ID in <code>x</code>, <code>match(x, table)</code> returns its position in <code>table</code>. If there is no match, it returns <code>NA</code>; account for missing values when using the result.</p>
+    <div class="code-scroll"><pre><code>pos &lt;- match(query$rsid, reference$rsid)
+found &lt;- reference[pos, ]</code></pre></div>
+  </section>
+
+  <section id="factors">
+    <h2>Categorical variables: <code>factor</code> and levels</h2>
+    <p><code>factor</code> marks text or codes as a categorical variable; <code>levels</code> lists its allowed categories. Level order affects display order. With the default contrasts used in this course, the first level is also the model reference group.</p>
+    <div class="code-scroll"><pre><code>group &lt;- factor(dat$group, levels=c("control", "case"))
+levels(group)</code></pre></div>
+  </section>
+
+  <section id="formulas">
+    <h2>Formulas: <code>~</code> describes model structure</h2>
+    <p>In an R model formula, the left side is usually the response and the right side lists explanatory variables. A <code>1</code> on the right indicates an intercept; <code>0</code> indicates no intercept. Interpret the formula in the context of the model function using it.</p>
+    <div class="code-scroll"><pre><code>fit &lt;- lm(y ~ group + age, data=dat)
+fit_no_intercept &lt;- lm(y ~ 0 + group, data=dat)</code></pre></div>
+  </section>
+
+  <section id="functions">
+    <h2>Functions: arguments in, objects out</h2>
+    <p>Arguments passed to a function go inside the parentheses, and an assignment can store the returned object. <code>library</code> loads a package; <code>source</code> runs a local R script; <code>pkg::function</code> specifies which package a function comes from.</p>
+    <div class="code-scroll"><pre><code>library(ggplot2)
+result &lt;- stats::median(x, na.rm=TRUE)
+source("R/common.R")</code></pre></div>
+  </section>
+
+  <section id="loops">
+    <h2>Repeat an operation: <code>for</code>, <code>lapply</code>, and <code>vapply</code></h2>
+    <p><code>for</code> runs code one item at a time. <code>lapply</code> calls a function for each item and returns a list. <code>vapply</code> also calls a function for each item, but requires results to match a specified type and length.</p>
+    <div class="code-scroll"><pre><code>for (i in seq_along(files)) print(files[i])
+means &lt;- lapply(groups, mean)
+means_num &lt;- vapply(groups, mean, numeric(1))</code></pre></div>
+  </section>
+
+  <section id="uncertainty">
+    <h2>Uncertainty fields: start with the names</h2>
+    <p><code>SE</code> commonly means standard error, and <code>CI</code> commonly means confidence interval. This is only a guide to recognizing fields; how they are calculated and interpreted depends on the course model and context.</p>
+    <div class="code-scroll"><pre><code>result$se
+result$CI_log_low
+result$CI_log_high</code></pre></div>
+  </section>
+
+  <section id="course-helpers">
+    <h2>Course helper functions: check the definition and then the use</h2>
+    <p><code>read_tsv</code> reads a tab-delimited file; <code>course_table</code> helps inspect selected rows or columns; <code>save_plot</code> saves a plot. <code>allele_sign</code> aligns allele directions and returns a sign or a missing value. <code>givw</code> calculates result fields from input effects, standard errors, and a correlation matrix. For exact arguments and behavior, read <code>R/common.R</code>, <code>R/genetics.R</code>, or <code>R/notebook_support.R</code>; statistical interpretation belongs in the main lesson.</p>
+    <div class="code-scroll"><pre><code>dat &lt;- read_tsv("data.tsv")
+course_table(dat, columns=c("gene", "beta"))
+save_plot(p, output, "result")</code></pre></div>
+  </section>
+</main>
+</body>
+</html>

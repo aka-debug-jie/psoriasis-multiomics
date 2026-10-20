@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Please cite this project and the original data and methods used in your analysis."
+title: "Psoriasis multi-omics: research reconstruction and an interactive R course"
+type: software
+authors:
+  - name: "aka-debug-jie and contributors"
+repository-code: "https://github.com/aka-debug-jie/psoriasis-multiomics"
+url: "https://aka-debug-jie.github.io/psoriasis-multiomics/"
+license: MIT
+version: 4.0.0

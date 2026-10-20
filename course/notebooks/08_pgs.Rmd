@@ -1,0 +1,242 @@
+---
+title: "08｜用遗传位点构建 IL7R 蛋白评分"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+本课将遗传变异的效应权重与个体基因型结合，计算 IL7R 蛋白评分。基因型数据来自 1000 Genomes Phase 3 的 503 名欧洲祖源个体，权重来自同一 UKB-PPP 暴露研究中的 IL7R 蛋白 cis 位点。按 P<5×10⁻⁸、等位基因方向明确且参考基因型中存在该位点等条件筛选后，保留两个 IL7R 位点。另用一组全基因组位点计算遗传主成分，观察样本的群体结构。
+
+本课会得到遗传评分、主成分和评分核对表。
+
+本章默认代码在测试机上约需 3 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('08', root=root)
+data.frame(lesson = "08", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认评分位点间 LD r² 上限为0.01；全基因组 PC 另用5,000个位点计算，默认保留前5个主成分。
+
+```{r parameters}
+settings <- list(max_score_r2 = 0.01, n_pcs = 5L)
+settings
+```
+
+默认参数完整脚本：[08_pgs.R](../lessons/08_pgs.R)。
+
+正文中的数字来自 R 4.4.2 示例运行，单元格会显示当前会话的结果。建议用默认参数完成一遍分析，再另存调整参数后的结果，进行比较。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [IL7R_source_cis_loci.tsv](../data/pgs/IL7R_source_cis_loci.tsv) | IL7R 蛋白 cis 条件关联位点及效应等位基因、非效应等位基因、效应值和显著性；按 P<5×10⁻⁸ 等规则筛选。 |
+| [EUR_teaching.bim](../data/pgs/EUR_teaching.bim) | 1000 Genomes Phase 3 EUR 基因型参考的变异索引，提供染色体、变异 ID、位置和两个等位基因；用于确认评分位点存在。 |
+| [EUR_teaching.bed](../data/pgs/EUR_teaching.bed) | PLINK 二进制基因型数据主体；配合 EUR_teaching.bim 与 EUR_teaching.fam，覆盖 503 名欧洲祖源个体及评分位点剂量。 |
+| [EUR_teaching.bim](../data/pgs/EUR_teaching.bim) | PLINK 基因型变异索引，与 bed、fam 文件共同读取。 |
+| [EUR_teaching.fam](../data/pgs/EUR_teaching.fam) | PLINK 个体索引，与 bed、bim 文件共同读取；本课样本为 503 名欧洲祖源个体。 |
+| [pc_variants.txt](../data/pgs/pc_variants.txt) | 用于群体结构检查的 5,000 个全基因组 LD 修剪 SNP 清单，与两个评分位点分开使用。 |
+| [sample_populations.tsv](../data/pgs/sample_populations.tsv) | 个体与参考人群标签的对应表，用于给 PC 图着色。 |
+
+### 方法说明
+
+权重表一行代表一个变异，剂量矩阵一行代表一个人、一列代表一个位点。剂量记录指定等位基因的份数，权重记录每增加一份该等位基因对应的蛋白效应。两者相乘再相加，才得到个人评分；本章的作用是练习评分构建和核对计算。
+
+评分位点需要满足预设显著性阈值、效应等位基因方向明确、参考数据中可用，以及两位点 LD r²<0.01 等条件；该 LD 阈值为默认设置。对每个个体，将各位点的效应等位基因剂量（0、1 或 2）乘以对应的 IL7R 蛋白效应值后求和，即 score=sum(dose*beta protein)。只有两个位点剂量均完整的样本进入评分；结果经标准化后展示分布，并用 PLINK 求和核对数值。
+
+群体结构分析另取 5,000 个全基因组 LD 修剪 SNP，按默认设置计算前五个遗传主成分。这些 SNP 不参与蛋白评分。蛋白评分反映的是所选遗传位点的蛋白关联加权信号，不能解释为临床蛋白测量值或疾病风险概率。
+
+### 08.1｜读取数据并筛选评分位点
+
+核对权重的表型和研究来源，并检查等位基因方向及参考基因型中是否存在该变异。输出表保留每个位点的筛选结果，便于查看入选依据。
+
+<details><summary>展开看：剂量为 0 是否表示没有这个基因</summary>
+
+0、1、2 表示该位点上指定效应等位基因的份数；0 仍是有效基因型。读 `w` 时同时核对 `SNP`、`A1`、`weight`，因为同一变异换一个计数等位基因，剂量含义就变了。缺失剂量表示未取得观测，不能补成 0。
+
+</details>
+
+```{r l08_s01}
+source("R/common.R")
+source("R/genetics.R")
+out <- lesson_output("08_pgs")
+plink <- tool_path("plink")
+x <- read_tsv("data/pgs/IL7R_source_cis_loci.tsv")
+bim <- read.table("data/pgs/EUR_teaching.bim", col.names = c("chr", "rsid", "cm", "pos", "A1", 
+    "A2"))
+x$valid_alleles <- mapply(function(a, b) is.finite(allele_sign(a, b, a, b)), x$EA, x$OA)
+x$reference_available <- x$variant %in% bim$rsid
+x$eligible <- x$neg_log10_p > -log10(5e-08) & x$valid_alleles & x$reference_available
+write_tsv(x, file.path(out, "source_locus_selection.tsv"))
+w <- x[x$eligible, c("variant", "EA", "beta")]
+names(w) <- c("SNP", "A1", "weight")
+stopifnot(nrow(w) == 2L)
+write_tsv(w, file.path(out, "weights.tsv"))
+writeLines(w$SNP, file.path(out, "score_variants.txt"))
+
+course_table(w)
+```
+本例使用 IL7R 蛋白效应值作为权重，默认筛选结果要求恰有两个位点；疾病效应值不参与评分。
+
+### 08.2｜验证位点之间的相关性
+
+从参考基因型中提取两个入选位点的剂量，用完整观测计算相关系数平方。同时标记两个位点均有数据的个体，供后续评分使用。
+
+```{r l08_s02}
+run_tool(plink, c("--bfile", "data/pgs/EUR_teaching", "--extract", file.path(out, "score_variants.txt"), 
+    "--recode", "A", "--recode-allele", file.path(out, "weights.tsv"), "--keep-allele-order", 
+    "--out", file.path(out, "genotypes"), "--threads", "2", "--memory", "1500"), file.path(out, 
+    "genotypes_console.log"))
+g <- read.table(file.path(out, "genotypes.raw"), header = TRUE, check.names = FALSE)
+dosage <- as.matrix(g[, paste(w$SNP, w$A1, sep = "_"), drop = FALSE])
+complete <- complete.cases(dosage)
+r2 <- cor(dosage[, 1], dosage[, 2], use = "complete.obs")^2
+stopifnot(r2 < settings$max_score_r2)
+write_tsv(data.frame(variants = ncol(dosage), people = nrow(dosage), complete = sum(complete), 
+    r2 = r2), file.path(out, "input_summary.tsv"))
+
+data.frame(people=nrow(dosage),complete=sum(complete),r2=r2)
+```
+默认设置要求 r²<0.01；输入摘要记录人数、完整人数和实测 r²。
+
+<details><summary>展开看：修改 LD 上限会自动删掉一个位点吗</summary>
+
+这里先计算两个已选位点的 `r2`，再由 `stopifnot()` 检查是否低于 `settings$max_score_r2`。它不会重新挑选位点。把上限设得过严可能使检查停止，应回看实际 r² 和入选条件，不能通过删除检查语句让分析继续。
+
+</details>
+
+### 08.3｜计算个人加权评分并核对
+
+对两个位点剂量均完整的个体，将剂量与相应蛋白效应值相乘求和，并计算标准化评分。PLINK 对同一批个体另行求和，供核对 R 的计算结果。
+
+<details><summary>展开看：矩阵乘法怎样变成每人的评分</summary>
+
+`dosage %*% w$weight` 对每一行执行“第一个剂量乘第一个权重，再加第二个剂量乘第二个权重”。列顺序必须与权重一致。运行后按 `IID` 读 `PGS`、`PGS_z`、`PLINK_sum`；`PGS_z` 是本批人的均值中心化、标准差缩放结果，表示相对位置，不是蛋白浓度。两种软件求和一致只核对计算实现。
+
+</details>
+
+```{r l08_s03}
+pgs <- as.numeric(dosage[complete, , drop = FALSE] %*% w$weight)
+score <- data.frame(FID = g$FID[complete], IID = g$IID[complete], PGS = pgs, PGS_z = as.numeric(scale(pgs)))
+write.table(score[, c("FID", "IID")], file.path(out, "complete_people.txt"), row.names = FALSE, 
+    col.names = FALSE, quote = FALSE)
+run_tool(plink, c("--bfile", "data/pgs/EUR_teaching", "--keep", file.path(out, "complete_people.txt"), 
+    "--score", file.path(out, "weights.tsv"), "1", "2", "3", "header", "sum", "--out", file.path(out, 
+        "plink_score"), "--threads", "2", "--memory", "1500"), file.path(out, "score_console.log"))
+check <- read.table(file.path(out, "plink_score.profile"), header = TRUE)
+score$PLINK_sum <- check$SCORESUM[match(score$IID, check$IID)]
+stopifnot(max(abs(score$PGS - score$PLINK_sum)) < 1e-05)
+write_tsv(score, file.path(out, "individual_pgs.tsv"))
+
+course_table(score)
+```
+本批 503 人的两个评分位点均完整；PLINK 核对的是同一评分的计算值。
+
+*直方图横轴为标准化 IL7R 蛋白评分，纵轴为人数；展示 503 名 EUR 个体在两个 cis 位点上的评分分布，不表示疾病风险。*
+
+### 08.4｜用另一组位点计算群体结构主成分
+
+群体结构检查按默认设置使用另列的全基因组 LD 修剪 SNP 计算前五个主成分，并把个体匹配到参考人群标签。
+
+```{r l08_s04}
+run_tool(plink, c("--bfile", "data/pgs/EUR_teaching", "--extract", "data/pgs/pc_variants.txt", 
+    "--pca", as.character(settings$n_pcs), "header", "tabs", "--out", file.path(out, "ancestry"), "--threads", "2", 
+    "--memory", "1500"), file.path(out, "pca_console.log"))
+pc <- read.table(file.path(out, "ancestry.eigenvec"), header = TRUE)
+meta <- read_tsv("data/pgs/sample_populations.tsv")
+pc$population <- meta$pop[match(pc$IID, meta$sample)]
+write_tsv(pc, file.path(out, "genetic_pcs.tsv"))
+
+course_table(pc)
+```
+这 5,000 个位点用于观察遗传结构，不计入两个位点的蛋白评分。
+
+<details><summary>展开看：PC 图能证明评分预测疾病吗</summary>
+
+`pc` 一行仍是一个人，PC1、PC2 是全基因组变异概括出的坐标，没有疾病概率单位。`match()` 用个体 ID 找到对应的人群标签，见[按标识匹配](assets/reading_guide.html#matching)。本课没有这批人的疾病结局或蛋白实测值，因此 1000 Genomes 这一步不能验证疾病预测或蛋白预测表现。
+
+</details>
+
+### 08.5｜绘制评分与主成分图
+
+两幅图分别展示个人评分分布和群体结构。主成分图使用 PC1、PC2，并按参考人群着色。
+
+```{r l08_s05}
+p <- ggplot2::ggplot(score, ggplot2::aes(PGS_z)) + ggplot2::geom_histogram(bins = 25, fill = "#197D8D", 
+    colour = "white") + ggplot2::labs(x = "Standardized IL7R protein score", y = "Individuals", 
+    title = "A target-specific protein score", subtitle = "1000 Genomes Phase 3 EUR; two cis variants; actual genotype dosages") + 
+    theme_course()
+save_plot(p, out, "protein_score", 7, 4.5)
+```
+
+下面查看由另一组位点计算的遗传 PC。
+
+```{r l08_pcs_plot}
+p <- ggplot2::ggplot(pc, ggplot2::aes(PC1, PC2, colour = population)) + ggplot2::geom_point(size = 1.4, 
+    alpha = 0.8) + ggplot2::labs(title = "Genetic structure from 5000 genome-wide variants", 
+    colour = "Population") + theme_course()
+save_plot(p, out, "ancestry_pcs", 7, 5)
+```
+直方图展示 IL7R 评分在样本中的分布，PC 图展示样本的群体结构；后者不能用来评价评分效果。
+
+*横轴和纵轴分别为全基因组数据的 PC1、PC2，颜色标示参考人群；图用于查看遗传结构，不代表 IL7R 评分效果。*
+
+### 08.6｜汇总人数与核对误差
+
+汇总评分人数、两位点 r²，以及 R 与 PLINK 求和的最大绝对差。
+
+```{r l08_s06}
+print(data.frame(people = nrow(score), r2 = r2, max_R_PLINK_difference = max(abs(score$PGS - 
+    score$PLINK_sum))))
+```
+最大绝对差用于判断两种计算在输出精度范围内是否一致。
+
+原示例输出见 [results/08_pgs/](../results/08_pgs/)。
+
+### 练习与参考答案
+
+先预测把 `n_pcs` 从 5 改为 3 后，个人 `PGS` 是否会变。实际运行修改后的参数格，再从 08.4 向下重跑，查看主成分列数，并与此前保存的评分表比较。解释评分位点与 PC 位点承担的不同任务。保持 `n_pcs` 至少为 2，才能继续绘制现有 PC1–PC2 图。
+
+1. **若把位点筛选阈值改为 P<1×10⁻⁶，应重新检查什么？**
+
+   <details><summary>参考答案</summary>
+   
+   该阈值写在位点筛选代码中。修改后，需要重新检查入选位点、等位基因方向、参考数据可用性、位点间 LD 和完整评分人数。脚本要求恰有两个评分位点；若入选数量改变，会停止运行，此时应重新评估评分设置。
+   
+   </details>
+
+2. **本课的个人评分由哪些量相乘并如何合并？**
+
+   <details><summary>参考答案</summary>
+   
+   每个位点的效应等位基因剂量（0/1/2）乘以该位点的 IL7R 蛋白效应值，再对位点求和。
+   
+   </details>
+
+3. **为什么不能将评分与肺癌生存课的数据按行拼接？**
+
+   <details><summary>参考答案</summary>
+   
+   两份真实数据来自不同人群，个体和结局也不同。相同行号不代表同一受试者，因此不能按行拼接。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](08_pgs.Rmd)
+
+当前会话结果保存在 `课程资源/work/results/本课目录/`。修改上游参数后，请重跑相应步骤及后续单元格。

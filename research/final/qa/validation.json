@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "primary_candidates": 7,
+  "opportunity_background": 2045,
+  "enrichment_terms_independently_checked": 5489,
+  "enrichment_significant": {
+    "primary": {
+      "biological_process": 2,
+      "molecular_function": 0,
+      "cellular_component": 0,
+      "KEGG": 1
+    },
+    "discovery_sensitivity": {
+      "biological_process": 2,
+      "molecular_function": 0,
+      "cellular_component": 0,
+      "KEGG": 1
+    }
+  },
+  "clinical_pairs": 154,
+  "BH374": 19,
+  "BH_candidate_exploratory": 24,
+  "legacy_flags_explicit": true,
+  "source_biological_statistics_preserved": true,
+  "missingness_preserved": true,
+  "MVP_free_control_verified": true,
+  "original_source_records_matched": 2,
+  "source_convention_resolved": false,
+  "induced_STRING_edges": 77,
+  "multi_instrument_rows_preserved": 88,
+  "steiger_selected_grid_rows": 72,
+  "fresh_directory_tables_identical": 43,
+  "result_tables": 41,
+  "fresh_output_root": "research/records/closure_20261017/fresh_final_complete",
+  "publication_figures": 4,
+  "run_sha256": "132d86e48a380656c0e5128fed943214a6902540a3e77f7f359d659c0bb15198",
+  "validator_sha256": "0228fd4d179ef54ac0af264dabca6bd4eea291ba821f9c4e2062dee9b4575c2f"
+}

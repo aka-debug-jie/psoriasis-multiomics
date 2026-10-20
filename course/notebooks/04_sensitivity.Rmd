@@ -1,0 +1,274 @@
+---
+title: "04｜敏感性分析：工具强度、方向和不同 MR 假设"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+显著的 MR 结果依赖哪些条件，又对哪些选择敏感？本章检查工具强度、MHC位置、LD选择、Steiger方向和多工具估计。它们各有侧重：工具强度反映暴露关联的精度，LD选择影响重复信息的处理，Steiger比较方差解释方向，而不同估计方法对工具有效性及多效性有不同要求。
+
+本课会得到工具强度、方向检验和多种 MR 方法的比较表。
+
+本章默认代码在测试机上约需 37 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('04', root=root)
+data.frame(lesson = "04", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认 strict_r2=0.1、患病率情景为1%、2%、3%、5%，bootstrap次数为1000。患病率用于 Steiger 责任度换算；bootstrap 次数影响重复抽样精度和运行时间。
+
+```{r parameters}
+settings <- list(strict_r2 = 0.1, prevalence = c(0.01, 0.02, 0.03, 0.05), nboot = 1000L)
+settings
+```
+
+默认参数完整脚本：[04_sensitivity.R](../lessons/04_sensitivity.R)。
+
+正文中的数值来自 R 4.4.2 下的示例运行，代码单元格会显示你本次运行的结果。第一次学习建议使用默认参数；做练习时另存结果，便于比较参数变化的影响。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [exposures.tsv](../data/genetics/exposures.tsv) | 全家族暴露效应、SE、F和坐标；进入家族前已按编码基因位置排除30个MHC蛋白。 |
+| [steiger_effects.tsv](../data/genetics/steiger_effects.tsv) | 9个已选工具的效应、频率及来源；用四个人群患病率情景计算。 |
+| [multi_instrument_harmonized_instruments.tsv](../data/genetics/multi_instrument_harmonized_instruments.tsv) | 已按P<5×10⁻⁶、r²<0.1、10 Mb窗口处理并协调的多工具输入，区分cis与cis+trans。 |
+| [method_seeds.tsv](../data/genetics/method_seeds.tsv) | 各来源/蛋白/工具模式的固定随机种子。 |
+
+### 方法要点
+
+本章从不同角度检查同一批遗传关联。暴露表一行是来源、蛋白与变异的组合；多工具表还用 `mode` 区分 cis 和 cis+trans。蛋白 beta 沿用来源尺度，疾病 beta 为 log-OR，F 和 R² 都没有单位。
+
+F近似为 `(beta_X/SE_X)^2`。MHC编码基因排除和工具SNP的位置标记是两种检查。默认严格 LD 分支以r²≤0.1为目标，所以函数传入sqrt(0.1)。Steiger比较变异解释的蛋白方差和疾病责任度方差；病例比例不能代替人群患病率K；默认情景比较1%、2%、3%、5%。多工具部分计算IVW、加权中位数、加权众数与MR-Egger：中位数依赖超过半数有效权重，众数依赖最大一致组，Egger额外依赖InSIDE等假设。使用更多方法不能自动消除偏倚，应结合工具数量、方向与不确定性阅读。
+
+### 04.1｜重算工具强度并查看位置
+
+载入固定版本的公开 MR 方法函数，用暴露 beta/SE 重新计算 F，并标记位于 chr6 的25–34 Mb区域内的工具。编码基因位置已用于确定2709蛋白检验家族，这里的工具位置标记不会改变该家族。
+
+```{r l04_s01}
+source("R/common.R")
+source("R/genetics.R")
+source("R/vendor/mr.R")
+source("R/vendor/mr_mode.R")
+source("R/vendor/add_rsq.R")
+out <- lesson_output("04_sensitivity")
+x <- read_tsv("data/genetics/exposures.tsv")
+ld <- load_ld()
+x$F_recalculated <- (x$beta/x$se_exposure)^2
+x$in_MHC_region <- x$chr == 6 & x$pos >= 2.5e+07 & x$pos <= 3.4e+07
+write_tsv(x[, c("cohort", "uniprot", "gene", "rsid", "build", "F_recalculated", "in_MHC_region")], 
+    file.path(out, "instrument_strength_MHC.tsv"))
+
+summary(x$F_recalculated)
+```
+表中共有3802条暴露来源记录。F是每条暴露关联的强度近似，不能据此单独判断该工具没有多效性。
+
+<details><summary>展开看：F 大回答了什么问题</summary>
+
+F 近似是效应除以 SE 后再平方，反映这条暴露关联相对于估计误差有多强。它不检查变异是否通过其他途径影响疾病。`F_recalculated` 与 `in_MHC_region` 应分开阅读：前者看强度，后者看工具位置。
+
+</details>
+
+### 04.2｜比较两种 LD 规则与离散度
+
+<details><summary>展开看：严格筛选后怎样比较结果</summary>
+
+先按蛋白对齐 `main` 和 `strict` 两行，再比较工具覆盖、beta 和 SE。Q 描述工具效应与共同估计的离散程度，需要结合自由度；`se_mre` 在本流程中允许因离散而放大 SE。工具减少可能让区间变宽，不能只凭 P 是否越过 0.05 判断哪种结果更可信。
+
+</details>
+
+用相同暴露和 MVP 输入，只改变工具选择时允许的 |r| 上限。每个分支仍按同一方式协调等位基因、计算广义 IVW；结果也保留 Q、自由度和异质性调整后的标准误。
+
+这一步在测试机上约需 15 秒。出现 `[*]` 时正在计算，请等待后再运行下一格。
+
+```{r l04_s02}
+branches <- list(main = 0.95, strict = sqrt(settings$strict_r2))
+comparisons <- list()
+for (b in names(branches)) {
+    plan <- freeze_instruments(x, ld, branches[[b]])
+    fit <- analyse_outcome(plan, read_tsv("data/genetics/mvp.tsv"), ld)$results
+    fit$branch <- b
+    comparisons[[b]] <- fit
+}
+write_tsv(do.call(rbind, comparisons), file.path(out, "LD_and_dispersion.tsv"))
+
+course_table(do.call(rbind,comparisons), columns=c("gene","branch","beta","se","se_mre","p","Q"))
+```
+> 默认参数参考结果：主分支和严格分支分别能够估计2,096、2,091个蛋白。本次计数以代码格输出为准。更严格的 LD 规则可能减少工具数量和蛋白覆盖，因此应逐个蛋白比较变化，显著结果总数只能提供部分信息。
+
+### 04.3｜在明确的人群患病率情景下计算 Steiger
+
+<details><summary>展开看：forward 是否说明方向已经证实</summary>
+
+这里的 `forward` 只记录 `R2_exposure > R2_outcome` 是否成立，没有另外计算方向检验 P 值。结果表一行是一个工具、一个 K 和一种暴露 R² 算法的组合。改变 K 是检查疾病责任度换算的敏感性；测量误差、尺度及样本量近似仍会影响比较。
+
+</details>
+
+蛋白的R²采用两种方法估计，疾病的责任度相关系数则由 log-OR、频率和K换算得到。循环计算四个K与两种估计法的全部组合。这里使用队列样本量的近似值，它不一定等于每个蛋白实际参与估计的样本量。
+
+```{r l04_s03}
+s <- read_tsv("data/genetics/steiger_effects.tsv")
+N <- c(Iceland = 35892, `UKB-PPP` = 46218, Fenland_Olink_substitute_485 = 485)
+s$N <- unname(N[s$cohort])
+direction <- list()
+j <- 0L
+for (K in settings$prevalence) for (method in c("standardized_effect", "bse_N")) {
+    rY <- get_r_from_lor(s$beta_outcome, s$eaf_outcome, 15635, 429252, K, model = "logit", 
+        correction = FALSE)
+    r2X <- if (method == "standardized_effect") 
+        2 * s$eaf_exposure * (1 - s$eaf_exposure) * s$beta_exposure^2
+    else (s$beta_exposure/s$se_exposure)^2/((s$beta_exposure/s$se_exposure)^2 + s$N - 2)
+    j <- j + 1L
+    direction[[j]] <- data.frame(instrument_id = s$instrument_id, gene = s$gene, K = K, method = method, 
+        R2_exposure = r2X, R2_outcome = rY^2, forward = ifelse(is.finite(r2X) & r2X >= 0 & 
+            r2X < 1, r2X > rY^2, NA))
+}
+write_tsv(do.call(rbind, direction), file.path(out, "steiger_grid.tsv"))
+
+course_table(do.call(rbind,direction), columns=c("gene","K","method","R2_exposure","R2_outcome","forward"))
+```
+> 默认参数参考结果：9个工具共得到72行组合，结果均为 forward。也就是说，在本课输入和近似条件下，各组合的R²_exposure均大于R²_outcome；本次结果以代码格输出为准。
+
+### 04.4｜准备多工具比较与随机种子
+
+多工具比较从已经完成clump和等位基因协调的表格开始，按来源分别分析cis和cis+trans工具。每组固定 seed；默认设置1,000次 bootstrap，使中位数、众数等包含随机重采样的方法可以重复得到同一次计算结果。
+
+```{r l04_s04}
+d <- read_tsv("data/genetics/multi_instrument_harmonized_instruments.tsv")
+seeds <- read_tsv("data/genetics/method_seeds.tsv")
+parameters <- default_parameters()
+parameters$nboot <- settings$nboot
+rows <- list()
+j <- 0L
+
+course_table(d, columns=c("gene","cohort","mode","rsid","beta","beta_outcome_aligned"))
+```
+d 中的 cohort、uniprot、mode 和 rsid 标明每组比较使用的工具。工具数不足的组合也会保留，并在结果中注明原因。
+
+### 04.5｜计算四种方法并保留无法估计的组合
+
+默认 nboot=1000；每个来源、蛋白和工具模式分别计算相应估计。单工具使用Wald；本流程要求至少三个工具，才运行中位数、众数和Egger。各方法返回自己的SE与P，保留其检验定义。
+
+这一步在测试机上约需 18 秒。出现 `[*]` 时正在计算，请等待后再运行下一格。
+
+```{r l04_s05}
+rows <- list(); j <- 0L
+for (i in seq_len(nrow(seeds))) {
+    a <- seeds[i, ]
+    v <- d[d$cohort == a$cohort & d$uniprot == a$uniprot & d$mode == a$mode, ]
+    if (!nrow(v)) 
+        next
+    for (method in c("IVW", "weighted_median", "weighted_mode", "MR_Egger")) {
+        j <- j + 1L
+        r <- data.frame(cohort = a$cohort, uniprot = a$uniprot, gene = v$gene[1], mode = a$mode, 
+            method = method, nsnp = nrow(v), seed = a$seed)
+        if (nrow(v) < 3 && method != "IVW") {
+            r$status <- "requires_at_least_three_IVs"
+            rows[[j]] <- r
+            next
+        }
+        set.seed(a$seed)
+        if (nrow(v) == 1) {
+            fit <- list(b = v$beta_outcome_aligned/v$beta, se = v$se/abs(v$beta))
+            fit$pval <- 2 * pnorm(-abs(fit$b/fit$se))
+            r$method <- "single_IV_Wald"
+        }
+        else {
+            fun <- switch(method, IVW = mr_ivw, weighted_median = mr_weighted_median, weighted_mode = mr_weighted_mode, 
+                MR_Egger = mr_egger_regression)
+            fit <- fun(v$beta, v$beta_outcome_aligned, v$se_for_analysis, v$se, parameters = parameters)
+        }
+        for (k in intersect(c("b", "se", "pval", "Q", "Q_df", "Q_pval", "b_i", "se_i", "pval_i"), 
+            names(fit))) r[[k]] <- fit[[k]]
+        r$status <- if (is.finite(fit$b)) 
+            "computed"
+        else "unavailable"
+        rows[[j]] <- r
+    }
+}
+result <- as.data.frame(data.table::rbindlist(rows, fill = TRUE))
+```
+
+### 查看不同方法的估计
+
+先读 `cohort`、`mode` 和 `nsnp`，确认比较的是哪组工具，再读 `status`；能计算时才解释 `b`、`se`、`pval`。结果中的一行是一种方法的估计，不是一条新 SNP 记录。
+
+<details><summary>展开看：四种方法为何可能给出不同结果</summary>
+
+IVW 合并工具信息；加权中位数要求有效工具占超过一半权重；加权众数依赖最大一致组；Egger 允许截距并依赖 InSIDE 等条件，即工具强度与直接效应之间的独立性要求。这些假设不同，比较方向和精度有助于发现敏感之处。工具少时方法间差异也可能很不稳定，不能用多数方法显著来投票认定因果。
+
+</details>
+
+```{r sensitivity_summary}
+write_tsv(result, file.path(out, "multi_instrument_methods.tsv"))
+
+course_table(result, n=12, columns=c("gene","cohort","mode","method","nsnp","status","b","se","pval"))
+```
+> 默认参数参考结果：方法表共有88行，其中55行完成估计，33行因工具数不足而未运行。未能估计的组合需要结合状态阅读，不能按接近零的估计解释；本次计数以代码格输出为准。
+
+### 04.6｜查看估计变化及区间
+
+图中展示至少三个工具且成功计算的组合，按来源和工具模式分面。为便于比较，横线统一绘为 beta±1.96×SE；表中的P仍由各估计器计算。Egger和众数等方法的检验分布可能不同，读图时需要同时查看方法结果表。
+
+```{r l04_s06}
+p <- ggplot2::ggplot(result[result$status == "computed" & result$nsnp >= 3, ], ggplot2::aes(b, 
+    gene, colour = method)) + ggplot2::geom_vline(xintercept = 0, linetype = 2, colour = "grey65") + 
+    ggplot2::geom_pointrange(ggplot2::aes(xmin = b - 1.96 * se, xmax = b + 1.96 * se), position = ggplot2::position_dodge(0.6)) + 
+    ggplot2::facet_grid(cohort ~ mode, scales = "free_y") + ggplot2::labs(x = "MR log odds ratio (+/- 1.96 SE)", 
+    y = NULL, colour = "Method", title = "What changes across MR assumptions?") + theme_course()
+save_plot(p, out, "method_comparison", 11, 9)
+print(table(result$status))
+```
+> 默认参数参考结果：TNFAIP3/Iceland/cis_trans 的 Egger 估计约−0.467、SE约0.0924，按正态近似绘制的区间不跨零，但该方法 P 约0.124。本次结果以代码格输出为准。这个例子提醒我们，图中的展示区间与方法自身的检验结果要区分阅读。
+
+*颜色区分估计方法，横轴为MR log-OR。横线统一为 beta±1.96×SE 的正态近似展示区间，并非所有方法对应检验的95%置信区间；Egger或众数的P值须从方法结果表读取，不能按图中区间是否跨零判断P<0.05。*
+
+原示例输出见 [results/04_sensitivity/](../results/04_sensitivity/)。
+
+### 练习与参考答案
+
+先预测哪些列会随人群患病率 K 变化，再将 `prevalence` 设为 `c(0.01, 0.05)`。运行参数格并从 04.3 重跑方向比较，按同一工具和算法比较 R² 与 `forward`，解释变化发生在哪一步。再用下面的问题检查 LD 规则和无法估计的情形。
+
+1. **严格分支参数为什么是sqrt(0.1)，而不是0.1？**
+
+   <details><summary>参考答案</summary>
+   
+   函数比较的是|r|，设计阈值是r²≤0.1，两者的换算需取平方根。直接传0.1会改成r²≤0.01。
+   
+   </details>
+
+2. **将K从1%改成5%，到底改变哪一步？**
+
+   <details><summary>参考答案</summary>
+   
+   它改变二分类疾病责任度相关系数的换算，进而改变疾病R²与Steiger方向判断。它不改变原始GWAS效应或真实队列患病人数。
+   
+   </details>
+
+3. **某组Egger为NA，应怎样排查？**
+
+   <details><summary>参考答案</summary>
+   
+   先看nsnp和status，确认是否达到本流程的三个工具要求，再检查效应/SE和估计器返回值。不要把NA补成beta=0或P=1。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](04_sensitivity.Rmd)
+
+本次结果保存在 `课程资源/work/results/本课目录/`。修改参数后，请从受影响的步骤继续运行。

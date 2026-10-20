@@ -1,0 +1,19 @@
+{
+  "input_directory": "research/data/processed/coloc_all_genes",
+  "reconstruction_config": "research/config/reconstruction_defaults.json",
+  "output_directory": "research/results/coloc_mrna_all_genes",
+  "windows_kb": [
+    500,
+    1000
+  ],
+  "quant_sdY": 1,
+  "quant_scale_basis": "eQTLGen official per-effect Z-to-beta standardization; GTEx per-gene inverse-normalized expression (unit-scale approximation)",
+  "MVP_cases": 15635,
+  "MVP_controls": 429252,
+  "harmonization": "explicit rsID plus non-palindromic biallelic allele agreement; no significance filter",
+  "p1": 0.0001,
+  "p2": 0.0001,
+  "p12": 1e-05,
+  "selection": "Frozen 30-gene available-followup/author-reference union; strongest source cis-eQTL before outcome matching; no SMR/P threshold",
+  "scope": "mRNA colocalization; protein regional statistics remain unavailable"
+}

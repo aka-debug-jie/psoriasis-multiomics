@@ -1,0 +1,18 @@
+{
+  "logic_name": "ensembl_havana_gene_homo_sapiens",
+  "end": 89415367,
+  "seq_region_name": "10",
+  "display_name": "LIPA",
+  "version": 20,
+  "object_type": "Gene",
+  "biotype": "protein_coding",
+  "db_type": "core",
+  "canonical_transcript": "ENST00000336233.10",
+  "description": "lipase A, lysosomal acid type [Source:HGNC Symbol;Acc:HGNC:6617]",
+  "species": "homo_sapiens",
+  "source": "ensembl_havana",
+  "start": 89212830,
+  "strand": -1,
+  "assembly_name": "GRCh38",
+  "id": "ENSG00000107798"
+}

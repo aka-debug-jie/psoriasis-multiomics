@@ -1,0 +1,401 @@
+---
+title: "07｜单细胞数据中的细胞类型与候选基因"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+皮肤中有哪些主要细胞类型？候选基因在这些细胞中如何表达，皮损与正常组又有何差异？本章用单细胞数据回答这些问题。教学矩阵包含 22 份样本，QC 前按样本抽取的 10,708 个细胞覆盖 33,538 个基因。课堂同时提供细胞级检验和以供体为重复单位的 pseudobulk 分析，阅读结果时要区分两者的统计单位。
+
+> 默认参数参考结果：QC 后保留 7,938 个细胞，得到 25 个聚类；本次结果以代码格输出为准。
+
+本课会得到细胞质控表、UMAP、标记图和供体层面的比较结果。
+
+本章默认代码在测试机上约需 70 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('07', root=root)
+data.frame(lesson = "07", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认线粒体比例上限为10%，高变基因为2,000个，主成分为30个，聚类分辨率为0.8。调整 QC 或降维参数后，请从相应步骤向下重跑。这里的参数不会改变预先抽取的细胞，各样本的身份信息也会保留。
+
+```{r parameters}
+settings <- list(seed = 20261017L, max_percent_mito = 10, nfeatures = 2000L, pcs = 30L, resolution = 0.8)
+settings
+```
+
+默认参数完整脚本：[07_single_cell.R](../lessons/07_single_cell.R)。
+
+正文中的数字来自 R 4.4.2 示例运行，单元格会显示当前会话的结果。建议用默认参数完成一遍分析，再另存调整参数后的结果，进行比较。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [counts.mtx.gz](../data/single_cell/counts.mtx.gz) | 基因 × 细胞的稀疏原始计数矩阵；QC 前有 10,708 个抽样细胞。 |
+| [features.tsv](../data/single_cell/features.tsv) | 基因 ID、符号及线粒体标记；与计数矩阵行一一对应。 |
+| [cells.tsv](../data/single_cell/cells.tsv) | 细胞 ID、样本、供体和 condition；共 22 份样本，正常 8 份、皮损 14 份。 |
+| [pseudobulk_counts.tsv.gz](../data/single_cell/pseudobulk_counts.tsv.gz) | 按全量数据的样本与细胞类型聚合的原始计数，统计单位为样本。 |
+| [pseudobulk_samples.tsv](../data/single_cell/pseudobulk_samples.tsv) | pseudobulk 列对应的样本、细胞类型、分组和细胞数元数据。 |
+| [pseudobulk_features.tsv](../data/single_cell/pseudobulk_features.tsv) | pseudobulk 矩阵的基因 ID 与符号注释。 |
+
+### 方法说明
+
+先认清“谁占一行”。`features` 一行是一个基因，`cells` 一行是一个细胞；`counts` 的行是基因、列是细胞，数值是原始计数。同一供体可贡献许多细胞，所以细胞数和生物学重复数不能互换。本章先定位表达出现在哪些细胞类型，再用供体汇总结果考察组间差异。
+
+教学矩阵在 QC 前从每个样本最多抽取 500 个细胞，只展示全量图谱的一部分。按检测基因数、总计数和线粒体比例筛选细胞后，用 LogNormalize 校正测序深度，默认选取 2,000 个高变基因完成缩放、PCA、邻居图构建、聚类和 UMAP。
+
+聚类编号需要结合标记基因解释。脚本将各聚类的标记基因平均 log 表达逐标记标准化，再按细胞类型取均值，给出建议标签；dot plot 中的表达均值和表达比例可帮助检查这些标签。
+
+细胞级 Wilcoxon 检验分别比较同一类型内的皮损与正常细胞，以及某一类型与其余细胞。两类比较各自对预选候选基因和可评价类型组成的检验家族做 BH 校正。同一供体贡献的细胞并非独立重复，因此这些检验只描述当前抽样。pseudobulk 分析则按样本和细胞类型汇总全量原始计数，以样本作为统计重复，用 edgeR 比较疾病组。
+
+### 07.1｜读取矩阵并计算细胞 QC
+
+计数矩阵的行、列应分别与基因资料、细胞资料对应，样本数量也应一致。确认后，计算每个细胞的总计数、检测基因数和线粒体比例，按预设范围标记保留的细胞，并汇总每份样本的 QC 结果。
+
+这一步在测试机上约需 11 秒。出现 `[*]` 时正在计算，请等待后再运行下一格。
+
+```{r l07_s01}
+source("R/common.R")
+library(Seurat)
+library(Matrix)
+out <- lesson_output("07_single_cell")
+set.seed(settings$seed)
+con <- gzfile("data/single_cell/counts.mtx.gz")
+counts <- as(Matrix::readMM(con), "CsparseMatrix")
+features <- read_tsv("data/single_cell/features.tsv")
+cells <- read_tsv("data/single_cell/cells.tsv")
+rownames(counts) <- features$gene_id
+colnames(counts) <- cells$cell_id
+rownames(cells) <- cells$cell_id
+stopifnot(nrow(counts) == nrow(features), ncol(counts) == nrow(cells), length(unique(cells$gsm)) == 
+    22L)
+```
+
+### 检查每个细胞的质量
+
+<details><summary>展开看：三个 QC 指标各看什么</summary>
+
+`n_counts` 是总计数，`n_features` 是检测到的基因数，`percent_mito` 是线粒体计数占比。它们从不同侧面描述细胞质量；高计数也可能值得检查，并非越高越好。`qc$keep` 要求所有条件同时成立，运行后先比较各样本保留细胞数，再看总数。方括号如何筛选细胞可查[取行取列](assets/reading_guide.html#subset)。
+
+</details>
+
+```{r sc_qc}
+qc <- cells
+qc$n_counts <- Matrix::colSums(counts)
+qc$n_features <- Matrix::colSums(counts > 0)
+mt <- toupper(as.character(features$mitochondrial)) == "TRUE"
+qc$percent_mito <- 100 * Matrix::colSums(counts[mt, , drop = FALSE])/qc$n_counts
+qc$keep <- with(qc, n_features >= 500 & n_features <= 6000 & n_counts >= 1000 & n_counts <= 
+    30000 & percent_mito <= settings$max_percent_mito)
+qc$keep[is.na(qc$keep)] <- FALSE
+write_tsv(qc, file.path(out, "cell_qc.tsv"))
+write_tsv(aggregate(keep ~ gsm + donor_id + condition, qc, sum), file.path(out, "sample_qc.tsv"))
+
+data.frame(preQC=nrow(qc),postQC=sum(qc$keep),samples=length(unique(qc$gsm)))
+```
+QC 前共 10,708 个细胞、33,538 个基因，来自 22 份样本；阈值为 500–6,000 个检测基因、1,000–30,000 个 counts、线粒体比例默认不高于 10%。
+
+### 07.2｜标准化、降维与聚类
+
+通过 QC 的细胞进入 Seurat 分析。LogNormalize 后选取 2,000 个高变基因并对其缩放，默认以 30 个主成分建立邻居图、聚类和计算 UMAP。固定随机种子可帮助复现本次教学结果。
+
+<details><summary>展开看：PCA、聚类和 UMAP 分别做什么</summary>
+
+PCA 用较少的轴概括表达变化；邻居图描述细胞在这些轴上的接近程度，聚类据此分组。UMAP 把结构画到二维，两个坐标没有表达量单位。代码把这些结果存回 `obj`；运行后读细胞数与聚类数，并结合标记图解释，不能把岛间距离当作疾病效应大小。
+
+</details>
+
+```{r l07_s02}
+obj <- CreateSeuratObject(counts[, qc$keep], meta.data = cells[qc$keep, ])
+obj <- NormalizeData(obj, normalization.method = "LogNormalize", scale.factor = 10000, verbose = FALSE)
+obj <- FindVariableFeatures(obj, selection.method = "vst", nfeatures = settings$nfeatures, verbose = FALSE)
+course_table(data.frame(variable_gene = VariableFeatures(obj)), n=8)
+```
+
+### 查看高变基因并计算 PCA
+
+```{r l07_pca}
+obj <- ScaleData(obj, features = VariableFeatures(obj), verbose = FALSE)
+obj <- RunPCA(obj, features = VariableFeatures(obj), npcs = settings$pcs, seed.use = settings$seed, verbose = FALSE)
+course_table(as.data.frame(Embeddings(obj,"pca"))[,1:5])
+```
+
+### 由主成分构建邻居图与 UMAP
+
+这一步在测试机上约需 16 秒。出现 `[*]` 时正在计算，请等待后再运行下一格。
+
+```{r l07_umap}
+obj <- FindNeighbors(obj, dims = 1:settings$pcs, k.param = 20, verbose = FALSE)
+obj <- FindClusters(obj, resolution = settings$resolution, algorithm = 1, random.seed = settings$seed, verbose = FALSE)
+obj <- RunUMAP(obj, dims = 1:settings$pcs, n.neighbors = 30, min.dist = 0.3, metric = "cosine", seed.use = settings$seed, 
+    verbose = FALSE, n.threads = 2)
+data.frame(cells = ncol(obj), clusters = length(unique(Idents(obj))))
+```
+> 默认参数参考结果：汇总保留 7,938 个细胞，得到 25 个聚类；这些数量对应本课抽样与参数设置，本次结果以代码格输出为准。
+
+### 07.3｜依据标记形成聚类建议标签
+
+默认参数参考聚类的细胞类型需要由标记基因来判断；本次聚类以代码格输出为准。标签分数来自聚类平均 log 表达：每个标记在聚类间标准化后，按细胞类型取标记均值。最高类型分数不大于零的聚类标为 Unassigned。点图还会展示表达比例，供判断标签时参考。
+
+<details><summary>展开看：最高标记分数能确定细胞身份吗</summary>
+
+`annotation` 一行对应一个聚类。先读 `suggested_type` 和 `marker_score`，再用点图核对多个标记的平均表达和表达比例。分数是本批聚类之间的相对量，不能解释为标签正确的概率；`Unassigned` 表示本规则未给出正分支持。
+
+</details>
+
+这一步在测试机上约需 11 秒。出现 `[*]` 时正在计算，请等待后再运行下一格。
+
+```{r l07_s03}
+panels <- list(Keratinocytes = c("KRT14", "KRT5", "KRT10", "KRT1", "SBSN", "KLK7"), Fibroblasts = c("DCN", 
+    "LUM"), Endothelial = c("CLDN5", "VWF"), Immune = c("HLA-DPB1", "CD3D", "CD3E"), Melanocytes = c("MLANA", 
+    "DCT"), Pericytes = c("ACTA2", "TAGLN"))
+lognorm <- LayerData(obj, layer = "data")
+cluster <- as.character(Idents(obj))
+cl <- sort(unique(cluster))
+marker_rows <- list()
+scores <- matrix(0, length(cl), length(panels), dimnames = list(cl, names(panels)))
+for (type in names(panels)) {
+    ids <- features$gene_id[features$symbol %in% panels[[type]]]
+    ids <- intersect(ids, rownames(lognorm))
+    means <- sapply(cl, function(k) Matrix::rowMeans(lognorm[ids, cluster == k, drop = FALSE]))
+    z <- t(scale(t(means)))
+    z[!is.finite(z)] <- 0
+    scores[, type] <- colMeans(z)
+    for (g in ids) marker_rows[[paste(type, g)]] <- data.frame(cell_type = type, gene = features$symbol[match(g, 
+        features$gene_id)], cluster = cl, average = as.numeric(means[g, ]), percent = sapply(cl, 
+        function(k) 100 * mean(lognorm[g, cluster == k] > 0)))
+}
+annotation <- data.frame(cluster = cl, suggested_type = colnames(scores)[max.col(scores, ties.method = "first")], 
+    marker_score = apply(scores, 1, max))
+annotation$cell_type <- ifelse(annotation$marker_score > 0, annotation$suggested_type, "Unassigned")
+write_tsv(annotation, file.path(out, "marker_annotation.tsv"))
+write_tsv(do.call(rbind, marker_rows), file.path(out, "marker_expression.tsv"))
+
+course_table(annotation, n=12)
+```
+默认参数参考输出包括25个聚类的建议类型、marker score，以及逐标记的表达量和表达比例；本次聚类数以代码格输出为准。判断标签时应结合多个标记。
+
+### 07.4｜绘制细胞图谱与标记点图
+
+UMAP 用二维点云展示抽样细胞的结构，并按 condition 分面；点云位置不能直接解释为细胞关系或疾病效应。标记点图用大小表示表达比例、颜色表示平均 log 表达，帮助判断建议标签是否合适。
+
+```{r l07_s04}
+embedding <- as.data.frame(Embeddings(obj, "umap"))
+names(embedding) <- c("UMAP1", "UMAP2")
+embedding$cell_id <- colnames(obj)
+embedding$cluster <- cluster
+embedding$condition <- obj$condition
+embedding$cell_type <- annotation$cell_type[match(cluster, annotation$cluster)]
+write_tsv(embedding, file.path(out, "umap.tsv"))
+p <- ggplot2::ggplot(embedding, ggplot2::aes(UMAP1, UMAP2, colour = cell_type)) + ggplot2::geom_point(size = 0.3, 
+    alpha = 0.7) + ggplot2::facet_wrap(~condition) + ggplot2::scale_colour_manual(values = c(Keratinocytes = "#D9954C", 
+    Fibroblasts = "#628EA0", Endothelial = "#7772A5", Immune = "#378F78", Melanocytes = "#B66D82", 
+    Pericytes = "#8A9C50", Unassigned = "#AAAAAA")) + ggplot2::labs(title = "A compact atlas across 22 skin samples", 
+    subtitle = "Labels are marker-based suggestions for this sampled dataset", colour = NULL) + 
+    theme_course() + ggplot2::theme(axis.ticks = ggplot2::element_blank(), axis.text = ggplot2::element_blank())
+save_plot(p, out, "cell_atlas", 10, 5.2)
+```
+
+观察 UMAP 后，还要查看各聚类的标记基因表达。
+
+```{r l07_markers}
+m <- do.call(rbind, marker_rows)
+p <- ggplot2::ggplot(m, ggplot2::aes(gene, cluster, size = percent, colour = average)) + ggplot2::geom_point() + 
+    ggplot2::scale_colour_viridis_c() + ggplot2::labs(x = NULL, y = "Cluster", size = "% expressed", 
+    colour = "Mean log-expression", title = "Marker evidence for cluster annotation") + theme_course() + 
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+save_plot(p, out, "marker_dotplot", 11, 7)
+```
+图中展示当前参数下各聚类的标记表达；点大小代表表达细胞百分比，颜色代表平均 log 表达。
+
+*横纵轴为 UMAP1 与 UMAP2，点为细胞，颜色为标记推得的建议类型，面板按 normal 与 psoriasis 分开；默认参数参考图展示 QC 后 7,938 个抽样细胞，本次细胞数以代码格输出为准。*
+
+*横轴为标记基因，纵轴为聚类；点大小编码表达细胞比例，颜色编码平均 log 表达，用于检查当前参数下各聚类的多标记支持情况。*
+
+### 07.5｜比较同一类型内两组细胞
+
+在每个细胞类型内，对预先确定的候选基因做 Wilcoxon 检验，比较皮损与正常细胞的表达。这里多个细胞来自同一供体，结果只描述当前抽样，细胞数不能当作独立生物学重复数。
+
+```{r l07_s05}
+obj$teaching_type <- embedding$cell_type
+selected_genes <- c("IL12B", "SGSH", "TNFAIP3", "DDX58", "IL7R", "PRSS53", "UBLCP1")
+gene_map <- features[features$symbol %in% c(selected_genes, "RIGI"), ]
+gene_map$symbol[gene_map$symbol == "RIGI"] <- "DDX58"
+cell_de <- list()
+counter <- 0L
+for (type in sort(unique(obj$teaching_type))) for (j in seq_len(nrow(gene_map))) {
+    gid <- gene_map$gene_id[j]
+    sel <- obj$teaching_type == type
+    a <- as.numeric(lognorm[gid, sel & obj$condition == "psoriasis"])
+    b <- as.numeric(lognorm[gid, sel & obj$condition == "normal"])
+    counter <- counter + 1L
+    cell_de[[counter]] <- data.frame(gene = gene_map$symbol[j], cell_type = type, n_psoriasis = length(a), 
+        n_normal = length(b), p = if (length(a) > 2 && length(b) > 2 && length(unique(c(a, 
+            b))) > 1) 
+            wilcox.test(a, b, exact = FALSE)$p.value
+        else NA_real_)
+}
+cell_de <- do.call(rbind, cell_de)
+cell_de$comparison <- "psoriasis_vs_normal"
+cell_de$BH <- p.adjust(cell_de$p, "BH")
+write_tsv(cell_de, file.path(out, "candidate_cell_wilcoxon.tsv"))
+
+course_table(cell_de)
+```
+结果按候选基因 × 可评价细胞类型组成 BH 家族；该校正范围只属于此类组间比较。
+
+### 07.6｜比较类型与其余细胞
+
+这里的 Wilcoxon 检验比较某一类型与其余细胞中的候选基因表达，用于观察类型间差异。它与上一节的疾病组比较回答不同问题，因此在自己的检验家族内做 BH 校正。
+
+```{r l07_s06}
+rest_de <- list()
+counter <- 0L
+for (type in sort(unique(obj$teaching_type))) for (j in seq_len(nrow(gene_map))) {
+    gid <- gene_map$gene_id[j]
+    sel <- obj$teaching_type == type
+    a <- as.numeric(lognorm[gid, sel])
+    b <- as.numeric(lognorm[gid, !sel])
+    counter <- counter + 1L
+    rest_de[[counter]] <- data.frame(gene = gene_map$symbol[j], cell_type = type, n_type = length(a), 
+        n_rest = length(b), p = if (length(a) > 2 && length(b) > 2 && length(unique(c(a, b))) > 
+            1) 
+            wilcox.test(a, b, exact = FALSE)$p.value
+        else NA_real_)
+}
+rest_de <- do.call(rbind, rest_de)
+rest_de$comparison <- "type_vs_rest"
+rest_de$BH <- p.adjust(rest_de$p, "BH")
+write_tsv(rest_de, file.path(out, "candidate_type_vs_rest_wilcoxon.tsv"))
+
+course_table(rest_de)
+```
+输出独立的 type_vs_rest 结果表；它的 BH 值来自类型对其余细胞这一比较家族。
+
+### 07.7｜以样本为单位进行 pseudobulk 分析
+
+pseudobulk 将全量细胞数据按样本和细胞类型汇总为原始计数列。筛选细胞数足够的组别后，用 edgeR 建模，以生物样本作为统计单位，避免把同一供体的多个细胞当成独立重复。
+
+<details><summary>展开看：为什么这里有另一套细胞类型标签</summary>
+
+前面的 `annotation` 来自课堂抽样聚类和标记打分；这里的 `pm$cell_type` 随全量重建的汇总数据提供。两者来源和覆盖范围不同，类型名称也未必完全相同。课堂调整 QC 或聚类参数，不会重新生成已读入的 pseudobulk 计数及标签。
+
+</details>
+
+<details><summary>展开看：pseudobulk 表该从哪几列读起</summary>
+
+`pm` 一行对应一个供体与细胞类型的汇总列；当前输入中样本与供体一一对应。结果先读 `symbol`、`cell_type` 和 `logFC`，正值表示皮损组相对正常组更高，再读 `PValue`、`FDR`。这里每种类型检验保留下来的基因，校正范围与候选细胞级检验不同。
+
+</details>
+
+```{r l07_s07}
+pb <- read_tsv("data/single_cell/pseudobulk_counts.tsv.gz")
+pm <- read_tsv("data/single_cell/pseudobulk_samples.tsv")
+pf <- read_tsv("data/single_cell/pseudobulk_features.tsv")
+pc <- as.matrix(pb[, -1])
+rownames(pc) <- pb$gene_id
+stopifnot(identical(colnames(pc), pm$sample_id))
+pb_results <- list()
+dispersion_settings <- list()
+for (type in sort(setdiff(unique(pm$cell_type), "Unassigned"))) {
+    use <- pm$cell_type == type & pm$n_cells >= 10
+    meta <- pm[use, ]
+    group <- factor(meta$condition, levels = c("normal", "psoriasis"))
+    if (any(table(group) < 3)) 
+        next
+    design <- model.matrix(~group)
+    y <- edgeR::DGEList(pc[, use, drop = FALSE])
+    keep <- edgeR::filterByExpr(y, design = design)
+    y <- y[keep, , keep.lib.sizes = FALSE]
+    y <- edgeR::calcNormFactors(y, method = "TMM")
+    # 显式保留 edgeR 4.4 的平滑规则和 QL 离散度来源。
+    n_disp <- sum(rowSums(y$counts) >= 5)
+    dispersion_span <- if (n_disp <= 50) 1 else 0.25 + 0.75 * sqrt(50 / n_disp)
+    y <- edgeR::estimateDisp(y, design, span = dispersion_span, robust = FALSE)
+    top <- order(y$AveLogCPM, decreasing = TRUE)[seq_len(ceiling(0.1 * nrow(y)))]
+    ql_dispersion <- mean(y$trended.dispersion[top])
+    dispersion_settings[[type]] <- data.frame(cell_type = type,
+        span = dispersion_span, ql_dispersion = ql_dispersion)
+    fit <- edgeR::glmQLFit(y, design, dispersion = ql_dispersion,
+                          legacy = FALSE, robust = FALSE)
+    fit <- edgeR::glmQLFTest(fit, coef = "grouppsoriasis")
+    tab <- edgeR::topTags(fit, n = Inf, sort.by = "none")$table
+    tab$gene_id <- rownames(tab)
+    tab$symbol <- pf$symbol[match(tab$gene_id, pf$gene_id)]
+    tab$cell_type <- type
+    pb_results[[type]] <- tab
+}
+```
+
+### 保存供体层面的结果并查看汇总
+
+```{r sc_pb_summary}
+write_tsv(do.call(rbind, pb_results), file.path(out, "donor_pseudobulk.tsv"))
+write_tsv(do.call(rbind, dispersion_settings), file.path(out, "dispersion_settings.tsv"))
+write_tsv(data.frame(preQC = ncol(counts), postQC = sum(qc$keep), genes = nrow(counts), clusters = nrow(annotation)), 
+    file.path(out, "summary.tsv"))
+print(data.frame(preQC = ncol(counts), postQC = sum(qc$keep), clusters = nrow(annotation)))
+
+course_table(do.call(rbind,pb_results), columns=c("gene_id","symbol","cell_type","logFC","PValue","FDR"))
+```
+结果写入 donor_pseudobulk.tsv。默认参数参考汇总包含 10,708 个 QC 前细胞、7,938 个 QC 后细胞和 25 个聚类；本次计数以代码格输出为准。pseudobulk 与细胞级 Wilcoxon 结果需分别解读。
+
+原示例输出见 [results/07_single_cell/](../results/07_single_cell/)。
+
+以下链接指向随包提供的示例结果，当前会话的输出目录见首格：
+
+| 输出 | 阅读内容 |
+|---|---|
+| [summary.tsv](../results/07_single_cell/summary.tsv) | 本次抽样的 QC 前后细胞数、基因数和聚类数。 |
+| [candidate_cell_wilcoxon.tsv](../results/07_single_cell/candidate_cell_wilcoxon.tsv) | 按细胞类型分层的 psoriasis 与 normal 细胞级 Wilcoxon 结果及 BH 值。 |
+| [candidate_type_vs_rest_wilcoxon.tsv](../results/07_single_cell/candidate_type_vs_rest_wilcoxon.tsv) | 细胞类型与其余细胞的候选基因 Wilcoxon 结果及独立 BH 值。 |
+| [donor_pseudobulk.tsv](../results/07_single_cell/donor_pseudobulk.tsv) | 按样本作重复单位的 edgeR pseudobulk 结果表。 |
+
+### 练习与参考答案
+
+先预测：把 `max_percent_mito` 从 10 改为 8，保留细胞数会怎样，pseudobulk 是否也会改变？实际修改参数并运行参数格，然后从“检查每个细胞的质量”向下重跑。比较样本保留数、聚类和标记图，再解释两类分析为何可能呈现不同变化；不要只凭 UMAP 更整齐就判断 QC 更好。
+
+1. **为什么细胞级 Wilcoxon 检验不能把每个细胞都当成独立供体重复？**
+
+   <details><summary>参考答案</summary>
+   
+   同一供体的多个细胞共享个体背景，并非独立生物学重复；细胞级结果仅描述该抽样。供体层面的组间比较应以样本为单位，例如本课 pseudobulk。
+   
+   </details>
+
+2. **把线粒体比例上限从 10% 调低后，应检查哪些结果？**
+
+   <details><summary>参考答案</summary>
+   
+   更低的上限可能筛除更多细胞。检查 cell_qc.tsv、每样本 sample_qc.tsv 和汇总细胞数，并重新评估聚类与标记图；UMAP 外观本身不足以判断筛选是否合适。
+   
+   </details>
+
+3. **两张 Wilcoxon 表中同一基因的 BH 值不同，是否说明计算冲突？**
+
+   <details><summary>参考答案</summary>
+   
+   不一定。两张表的比较对象和校正家族不同：一张比较同类型内的 psoriasis 与 normal，另一张比较该类型与其余细胞。可通过 comparison 列确认各结果对应的问题。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](07_single_cell.Rmd)
+
+当前会话结果保存在 `课程资源/work/results/本课目录/`。修改上游参数后，请重跑相应步骤及后续单元格。

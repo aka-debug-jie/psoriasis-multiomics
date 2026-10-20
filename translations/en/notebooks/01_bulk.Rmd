@@ -1,0 +1,403 @@
+---
+title: "01 | Bulk RNA-seq differential expression"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+This lesson compares gene expression in psoriatic lesions and normal skin. You will learn how to turn integer counts and sample metadata into an estimate of the group difference. The data are 171 NCBI-reprocessed samples: 81 normal-skin samples and 90 lesional samples. With the default settings, the example tests 37,065 non-zero genes, of which 4,266 meet both filtering thresholds. These differences describe expression associations in this set of samples and can guide further study.
+
+Think of the input as two tables that need to work together: the count matrix records how many reads were observed for each gene in each sample, and the sample table records the group for each sample. This lesson aligns the two tables, then estimates the difference between lesional and normal skin for each gene. Samples are the observational units; genes are the objects tested repeatedly.
+
+If you are new to R notation, consult the [code-reading guide](assets/reading_guide.html) as needed. For a first pass, focus on the rows and columns and the direction of comparison; expand the function details when you need them.
+
+You will produce a sample-check table, a volcano plot, and an effect plot for candidate genes.
+
+The default code takes about 26 seconds on the test machine, excluding reading and hands-on time. See [Chapter 0](00_start.ipynb) for the test-machine configuration.
+
+### Prepare the lesson
+
+This cell locates the course folder and loads helper functions. After it runs, check the lesson number and output location. You can leave the path-finding code as written for now.
+
+<details><summary>Expand: what do source() and course_init() do?</summary>
+
+`source()` runs a local R script so its functions are available in the current session. `course_init()` is provided by the course; it selects the prepared package library, sets the working directory, and configures plot display. These are setup steps: this cell has not read the count matrix or fitted a statistical model yet.
+
+</details>
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('01', root=root)
+data.frame(lesson = "01", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Lesson parameters
+
+After changing a threshold, rerun the later analysis and plotting steps to compare the results. Exercises use the same raw data and comparison direction.
+
+```{r parameters}
+settings <- list(fdr = 0.05, abs_log2fc = 1)
+settings
+```
+
+Full script with default parameters: [01_bulk.R](../lessons/01_bulk.R).
+
+The values in the text come from an example run with R 4.4.2; code cells show the results from your run. Beginners should start with the defaults. Save a separate copy of results when doing exercises so you can compare the effect of changing parameters.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [counts.tsv.gz](../data/bulk/counts.tsv.gz) | Raw integer counts, with GeneID × sample dimensions; 171 samples, and each cell gives the count for that gene in that sample. |
+| [samples.tsv](../data/bulk/samples.tsv) | GSM sample IDs and tissue types; used to match count-matrix columns and distinguish normal from lesional psoriatic skin. |
+| [gene_symbols.tsv](../data/bulk/gene_symbols.tsv) | GeneID, current NCBI symbol, and aliases; used to annotate results and map candidate genes. |
+
+### Method notes
+
+This lesson uses raw integer counts, with their origin confirmed from the data documentation; integer values alone do not establish that they are raw counts. Sample IDs link each sample to tissue information. All-zero genes are removed before modeling, with no additional low-expression filter. TMM calculates normalization factors for differences in sample composition, reducing the effects of sequencing depth and composition on comparisons. Voom transforms normalized counts to log expression and estimates observation precision as a function of the mean. Limma then fits a linear model and uses empirical Bayes to shrink gene-wise variance estimates.
+
+The model coefficient is defined as psoriasis − normal, so a positive value means higher expression in the lesional group. BH correction covers all 37,065 tested genes. The default selection requires adjusted P < 0.05 and |logFC| ≥ 1; the current thresholds come from `settings` above. This is a voom linear model, not a negative-binomial model. The candidate plot shows moderated 95% intervals. These group-level expression differences are not causal evidence by themselves.
+
+### 01.1 | Load dependencies and set the comparison
+
+This section loads the required software and sets input files, output location, candidate list, and decision thresholds. The model uses sample metadata to define groups, with normal as the reference, and estimates the difference psoriasis − normal.
+
+First, the code assigns names to files and thresholds so they can be used later to read data or filter results. `counts_file` stores a file path; `counts` will be the matrix read from that file. `fdr_cutoff` and `logfc_cutoff` are numeric values.
+
+<details><summary>Expand: library(), $, and course helper functions</summary>
+
+`library(edgeR)` loads the analysis package so functions such as `DGEList()` can be called. `settings$fdr` retrieves `fdr` from the list named `settings`. `read_tsv()`, `write_tsv()`, `course_table()`, and `save_plot()` are course helpers for reading tables, writing tables, previewing rows, and saving plots. The modeling itself uses the analysis functions named explicitly in the code.
+
+</details>
+
+```{r l01_s01}
+source("R/common.R")
+suppressPackageStartupMessages({
+    library(edgeR)
+    library(limma)
+    library(ggplot2)
+})
+output <- lesson_output("01_bulk")
+counts_file <- "data/bulk/counts.tsv.gz"
+samples_file <- "data/bulk/samples.tsv"
+annotation_file <- "data/bulk/gene_symbols.tsv"
+fdr_cutoff <- settings$fdr
+logfc_cutoff <- settings$abs_log2fc
+candidate_symbols <- c("IL12B", "SGSH", "TNFAIP3", "DDX58", "IL7R", "PRSS53", "UBLCP1")
+
+data.frame(input = c("counts", "samples"), file = c(counts_file, samples_file))
+```
+
+This cell creates the output folder, reads the lesson settings, and lists seven candidate symbols.
+
+### 01.2 | Validate counts and match samples
+
+Align count-matrix columns with sample metadata by GSM to avoid assigning the wrong group when row orders differ. Check that GeneIDs are unique and counts are non-negative integers, and include only normal skin and lesional psoriatic skin in the comparison.
+
+The count-matrix columns and sample-table rows may be in different orders. First, use three fictional sample records to practice alignment; they illustrate R syntax only and are not part of the biological analysis. Before running the cell, predict: which group will appear in the first aligned row?
+
+```{r demo_sample_alignment}
+demo_columns <- c("S1", "S2", "S3")
+demo_samples <- data.frame(sample = c("S3", "S1", "S2"), group = c("皮损", "正常", "皮损"))
+demo_samples
+demo_samples[match(demo_columns, demo_samples$sample), , drop = FALSE]
+```
+
+After alignment, the first row should be S1 in the normal group. The real data use the same idea, with actual GSM sample IDs as the matching key.
+
+<details><summary>Expand: reading match() and square brackets</summary>
+
+`match(ids to find, IDs in lookup table)` returns the position of each ID in the lookup table. `metadata[positions, ]` selects those rows; leaving the space after the comma blank keeps all columns. `raw[, -1]` keeps all rows and removes the first column because GeneID identifies rows rather than measuring expression. `drop = FALSE` keeps a table or matrix structure even when only one column remains. An unmatched ID returns `NA`, so the real code also checks that every sample matched.
+
+</details>
+
+```{r l01_s02}
+raw <- read_tsv(counts_file)
+stopifnot(!anyDuplicated(raw$GeneID))
+counts <- as.matrix(raw[, -1, drop = FALSE])
+storage.mode(counts) <- "numeric"
+rownames(counts) <- as.character(raw$GeneID)
+stopifnot(all(is.finite(counts)), all(counts >= 0), all(counts == floor(counts)))
+metadata <- read_tsv(samples_file)
+metadata$included_in_counts <- metadata$gsm %in% colnames(counts)
+write_tsv(metadata, file.path(output, "sample_inclusion.tsv"))
+samples <- metadata[match(colnames(counts), metadata$gsm), , drop = FALSE]
+stopifnot(!anyNA(samples$gsm), !anyDuplicated(samples$gsm))
+stopifnot(all(samples$tissue_type %in% c("normal skin", "lesional psoriatic skin")))
+group <- factor(ifelse(samples$tissue_type == "normal skin", "normal", "psoriasis"), levels = c("normal", 
+    "psoriasis"))
+
+data.frame(group = names(table(group)), samples = as.integer(table(group)))
+```
+
+Check the result: there are 171 samples, with 81 normal and 90 psoriasis. Sample records absent from the count matrix do not enter the model.
+
+### 01.3 | Remove all-zero genes
+
+A gene with a count of zero in every sample provides no observed expression information, so it cannot contribute to the analysis. This lesson retains a gene if it has at least one non-zero count and does not add another low-expression threshold.
+
+`rowSums(counts)` calculates the total count across samples for each gene; `> 0` returns a series of TRUE/FALSE values. Use those flags as row positions to retain genes with observed counts. After running the cell, compare `input_genes` with `tested_genes` to see how many rows enter the model.
+
+<details><summary>Expand: how can logical values filter data?</summary>
+
+In `counts[keep, ]`, `keep` must have one value for each matrix row. Rows marked TRUE are retained; rows marked FALSE are removed. This rule checks only whether a row is all zero. Adding an expression threshold would create a different filtering rule.
+
+</details>
+
+```{r l01_s03}
+keep <- rowSums(counts) > 0
+y <- DGEList(counts = counts[keep, , drop = FALSE], group = group)
+
+data.frame(input_genes = nrow(counts), tested_genes = sum(keep))
+```
+
+The filter retains 37,065 non-zero genes. Counts pass the finite-value, non-negative, and integer checks.
+
+### 01.4 | Normalize and fit the differential-expression model
+
+Differences in sample totals and composition can affect count comparisons. TMM calculates normalization factors. After voom estimates mean-dependent precision, the limma linear model estimates the group coefficient and empirical Bayes stabilizes the variance estimates.
+
+Now we know the sample groups, but raw count size alone is not a group effect: sequencing depth and expression composition also affect counts. TMM estimates normalization factors first; voom then describes the relationship between expression level and observation precision. The same group design is then used for every gene model.
+
+<details><summary>Expand: how does ~group become a design matrix?</summary>
+
+The levels of `group` were set to normal, then psoriasis, so normal is the reference. `model.matrix(~group)` creates an intercept column and a `grouppsoriasis` column. The latter codes lesional samples as 1 and normal samples as 0. This coefficient represents psoriasis − normal. Changing the reference level changes how the coefficient is expressed, so do not interpret its sign without checking the comparison direction.
+
+</details>
+
+This step takes about 12 seconds on the test machine. If you see `[*]`, computation is in progress; wait for it to finish before running the next cell.
+
+```{r l01_s04}
+y <- calcNormFactors(y, method = "TMM")
+design <- model.matrix(~group)
+v <- voom(y, design, span = 0.5, adaptive.span = FALSE,
+          plot = FALSE, save.plot = TRUE)
+voom_points <- data.frame(mean_log_count=v$voom.xy$x, sqrt_SD=v$voom.xy$y)
+voom_line <- data.frame(mean_log_count=v$voom.line$x, sqrt_SD=v$voom.line$y)
+voom_plot <- ggplot(voom_points,aes(mean_log_count,sqrt_SD)) +
+  geom_point(size=.25,alpha=.3,colour="#71818B") +
+  geom_line(data=voom_line,colour="#168D91",linewidth=.8) +
+  labs(x="Mean log2 count",y="Square root of residual SD",title="Voom mean–variance trend") + theme_course()
+save_plot(voom_plot,output,"voom_mean_variance",7,5)
+```
+
+### Fit the model and inspect the coefficients
+
+`lmFit()` fits a linear model for each gene, and `eBayes()` uses information across genes to stabilize variance estimates. `topTable()` organizes the results as a table. After running the cell, first inspect the sign and size of `logFC`, then `P.Value` and `adj.P.Val`. The displayed rows are a preview; the complete results remain in `result`.
+
+<details><summary>Expand: what do logFC and adjusted P values tell us?</summary>
+
+Here, logFC is on a log2 scale: 1 corresponds to about a two-fold change, and −1 to about a one-half change. The P value describes how compatible the data are with the no-difference hypothesis under the current model. When many genes are tested, BH adjustment accounts for multiplicity across the test family. The selection combines effect size and adjusted P value, so both the size of the change and statistical evidence matter. FDR control applies to a set of results; it is not the probability that any one gene is false.
+
+</details>
+
+```{r bulk_fit}
+fit <- eBayes(lmFit(v, design))
+result <- topTable(fit, coef = "grouppsoriasis", number = Inf, adjust.method = "BH", sort.by = "none")
+result$GeneID <- rownames(result)
+
+course_table(result, columns = c("logFC", "P.Value", "adj.P.Val"))
+```
+
+The output gives logFC for psoriasis relative to normal and BH-adjusted results for all 37,065 genes. This lesson fixes the voom smoothing span at 0.5 to match the reference method; this avoids changes in observation weights when newer limma versions use an adaptive span by default.
+
+### 01.5 | Annotate genes and summarize sample normalization
+
+GeneIDs in the model are mapped to current gene symbols; records that cannot be mapped are retained. When inspecting annotations, watch for old symbols and aliases so you do not mistake the same gene for two different genes. Library size and TMM factor are saved for each sample in a separate table so you can check the normalization step.
+
+```{r l01_s05}
+annotation <- read_tsv(annotation_file)
+annotation$GeneID <- as.character(annotation$GeneID)
+match_id <- match(result$GeneID, annotation$GeneID)
+result$Symbol <- annotation$Symbol[match_id]
+result$annotation_status <- ifelse(is.na(match_id), "unmapped", "current_NCBI_symbol")
+result$significant <- result$adj.P.Val < fdr_cutoff & abs(result$logFC) >= logfc_cutoff
+result$contrast <- "psoriasis - normal"
+result$source_mode <- "NCBI_reprocessed_171_of_174"
+write_tsv(result, file.path(output, "all_gene_differential_expression.tsv"))
+sample_qc <- data.frame(gsm = samples$gsm, group = group, library_size = y$samples$lib.size, 
+    TMM_factor = y$samples$norm.factors)
+write_tsv(sample_qc, file.path(output, "library_normalization.tsv"))
+
+course_table(sample_qc)
+```
+
+The results table records current symbols, significance, and the psoriasis − normal direction. The sample-normalization table retains library size and TMM factor for each sample.
+
+### 01.6 | View library-size distributions and all-gene results
+
+The sample QC plot shows the distribution of library sizes in each group. The volcano plot shows effect direction, effect size, and BH-adjusted results for all genes. The two threshold lines help identify genes that meet both the statistical and prespecified effect-size criteria.
+
+```{r l01_s06}
+qc_plot <- ggplot(sample_qc, aes(x = group, y = library_size/1e+06, colour = group)) + geom_boxplot(width = 0.48, 
+    outlier.shape = NA, alpha = 0.12, show.legend = FALSE) + geom_jitter(width = 0.12, height = 0, 
+    alpha = 0.68, size = 1.5) + scale_colour_manual(values = c(normal = "#2C7FB8", psoriasis = "#C44536")) + 
+    labs(title = "Bulk sample library sizes", subtitle = sprintf("%d NCBI-reprocessed samples", nrow(sample_qc)), x = NULL, 
+        y = "Library size (millions of reads)") + theme_course()
+save_plot(qc_plot, output, "sample_qc", width = 6.5, height = 5)
+```
+
+The volcano plot places expression differences and adjusted significance for all genes in one view.
+
+```{r l01_volcano}
+volcano <- ggplot(result, aes(x = logFC, y = -log10(pmax(adj.P.Val, .Machine$double.xmin)))) + 
+    geom_point(aes(colour = significant), alpha = 0.62, size = 1.15) + geom_vline(xintercept = c(-logfc_cutoff, 
+    logfc_cutoff), linetype = 2, colour = "#68737D") + geom_hline(yintercept = -log10(fdr_cutoff), 
+    linetype = 2, colour = "#68737D") + scale_colour_manual(values = c(`FALSE` = "#AAB2B8", 
+    `TRUE` = "#B23A48"), breaks = c(FALSE, TRUE), labels = c("Other genes", "Meets both cutoffs"), 
+    name = "Differential expression") + labs(title = "Psoriatic lesional skin vs normal skin", 
+    subtitle = sprintf("%d tested genes; %d meet FDR < %g and |log2FC| >= %g", nrow(result), sum(result$significant), fdr_cutoff, logfc_cutoff), x = "log2 fold change (psoriasis - normal)", 
+    y = "-log10 adjusted P") + theme_course()
+save_plot(volcano, output, "bulk_volcano", width = 7.4, height = 6)
+```
+
+> Reference result with default settings: of 37,065 tested genes, 4,266 meet both adj.P.Val < 0.05 and |logFC| ≥ 1.
+
+The number passing the current filters appears in the plot subtitle and summary table below. The sample QC plot does not replace checks of sample identity or batch.
+
+*The x axis shows normal and psoriasis groups; the y axis shows library size in millions of reads. Points are samples and boxplots summarize each group. There are 171 samples: 81 normal and 90 psoriasis.*
+
+*The x axis is log2 fold change for psoriasis − normal; the y axis is −log10(BH-adjusted P value). Colors identify genes that pass both the current effect and significance thresholds.*
+
+### 01.7 | Estimate effects for candidate genes
+
+Current symbols and aliases map the candidate list to unique GeneIDs. Effect estimates and moderated intervals come from the same fitted model. The plot keeps all seven candidates so you can compare direction, size, and whether each meets both selection thresholds.
+
+```{r l01_s07}
+candidate_rows <- lapply(candidate_symbols, function(target) {
+    alias_hit <- !is.na(annotation$Synonyms) & vapply(annotation$Synonyms, function(x) {
+        target %in% strsplit(x, "|", fixed = TRUE)[[1]]
+    }, logical(1))
+    ids <- unique(annotation$GeneID[annotation$Symbol == target | alias_hit])
+    if (length(ids) != 1L) 
+        stop("候选基因无法唯一映射：", target)
+    row <- result[result$GeneID == ids, , drop = FALSE]
+    i <- match(ids, rownames(fit$coefficients))
+    se <- fit$stdev.unscaled[i, "grouppsoriasis"] * sqrt(fit$s2.post[i])
+    critical <- qt(0.975, df = fit$df.total[i])
+    data.frame(candidate = target, GeneID = ids, Symbol = row$Symbol, logFC = row$logFC, lower95 = row$logFC - 
+        critical * se, upper95 = row$logFC + critical * se, adj.P.Val = row$adj.P.Val, significant = row$significant)
+})
+candidates <- do.call(rbind, candidate_rows)
+write_tsv(candidates, file.path(output, "candidate_effects.tsv"))
+```
+
+### Plot candidate effects and intervals
+
+```{r bulk_candidate_plot}
+candidate_plot <- ggplot(candidates, aes(x = logFC, y = reorder(candidate, logFC), colour = significant)) + 
+    geom_vline(xintercept = 0, colour = "#68737D", linewidth = 0.4) + geom_errorbar(aes(xmin = lower95, 
+    xmax = upper95), orientation = "y", width = 0.18, linewidth = 0.7) + geom_point(size = 3) + 
+    scale_colour_manual(values = c(`FALSE` = "#2C7FB8", `TRUE` = "#B23A48"), breaks = c(FALSE, 
+        TRUE), labels = c("Does not meet both cutoffs", "Meets both cutoffs"), name = "Differential expression") + 
+    labs(title = "Effect estimates for seven candidate genes", subtitle = "Moderated 95% confidence intervals; psoriasis - normal", 
+        x = "log2 fold change", y = NULL) + theme_course()
+save_plot(candidate_plot, output, "candidate_effects", width = 7.2, height = 4.8)
+cat(sprintf("samples=%d; normal=%d; psoriasis=%d; raw_genes=%d; tested_genes=%d; significant=%d\n", 
+    ncol(counts), sum(group == "normal"), sum(group == "psoriasis"), nrow(counts), sum(keep), 
+    sum(result$significant)))
+
+course_table(candidates)
+```
+
+> Reference result with default settings: IL12B, DDX58 (current symbol RIGI), IL7R, and PRSS53 meet both thresholds and have positive logFC; the other three candidates do not meet the combined criterion.
+
+*The x axis is log2 fold change for psoriasis − normal. Points and horizontal intervals show estimates and moderated 95% intervals; color indicates whether both thresholds set for this run are met.*
+
+See the original example output in [results/01_bulk/](../results/01_bulk/).
+
+The links below point to example results provided with the course. The output folder for your current run is shown in the first code cell:
+
+| Output | What to look for |
+|---|---|
+| [sample_inclusion.tsv](../results/01_bulk/sample_inclusion.tsv) | Records indicating whether each sample entered the count matrix; includes the 171 included samples and those not included. |
+| [library_normalization.tsv](../results/01_bulk/library_normalization.tsv) | Library size (counts) and TMM normalization factor for each sample. |
+| [all_gene_differential_expression.tsv](../results/01_bulk/all_gene_differential_expression.tsv) | logFC, P value, BH adjustment, and significance flag for every tested gene. |
+| [candidate_effects.tsv](../results/01_bulk/candidate_effects.tsv) | Log2 fold change, 95% interval, adjusted P value, and combined-threshold call for seven candidate genes. |
+
+### Compare two selection thresholds
+
+First make a prediction: if the |log2FC| threshold drops from 1 to 0.5, will more, fewer, or the same number of genes enter the selected set? Will model coefficients and P values also change? Write down your prediction, then run the table below to check.
+
+The table changes only the effect-size threshold for selecting results and uses the same fitted model. Therefore, logFC and P values stay the same, while the number of significant genes may change.
+
+```{r threshold_comparison}
+threshold_comparison <- data.frame(
+  abs_log2FC = c(settings$abs_log2fc, 0.5),
+  FDR = settings$fdr,
+  significant_genes = vapply(c(settings$abs_log2fc, 0.5), function(cutoff) {
+    sum(result$adj.P.Val < settings$fdr & abs(result$logFC) >= cutoff)
+  }, integer(1))
+)
+threshold_comparison
+```
+
+To compare two complete runs, follow these steps. You can copy the code examples into new code cells:
+
+1. Run the full lesson with the default settings and save the results and parameters:
+
+```r
+baseline_snapshot <- course_snapshot("baseline", settings)
+```
+
+2. Change `abs_log2fc` in the lesson settings to `0.5`, rerun from the parameter cell downward, then save a second snapshot:
+
+```r
+changed_snapshot <- course_snapshot("logfc_05", settings)
+```
+
+3. In a new cell in the same kernel, read the saved results and compare them. The rows are aligned by GeneID so a different sort order is not mistaken for an effect change:
+
+```r
+before <- read_tsv(file.path(baseline_snapshot, "all_gene_differential_expression.tsv"))
+after <- read_tsv(file.path(changed_snapshot, "all_gene_differential_expression.tsv"))
+after <- after[match(before$GeneID, after$GeneID), ]
+data.frame(
+  run = c("baseline", "logfc_05"),
+  significant_genes = c(sum(before$significant), sum(after$significant))
+)
+all.equal(before$logFC, after$logFC)
+all.equal(before$P.Value, after$P.Value)
+```
+
+The two snapshot folders also keep `parameters.txt`, which records the settings used. If you restarted the kernel partway through, find the snapshot folders in the file list and assign their paths again to `baseline_snapshot` and `changed_snapshot`.
+
+### Exercises and reference answers
+
+1. **Concept check: why remove all-zero genes first, without calling this low-expression filtering?**
+
+   <details><summary>Reference answer</summary>
+   
+   All-zero genes have no observed counts in any sample and cannot inform the model. Low-expression filtering requires an additional expression criterion. This workflow filters only by row sum greater than zero.
+   
+   </details>
+
+2. **What changes if the absolute log2FC threshold drops from 1 to 0.5?**
+
+   <details><summary>Reference answer</summary>
+   
+   The effect-size criterion becomes less strict, so the volcano plot's vertical lines and combined `significant` flags change accordingly. Model coefficients and P values themselves do not change because of this threshold.
+   
+   </details>
+
+3. **Troubleshooting: if DDX58 cannot be matched to a unique gene, which input should you check first?**
+
+   <details><summary>Reference answer</summary>
+   
+   Check GeneID, Symbol, and Synonyms in gene_symbols.tsv. Confirm the current symbol RIGI and DDX58 alias for GeneID 23586, then check how aliases are split and how the candidate list is defined.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](01_bulk.Rmd)
+
+This run's results are saved under `resources/work/results/chapter-folder/`. After changing a parameter, resume from the affected step.

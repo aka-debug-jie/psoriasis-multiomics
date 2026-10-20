@@ -1,0 +1,18 @@
+{
+  "description": "endoplasmic reticulum aminopeptidase 2 [Source:HGNC Symbol;Acc:HGNC:29499]",
+  "display_name": "ERAP2",
+  "object_type": "Gene",
+  "version": 20,
+  "species": "homo_sapiens",
+  "id": "ENSG00000164308",
+  "strand": 1,
+  "end": 96919703,
+  "db_type": "core",
+  "biotype": "protein_coding",
+  "start": 96875979,
+  "logic_name": "ensembl_havana_gene_homo_sapiens",
+  "seq_region_name": "5",
+  "source": "ensembl_havana",
+  "canonical_transcript": "ENST00000437043.8",
+  "assembly_name": "GRCh38"
+}

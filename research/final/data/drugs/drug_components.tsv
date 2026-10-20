@@ -1,0 +1,6 @@
+molecule_chembl_id	target_chembl_id	target_name	target_type	organism	uniprot	component_relation	action_type	mechanism	relation	candidate
+CHEMBL1201835	CHEMBL2364153	Interleukin-12	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-12 inhibitor	complex_or_family_component	True
+CHEMBL1201835	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True
+CHEMBL2108681	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True
+CHEMBL2364648	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True
+CHEMBL3990029	CHEMBL2364154	Interleukin-23	PROTEIN COMPLEX	Homo sapiens	P29460	PROTEIN SUBUNIT	INHIBITOR	Interleukin-23 inhibitor	complex_or_family_component	True

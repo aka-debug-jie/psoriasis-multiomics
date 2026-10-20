@@ -1,0 +1,220 @@
+---
+title: "02 | Single-locus MR: from alleles to the Wald ratio"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+How are genetic variants that affect IL7R protein levels related to psoriasis outcomes? This lesson starts with one cis instrument and shows how to align effect-allele directions, then calculate the Wald ratio, standard error, and odds ratio. This single-variant example helps explain direction and units in MR calculations and prepares you for the proteome-wide analysis in the next lesson.
+
+This lesson uses genetic-association summary statistics, not raw measurements from individual participants. We find two pieces of information for the same genetic variant: its association with protein levels and its association with the disease outcome. The effects must be expressed for the same effect allele before we can calculate their ratio.
+
+Keep these object relationships in mind: `x` is the protein association table, `y` is the disease association table, and `beta_mr` is the estimated effect. See the [code-reading guide](assets/reading_guide.html) as needed.
+
+You will produce an allele-harmonization table, a Wald ratio, and an effect plot with a confidence interval.
+
+The default code takes about 3 seconds on the test machine, excluding reading and hands-on time. See [Chapter 0](00_start.ipynb) for the test-machine configuration.
+
+### Prepare the lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('02', root=root)
+data.frame(lesson = "02", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### Lesson parameters
+
+The default confidence level is 0.95. Change it to 0.90 to see how the interval width changes; the point estimate and standard error do not change.
+
+```{r parameters}
+settings <- list(confidence = 0.95)
+settings
+```
+
+Full script with default parameters: [02_single_mr.R](../lessons/02_single_mr.R).
+
+The values in the text come from an example run with R 4.4.2; code cells show the results from your run. Beginners should start with the defaults. Save a separate copy of results when doing exercises so you can compare the effect of changing parameters.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [exposures.tsv](../data/genetics/exposures.tsv) | Protein-exposure summary effects; beta is the protein change for the effect allele, and se_exposure is its standard error. |
+| [stuart.tsv](../data/genetics/stuart.tsv) | Stuart psoriasis summary effects; beta is the log-OR, se is the reported standard error, and EA/OA are the effect and other alleles. |
+
+### Method notes
+
+The Wald ratio is `beta_MR = beta_Y / beta_X`. The numerator is the disease effect for a given allele, and the denominator is the protein effect; align their directions first. The first-order standard error, `SE_MR = SE_Y / abs(beta_X)`, uses the NOME approximation, which ignores exposure-estimate uncertainty. The delta formula also accounts for exposure SE so you can see the effect of that approximation. At the default confidence level, calculate the interval on the log-OR scale, then exponentiate the estimate and both endpoints. The no-association value is 1 for an OR and 0 for a log-OR. The two-sided P value comes from the MR estimate and its SE; it is a different statistic from the source disease GWAS P value.
+
+### 02.1 | Read the two effect tables
+
+This lesson uses shared table-reading and plotting functions, as well as an allele-harmonization function. Each lesson includes complete initialization code and can run independently in a new R session. Paths in the code start from the course's `course` folder.
+
+After running the cell, read one row first: `gene` identifies the protein's gene symbol, `cohort` is the protein-association source, and `rsid` is the variant ID. EA/OA record the effect and other alleles; beta and SE record the effect and its uncertainty. `course_table()` displays only a preview; it does not trim the input data to those rows.
+
+<details><summary>Expand: where the table-reading functions come from</summary>
+
+`read_tsv()` is a simple course wrapper around an R table-reading function; `source("R/common.R")` loads it. The `R/genetics.R` script defines allele harmonization and other statistical helpers. Loading functions does not analyze data by itself; the later function calls perform those operations.
+
+</details>
+
+```{r l02_s01}
+source("R/common.R")
+source("R/genetics.R")
+out <- lesson_output("02_single_mr")
+x <- read_tsv("data/genetics/exposures.tsv")
+y <- read_tsv("data/genetics/stuart.tsv")
+
+course_table(x, columns = c("gene", "cohort", "rsid", "EA", "OA", "beta", "se_exposure"))
+```
+
+`x` contains protein-exposure data and `y` contains disease-outcome data. Keep their units distinct: protein beta is a change in protein level, while disease beta is a log-OR.
+
+### 02.2 | Select an instrument and align effect alleles
+
+Select instruments by protein and exposure source; if there is more than one record, use the one with the largest F statistic. The input for this lesson contains only one IL7R/UKB-PPP record, for rs11742270. `match()` aligns the two tables by rsID, and `allele_sign()` determines the direction from both allele pairs. See the full function in the [statistical functions appendix](../COURSE.md#appendix-genetics).
+
+Even when two tables contain the same variant, their row orders may differ. Pairing the first row with the first row could combine different variants. First find the instrument in the protein table, then use rsID to find its matching row in the disease table. After this, `x` and `y` each contain only the record used in this example.
+
+<details><summary>Expand: how to read these filtering lines</summary>
+
+`x$gene == "IL7R"` checks the gene symbol in each row; `&` requires both conditions to be true. The condition inside square brackets selects rows. `which.max()` returns the position of the row with the largest F; `match(x$rsid, y$rsid)` returns the position of the target rsID in the disease table. `stopifnot()` checks the required row count, direction, and standard error. If it fails, inspect the matching result rather than filling missing values with zero.
+
+</details>
+
+```{r l02_s02}
+x <- read_tsv("data/genetics/exposures.tsv")
+y <- read_tsv("data/genetics/stuart.tsv")
+x <- x[x$gene == "IL7R" & x$cohort == "UKB-PPP", ]
+x <- x[which.max(x$F_statistic), ]
+y <- y[match(x$rsid, y$rsid), ]
+sign <- allele_sign(x$EA, x$OA, y$EA, y$OA)
+stopifnot(nrow(x) == 1, is.finite(sign), y$se > 0)
+
+data.frame(rsid = x$rsid, exposure_EA = x$EA, outcome_EA = y$EA, orientation = sign)
+```
+
+When `sign=1`, keep the direction of the disease effect; when `sign=-1`, reverse it. Records with an ambiguous direction return NA, so this example stops rather than using an unoriented effect in the ratio.
+
+### 02.3 | Calculate the ratio, standard errors, and confidence interval
+
+Multiply the disease beta by the direction sign, then divide by the exposure beta. The standard error uses the absolute value of the denominator so it remains positive when the protein effect is negative. The output lists both the first-order and delta-method standard errors; the primary result and plot use the first-order standard error.
+
+The ratio is intuitive: divide the disease effect for a genetic variant by its effect on the protein. The numerator and denominator must use the same direction for the signs to be comparable. The numbers below are a hand-worked example, not a real IL7R estimate. Predict what happens if one side is flipped, or if both sides are flipped.
+
+```{r demo_ratio_direction}
+demo_protein_beta <- 0.1
+demo_disease_beta <- 0.02
+c(aligned = demo_disease_beta / demo_protein_beta,
+  one_side_flipped = -demo_disease_beta / demo_protein_beta,
+  both_sides_flipped = (-demo_disease_beta) / (-demo_protein_beta))
+```
+
+The example should return 0.2, −0.2, and 0.2. Next, calculate the value from the actual input; `sign` aligns the disease effect with the protein effect.
+
+<details><summary>Expand: how SE, abs(), and qnorm() define the interval</summary>
+
+SE is the standard error of an effect estimate and describes sampling uncertainty. `abs()` makes the denominator of the first-order SE positive; `qnorm()` returns a quantile of the standard normal distribution. The default 95% interval uses about 1.96 standard errors, while a 90% interval uses a smaller multiplier and is therefore narrower. Coverage describes the behavior of this procedure over repeated use; it does not mean that the parameter has a particular probability of falling within an already calculated interval.
+
+</details>
+
+```{r l02_s03}
+beta_y <- sign * y$beta
+beta_mr <- beta_y/x$beta
+se_mr <- y$se/abs(x$beta)
+se_delta <- sqrt(y$se^2/x$beta^2 + beta_y^2 * x$se_exposure^2/x$beta^4)
+CI <- beta_mr + c(-1, 1) * qnorm((1+settings$confidence)/2) * se_mr
+
+data.frame(beta = beta_mr, SE = se_mr, delta_SE = se_delta, CI_low = CI[1], CI_high = CI[2])
+```
+
+`beta_mr` is about 0.0667 and `se_mr` is about 0.0215. CI is still on the log-OR scale; the next section converts it to the OR scale.
+
+### 02.4 | Assemble the results and check the sign relationship
+
+The results table records the original effects, the aligned effect, and the MR estimate so the direction change can be traced. The two-sided normal P value is calculated from `beta_mr/se_mr`, and F is the squared ratio of the exposure beta to its SE. The final line checks an important relationship: if both effects are expressed for the other effect allele, the Wald ratio should stay the same.
+
+At this point, `beta_mr` and CI are still on the log-OR scale. `exp()` converts them to the OR and its interval. Since the P value is calculated from the estimate and SE, changing only the confidence level does not change the P value. When reading the table, check the rsID and orientation before interpreting beta, OR, and the interval.
+
+<details><summary>Expand: why OR=1 and log-OR=0 are the same reference</summary>
+
+`exp(0)=1`, so the no-association point differs between the two scales. An odds ratio compares odds, where odds are the probability p divided by 1−p. An OR is a ratio of odds and has a different statistical meaning from a difference in probability. The protein-change unit for this effect follows the exposure data, so keep that unit in mind when interpreting it.
+
+</details>
+
+```{r l02_s04}
+result <- data.frame(gene = "IL7R", rsid = x$rsid, exposure_EA = x$EA, outcome_EA = y$EA, orientation = sign, 
+    beta_exposure = x$beta, beta_outcome_aligned = beta_y, beta = beta_mr, se = se_mr, se_delta = se_delta, 
+    OR = exp(beta_mr), OR_low = exp(CI[1]), OR_high = exp(CI[2]), p = 2 * pnorm(-abs(beta_mr/se_mr)), 
+    F = (x$beta/x$se_exposure)^2)
+write_tsv(result, file.path(out, "wald_ratio.tsv"))
+stopifnot(isTRUE(all.equal((-beta_y)/(-x$beta), beta_mr)))
+
+course_table(result)
+```
+
+> Reference result with default parameters: instrument F is about 16,788.6, OR=1.0689, 95% CI about 1.0249–1.1149, and P about 1.91×10⁻³. The OR is the outcome odds ratio per analysis unit of protein change; use the code cell output for the current run.
+
+### 02.5 | Plot the estimate and its uncertainty
+
+The point shows the OR, the horizontal line shows the interval at the current confidence level, and the x axis uses a log scale. Multi-protein forest plots use the same points-and-intervals format. `save_plot()` saves both PNG and PDF files.
+
+```{r l02_s05}
+p <- ggplot2::ggplot(result, ggplot2::aes(x = OR, y = gene)) + ggplot2::geom_vline(xintercept = 1, 
+    linetype = 2, colour = "#8A969D") + ggplot2::geom_segment(ggplot2::aes(x = OR_low, xend = OR_high, 
+    yend = gene), linewidth = 0.9, colour = "#197D8D") + ggplot2::geom_point(size = 3, colour = "#197D8D") + 
+    ggplot2::scale_x_log10() + ggplot2::labs(x = "Odds ratio per unit genetically predicted protein", 
+    y = NULL, title = "IL7R: one cis instrument", subtitle = paste0("UKB-PPP; Stuart; ", 100*settings$confidence, "% confidence interval")) + 
+    theme_course()
+save_plot(p, out, "wald_ratio", 7, 3.5)
+print(result)
+```
+
+The point's position relative to 1 shows the direction of the estimate; whether the interval crosses 1 helps show its uncertainty. This plot shows the estimate from this single instrument in this pair of datasets.
+
+*Single-instrument IL7R estimate: the point is the OR, the line is the interval at the current confidence level, and the dashed line marks OR=1.*
+
+See the original example output in [results/02_single_mr/](../results/02_single_mr/).
+
+### Exercises and reference answers
+
+First predict how the confidence interval will change, then change the parameter as requested and rerun from the parameter cell downward. Finally explain in your own words why the point estimate stays the same while the interval width changes. Expand the answers below after trying the exercise.
+
+1. **How do you change a 95% interval to a 90% interval, and which results stay the same?**
+
+   <details><summary>Reference answer</summary>
+   
+   Change `settings$confidence` to the requested confidence level. This changes the quantile from qnorm(.975) to qnorm(.95), narrowing the interval. Beta, SE, the OR point estimate, and the P value calculated by the two-sided normal formula stay the same.
+   
+   </details>
+
+2. **What is the difference between flipping only the disease beta and flipping both betas?**
+
+   <details><summary>Reference answer</summary>
+   
+   Flipping only one side changes the sign of the MR beta and changes the OR to its reciprocal. Flipping both sides makes the two negative signs cancel, leaving the MR beta unchanged.
+   
+   </details>
+
+3. **Why should a missing disease effect after `match()` not be replaced with 0?**
+
+   <details><summary>Reference answer</summary>
+   
+   Missing means no matching disease effect was obtained, so the calculation cannot be made. Replacing it with 0 would misrepresent a missing record as an observation with no association. Check the variant ID, alleles, and outcome data coverage.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](02_single_mr.Rmd)
+
+This run's results are saved under `resources/work/results/chapter-folder/`. After changing a parameter, resume from the affected step.

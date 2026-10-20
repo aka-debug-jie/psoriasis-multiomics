@@ -1,0 +1,18 @@
+dataset	version_or_scope	url	recorded_project_path
+Fenland Olink (public substitute)	485 participants; regional release 20220107	https://zenodo.org/api/records/6787142/files/Summary.statistics.cis.Olink.proteins.Fenland.20220107.txt.gz/content	research/data/raw/Fenland_Olink/Summary.statistics.cis.Olink.proteins.Fenland.20220107.txt.gz
+Eldjarn supplement	ST19 SMP-normalized Iceland / ST21 UKB-BI	https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-023-06563-x/MediaObjects/41586_2023_6563_MOESM3_ESM.xlsx	research/references/eldjarn_2023_supplement.xlsx
+Bulk counts	NCBI same-study reprocessing,171/174 samples	https://www.ncbi.nlm.nih.gov/geo/download/?type=rnaseq_counts&acc=GSE54456&format=file&file=GSE54456_raw_counts_GRCh38.p13_NCBI.tsv.gz	research/data/raw/GSE54456/GSE54456_raw_counts_GRCh38.p13_NCBI.tsv.gz
+eQTLGen	full cis,20191212	https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/SMR_formatted/cis-eQTL-SMR_20191212.tar.gz	research/data/raw/eQTLGen/cis-eQTL-SMR_20191212.tar.gz
+GTEx blood	GTEx v8 full cis,GRCh37	https://yanglab-obs.lab.westlake.edu.cn/files/data/SMR/GTEx_V8_cis_eqtl_summary/Whole_Blood.zip	research/data/raw/GTEx_v8/Whole_Blood.zip
+GTEx skin exposed	GTEx v8 full cis,GRCh37	https://yanglab-obs.lab.westlake.edu.cn/files/data/SMR/GTEx_V8_cis_eqtl_summary/Skin_Sun_Exposed_Lower_leg.zip	research/data/raw/GTEx_v8/Skin_Sun_Exposed_Lower_leg.zip
+GTEx skin unexposed	GTEx v8 full cis,GRCh37	https://yanglab-obs.lab.westlake.edu.cn/files/data/SMR/GTEx_V8_cis_eqtl_summary/Skin_Not_Sun_Exposed_Suprapubic.zip	research/data/raw/GTEx_v8/Skin_Not_Sun_Exposed_Suprapubic.zip
+LD reference	1000G Phase3 EUR,503 individuals,MAF>1%	http://fileserve.mrcieu.ac.uk/ld/1kg.v3.tgz	research/data/raw/LD/1kg.v3.official_http.tgz
+Reference paper	btag347; source paper	https://doi.org/10.1093/bioinformatics/btag347	btag347.pdf
+MVP	GCST90476190;European,15635/429252;PheCode696.41	https://www.ebi.ac.uk/gwas/studies/GCST90476190	research/data/metadata/GCST90476190_catalog.json
+Stuart	GCST90019016; archived harmonized GRCh38	https://www.ebi.ac.uk/gwas/studies/GCST90019016	research/data/raw/gwas/34927100-GCST90019016-EFO_0000676.h.tsv.gz
+FinnGen clinical panel	R12;22 explicit endpoints in clinical_endpoints.tsv	https://finngen.gitbook.io/documentation/r12	research/data/processed/clinical_finngen/phenotype_manifest.tsv
+Single-cell skin	GSE173706;8 normal and14 lesion samples	https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE173706	research/results/sc_de/run.json
+GO/KEGG	Recorded snapshots; GOA/OBO dates differ; see run.json headers	https://www.ebi.ac.uk/GOA/downloads	research/results/functional_substitute/run.json
+STRING	12.5 functional association network	https://version-12-5.string-db.org	research/data/raw/functional/string_substitute
+ChEMBL	Archived API snapshot;release identifier not captured;phase-for-indication4	https://www.ebi.ac.uk/chembl/api/data/	research/data/raw/functional/chembl_mechanisms/run.json
+MVP original dbGaP publication	pha006164.1; Phe_696_41.EUR.GIA; 15635 cases / 429252 controls; metadata and first two records inspected	https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/analysis.cgi?study_id=phs002453.v1.p1&pha=6164	research/records/closure_20261017/mvp_publication/source.json

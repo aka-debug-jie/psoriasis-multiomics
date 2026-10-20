@@ -1,0 +1,288 @@
+term	description	overlap	query_annotated	term_background	background_annotated	p_value	gene_ids	fdr_bh
+GO:0031904	endosome lumen	1	7	14	2083	0.046174659102222133	3593	1
+GO:0005923	bicellular tight junction	1	7	16	2083	0.052619406844138294	23586	1
+GO:0070160	tight junction	1	7	16	2083	0.052619406844138294	23586	1
+GO:0043296	apical junction complex	1	7	20	2083	0.065397000681901588	23586	1
+GO:0030669	clathrin-coated endocytic vesicle membrane	1	7	21	2083	0.068568217839064291	3575	1
+GO:1990904	ribonucleoprotein complex	1	7	21	2083	0.068568217839064291	23586	1
+GO:0045334	clathrin-coated endocytic vesicle	1	7	24	2083	0.078026593235952596	3575	1
+GO:0030665	clathrin-coated vesicle membrane	1	7	26	2083	0.084286336757509253	3575	1
+GO:0032587	ruffle membrane	1	7	26	2083	0.084286336757509253	23586	1
+GO:0000323	lytic vacuole	2	7	156	2083	0.091209750402585901	6448;7128	1
+GO:0005764	lysosome	2	7	156	2083	0.091209750402585901	6448;7128	1
+GO:0005773	vacuole	2	7	165	2083	0.10057751838018543	6448;7128	1
+GO:0030662	coated vesicle membrane	1	7	34	2083	0.10896243484199611	3575	1
+GO:0031256	leading edge membrane	1	7	35	2083	0.11200648704116936	23586	1
+GO:0030666	endocytic vesicle membrane	1	7	36	2083	0.11504162111866539	3575	1
+GO:0030136	clathrin-coated vesicle	1	7	38	2083	0.12108522199961601	3575	1
+GO:0001726	ruffle	1	7	42	2083	0.13306636192089383	23586	1
+GO:0005730	nucleolus	1	7	46	2083	0.14490723651686874	134510	1
+GO:0043202	lysosomal lumen	1	7	49	2083	0.15369666855361358	6448	1
+GO:0030135	coated vesicle	1	7	51	2083	0.15951316941615307	3575	1
+GO:0005770	late endosome	1	7	55	2083	0.17104344377010891	3593	1
+GO:0031253	cell projection membrane	1	7	63	2083	0.1936977836400115	23586	1
+GO:0140392	extracellular protein-containing complex	1	7	66	2083	0.20205524358703941	3593	1
+GO:0030139	endocytic vesicle	1	7	68	2083	0.20758553745946856	3575	1
+GO:0005775	vacuolar lumen	1	7	74	2083	0.22397975666104286	6448	1
+GO:0031252	cell leading edge	1	7	74	2083	0.22397975666104286	23586	1
+GO:0005911	cell-cell junction	1	7	94	2083	0.27654549029222347	23586	1
+GO:0015629	actin cytoskeleton	1	7	96	2083	0.28162999450826365	23586	1
+GO:0009986	cell surface	2	7	328	2083	0.30429758794824274	3575;3593	1
+GO:0005788	endoplasmic reticulum lumen	1	7	122	2083	0.34499398687923055	3593	1
+GO:0043232	intracellular membraneless organelle	2	7	361	2083	0.34890720708061468	134510;23586	1
+GO:0043228	membraneless organelle	2	7	362	2083	0.35025832483694153	134510;23586	1
+GO:0005768	endosome	1	7	147	2083	0.40134114379195723	3593	1
+GO:0009897	external side of plasma membrane	1	7	156	2083	0.4205821209835271	3575	1
+GO:0070161	anchoring junction	1	7	175	2083	0.45946820462739396	23586	1
+GO:0030659	cytoplasmic vesicle membrane	1	7	183	2083	0.47515908101712895	3575	1
+GO:0031410	cytoplasmic vesicle	2	7	459	2083	0.47869082222647702	3575;3593	1
+GO:0097708	intracellular vesicle	2	7	461	2083	0.48125157054804579	3575;3593	1
+GO:0012506	vesicle membrane	1	7	188	2083	0.48476627000323841	3575	1
+GO:0098552	side of membrane	1	7	189	2083	0.4866695080559969	3575	1
+GO:0098590	plasma membrane region	1	7	201	2083	0.50904261259357475	23586	1
+GO:0005634	nucleus	2	7	498	2083	0.5277213588266283	134510;7128	1
+GO:0005856	cytoskeleton	1	7	214	2083	0.53233185375150827	23586	1
+GO:0005654	nucleoplasm	1	7	228	2083	0.55634726379153543	134510	1
+GO:0031981	nuclear lumen	1	7	249	2083	0.59038612696377268	134510	1
+GO:0042995	cell projection	1	7	284	2083	0.64215042811237322	23586	1
+GO:0120025	plasma membrane bounded cell projection	1	7	284	2083	0.64215042811237322	23586	1
+GO:0005783	endoplasmic reticulum	1	7	300	2083	0.66387860463930459	3593	1
+GO:0098588	bounding membrane of organelle	1	7	324	2083	0.69434769884192404	3575	1
+GO:0030054	cell junction	1	7	359	2083	0.73452593487935069	23586	1
+GO:0031090	organelle membrane	1	7	412	2083	0.78673077077061193	3575	1
+GO:0000139	Golgi membrane	0	7	108	2083	1		1
+GO:0000151	ubiquitin ligase complex	0	7	17	2083	1		1
+GO:0000785	chromatin	0	7	41	2083	1		1
+GO:0000793	condensed chromosome	0	7	11	2083	1		1
+GO:0000922	spindle pole	0	7	12	2083	1		1
+GO:0001527	microfibril	0	7	10	2083	1		1
+GO:0001533	cornified envelope	0	7	15	2083	1		1
+GO:0001669	acrosomal vesicle	0	7	18	2083	1		1
+GO:0001725	stress fiber	0	7	13	2083	1		1
+GO:0001772	immunological synapse	0	7	15	2083	1		1
+GO:0002102	podosome	0	7	10	2083	1		1
+GO:0005581	collagen trimer	0	7	13	2083	1		1
+GO:0005604	basement membrane	0	7	47	2083	1		1
+GO:0005614	interstitial matrix	0	7	101	2083	1		1
+GO:0005635	nuclear envelope	0	7	49	2083	1		1
+GO:0005667	transcription regulator complex	0	7	26	2083	1		1
+GO:0005694	chromosome	0	7	63	2083	1		1
+GO:0005739	mitochondrion	0	7	176	2083	1		1
+GO:0005740	mitochondrial envelope	0	7	55	2083	1		1
+GO:0005741	mitochondrial outer membrane	0	7	20	2083	1		1
+GO:0005743	mitochondrial inner membrane	0	7	22	2083	1		1
+GO:0005758	mitochondrial intermembrane space	0	7	12	2083	1		1
+GO:0005759	mitochondrial matrix	0	7	51	2083	1		1
+GO:0005765	lysosomal membrane	0	7	57	2083	1		1
+GO:0005766	primary lysosome	0	7	48	2083	1		1
+GO:0005769	early endosome	0	7	69	2083	1		1
+GO:0005771	multivesicular body	0	7	18	2083	1		1
+GO:0005774	vacuolar membrane	0	7	61	2083	1		1
+GO:0005776	autophagosome	0	7	13	2083	1		1
+GO:0005777	peroxisome	0	7	29	2083	1		1
+GO:0005782	peroxisomal matrix	0	7	17	2083	1		1
+GO:0005789	endoplasmic reticulum membrane	0	7	105	2083	1		1
+GO:0005793	endoplasmic reticulum-Golgi intermediate compartment	0	7	26	2083	1		1
+GO:0005794	Golgi apparatus	0	7	271	2083	1		1
+GO:0005795	Golgi stack	0	7	22	2083	1		1
+GO:0005796	Golgi lumen	0	7	39	2083	1		1
+GO:0005802	trans-Golgi network	0	7	43	2083	1		1
+GO:0005811	lipid droplet	0	7	11	2083	1		1
+GO:0005813	centrosome	0	7	41	2083	1		1
+GO:0005814	centriole	0	7	10	2083	1		1
+GO:0005815	microtubule organizing center	0	7	55	2083	1		1
+GO:0005819	spindle	0	7	27	2083	1		1
+GO:0005874	microtubule	0	7	25	2083	1		1
+GO:0005882	intermediate filament	0	7	12	2083	1		1
+GO:0005884	actin filament	0	7	20	2083	1		1
+GO:0005901	caveola	0	7	14	2083	1		1
+GO:0005902	microvillus	0	7	24	2083	1		1
+GO:0005903	brush border	0	7	14	2083	1		1
+GO:0005905	clathrin-coated pit	0	7	10	2083	1		1
+GO:0005912	adherens junction	0	7	40	2083	1		1
+GO:0005925	focal adhesion	0	7	96	2083	1		1
+GO:0005929	cilium	0	7	45	2083	1		1
+GO:0005938	cell cortex	0	7	49	2083	1		1
+GO:0008021	synaptic vesicle	0	7	24	2083	1		1
+GO:0008305	integrin complex	0	7	11	2083	1		1
+GO:0009898	cytoplasmic side of plasma membrane	0	7	28	2083	1		1
+GO:0009925	basal plasma membrane	0	7	40	2083	1		1
+GO:0010008	endosome membrane	0	7	67	2083	1		1
+GO:0014069	postsynaptic density	0	7	47	2083	1		1
+GO:0015630	microtubule cytoskeleton	0	7	89	2083	1		1
+GO:0016323	basolateral plasma membrane	0	7	37	2083	1		1
+GO:0016324	apical plasma membrane	0	7	58	2083	1		1
+GO:0016528	sarcoplasm	0	7	13	2083	1		1
+GO:0016529	sarcoplasmic reticulum	0	7	12	2083	1		1
+GO:0016604	nuclear body	0	7	38	2083	1		1
+GO:0016607	nuclear speck	0	7	19	2083	1		1
+GO:0019866	organelle inner membrane	0	7	29	2083	1		1
+GO:0019867	outer membrane	0	7	23	2083	1		1
+GO:0019897	extrinsic component of plasma membrane	0	7	15	2083	1		1
+GO:0019898	extrinsic component of membrane	0	7	24	2083	1		1
+GO:0030016	myofibril	0	7	38	2083	1		1
+GO:0030017	sarcomere	0	7	33	2083	1		1
+GO:0030018	Z disc	0	7	24	2083	1		1
+GO:0030027	lamellipodium	0	7	36	2083	1		1
+GO:0030055	cell-substrate junction	0	7	98	2083	1		1
+GO:0030057	desmosome	0	7	11	2083	1		1
+GO:0030133	transport vesicle	0	7	53	2083	1		1
+GO:0030134	COPII-coated ER to Golgi transport vesicle	0	7	15	2083	1		1
+GO:0030141	secretory granule	0	7	264	2083	1		1
+GO:0030175	filopodium	0	7	19	2083	1		1
+GO:0030312	external encapsulating structure	0	7	254	2083	1		1
+GO:0030424	axon	0	7	109	2083	1		1
+GO:0030425	dendrite	0	7	76	2083	1		1
+GO:0030426	growth cone	0	7	23	2083	1		1
+GO:0030427	site of polarized growth	0	7	25	2083	1		1
+GO:0030496	midbody	0	7	20	2083	1		1
+GO:0030658	transport vesicle membrane	0	7	24	2083	1		1
+GO:0030667	secretory granule membrane	0	7	82	2083	1		1
+GO:0030863	cortical cytoskeleton	0	7	20	2083	1		1
+GO:0030864	cortical actin cytoskeleton	0	7	13	2083	1		1
+GO:0031012	extracellular matrix	0	7	254	2083	1		1
+GO:0031045	dense core granule	0	7	14	2083	1		1
+GO:0031091	platelet alpha granule	0	7	41	2083	1		1
+GO:0031093	platelet alpha granule lumen	0	7	29	2083	1		1
+GO:0031514	motile cilium	0	7	11	2083	1		1
+GO:0031528	microvillus membrane	0	7	12	2083	1		1
+GO:0031594	neuromuscular junction	0	7	15	2083	1		1
+GO:0031674	I band	0	7	24	2083	1		1
+GO:0031901	early endosome membrane	0	7	27	2083	1		1
+GO:0031902	late endosome membrane	0	7	15	2083	1		1
+GO:0031907	microbody lumen	0	7	17	2083	1		1
+GO:0031965	nuclear membrane	0	7	28	2083	1		1
+GO:0031966	mitochondrial membrane	0	7	47	2083	1		1
+GO:0031967	organelle envelope	0	7	98	2083	1		1
+GO:0031968	organelle outer membrane	0	7	23	2083	1		1
+GO:0031970	organelle envelope lumen	0	7	15	2083	1		1
+GO:0031983	vesicle lumen	0	7	125	2083	1		1
+GO:0031984	organelle subcompartment	0	7	156	2083	1		1
+GO:0031985	Golgi cisterna	0	7	20	2083	1		1
+GO:0032279	asymmetric synapse	0	7	53	2083	1		1
+GO:0032432	actin filament bundle	0	7	13	2083	1		1
+GO:0032580	Golgi cisterna membrane	0	7	18	2083	1		1
+GO:0032588	trans-Golgi network membrane	0	7	23	2083	1		1
+GO:0032994	protein-lipid complex	0	7	13	2083	1		1
+GO:0033116	endoplasmic reticulum-Golgi intermediate compartment membrane	0	7	13	2083	1		1
+GO:0034358	plasma lipoprotein particle	0	7	11	2083	1		1
+GO:0034702	monoatomic ion channel complex	0	7	20	2083	1		1
+GO:0034703	cation channel complex	0	7	16	2083	1		1
+GO:0034774	secretory granule lumen	0	7	122	2083	1		1
+GO:0035577	azurophil granule membrane	0	7	15	2083	1		1
+GO:0035578	azurophil granule lumen	0	7	31	2083	1		1
+GO:0035579	specific granule membrane	0	7	25	2083	1		1
+GO:0035580	specific granule lumen	0	7	33	2083	1		1
+GO:0035770	ribonucleoprotein granule	0	7	31	2083	1		1
+GO:0036064	ciliary basal body	0	7	13	2083	1		1
+GO:0036464	cytoplasmic ribonucleoprotein granule	0	7	12	2083	1		1
+GO:0036477	somatodendritic compartment	0	7	112	2083	1		1
+GO:0042175	nuclear outer membrane-endoplasmic reticulum membrane network	0	7	109	2083	1		1
+GO:0042383	sarcolemma	0	7	13	2083	1		1
+GO:0042470	melanosome	0	7	23	2083	1		1
+GO:0042579	microbody	0	7	29	2083	1		1
+GO:0042581	specific granule	0	7	60	2083	1		1
+GO:0042582	azurophil granule	0	7	48	2083	1		1
+GO:0042641	actomyosin	0	7	14	2083	1		1
+GO:0042734	presynaptic membrane	0	7	27	2083	1		1
+GO:0042827	platelet dense granule	0	7	11	2083	1		1
+GO:0043005	neuron projection	0	7	166	2083	1		1
+GO:0043025	neuronal cell body	0	7	71	2083	1		1
+GO:0043083	synaptic cleft	0	7	13	2083	1		1
+GO:0043197	dendritic spine	0	7	17	2083	1		1
+GO:0043204	perikaryon	0	7	17	2083	1		1
+GO:0043209	myelin sheath	0	7	10	2083	1		1
+GO:0043235	signaling receptor complex	0	7	142	2083	1		1
+GO:0043292	contractile muscle fiber	0	7	39	2083	1		1
+GO:0043679	axon terminus	0	7	17	2083	1		1
+GO:0044217	other organism part	0	7	17	2083	1		1
+GO:0044291	cell-cell contact zone	0	7	10	2083	1		1
+GO:0044297	cell body	0	7	80	2083	1		1
+GO:0044304	main axon	0	7	12	2083	1		1
+GO:0044306	neuron projection terminus	0	7	21	2083	1		1
+GO:0044309	neuron spine	0	7	17	2083	1		1
+GO:0044853	plasma membrane raft	0	7	31	2083	1		1
+GO:0045111	intermediate filament cytoskeleton	0	7	14	2083	1		1
+GO:0045121	membrane raft	0	7	76	2083	1		1
+GO:0045177	apical part of cell	0	7	75	2083	1		1
+GO:0045178	basal part of cell	0	7	46	2083	1		1
+GO:0045202	synapse	0	7	215	2083	1		1
+GO:0045211	postsynaptic membrane	0	7	44	2083	1		1
+GO:0045335	phagocytic vesicle	0	7	24	2083	1		1
+GO:0048471	perinuclear region of cytoplasm	0	7	121	2083	1		1
+GO:0048770	pigment granule	0	7	23	2083	1		1
+GO:0055037	recycling endosome	0	7	22	2083	1		1
+GO:0055038	recycling endosome membrane	0	7	11	2083	1		1
+GO:0060076	excitatory synapse	0	7	17	2083	1		1
+GO:0060170	ciliary membrane	0	7	10	2083	1		1
+GO:0060205	cytoplasmic vesicle lumen	0	7	124	2083	1		1
+GO:0061695	transferase complex, transferring phosphorus-containing groups	0	7	17	2083	1		1
+GO:0070382	exocytic vesicle	0	7	25	2083	1		1
+GO:0070820	tertiary granule	0	7	65	2083	1		1
+GO:0070821	tertiary granule membrane	0	7	22	2083	1		1
+GO:0071682	endocytic vesicle lumen	0	7	10	2083	1		1
+GO:0071953	elastic fiber	0	7	20	2083	1		1
+GO:0072562	blood microparticle	0	7	52	2083	1		1
+GO:0072686	mitotic spindle	0	7	11	2083	1		1
+GO:0090575	RNA polymerase II transcription regulator complex	0	7	13	2083	1		1
+GO:0090734	site of DNA damage	0	7	10	2083	1		1
+GO:0097060	synaptic membrane	0	7	62	2083	1		1
+GO:0097447	dendritic tree	0	7	76	2083	1		1
+GO:0097517	contractile actin filament bundle	0	7	13	2083	1		1
+GO:0097730	non-motile cilium	0	7	12	2083	1		1
+GO:0097731	9+0 non-motile cilium	0	7	11	2083	1		1
+GO:0097733	photoreceptor cell cilium	0	7	10	2083	1		1
+GO:0098562	cytoplasmic side of membrane	0	7	33	2083	1		1
+GO:0098636	protein complex involved in cell adhesion	0	7	25	2083	1		1
+GO:0098644	complex of collagen trimers	0	7	11	2083	1		1
+GO:0098685	Schaffer collateral - CA1 synapse	0	7	12	2083	1		1
+GO:0098687	chromosomal region	0	7	14	2083	1		1
+GO:0098791	Golgi apparatus subcompartment	0	7	61	2083	1		1
+GO:0098793	presynapse	0	7	79	2083	1		1
+GO:0098794	postsynapse	0	7	89	2083	1		1
+GO:0098796	membrane protein complex	0	7	145	2083	1		1
+GO:0098797	plasma membrane protein complex	0	7	105	2083	1		1
+GO:0098802	plasma membrane signaling receptor complex	0	7	59	2083	1		1
+GO:0098827	endoplasmic reticulum subcompartment	0	7	105	2083	1		1
+GO:0098839	postsynaptic density membrane	0	7	18	2083	1		1
+GO:0098852	lytic vacuole membrane	0	7	57	2083	1		1
+GO:0098857	membrane microdomain	0	7	76	2083	1		1
+GO:0098858	actin-based cell projection	0	7	52	2083	1		1
+GO:0098862	cluster of actin-based cell projections	0	7	21	2083	1		1
+GO:0098978	glutamatergic synapse	0	7	80	2083	1		1
+GO:0098982	GABA-ergic synapse	0	7	17	2083	1		1
+GO:0098984	neuron to neuron synapse	0	7	62	2083	1		1
+GO:0098992	neuronal dense core vesicle	0	7	11	2083	1		1
+GO:0099080	supramolecular complex	0	7	154	2083	1		1
+GO:0099081	supramolecular polymer	0	7	110	2083	1		1
+GO:0099503	secretory vesicle	0	7	279	2083	1		1
+GO:0099512	supramolecular fiber	0	7	110	2083	1		1
+GO:0099513	polymeric cytoskeletal fiber	0	7	58	2083	1		1
+GO:0099572	postsynaptic specialization	0	7	48	2083	1		1
+GO:0099634	postsynaptic specialization membrane	0	7	21	2083	1		1
+GO:0101002	ficolin-1-rich granule	0	7	49	2083	1		1
+GO:0101003	ficolin-1-rich granule membrane	0	7	17	2083	1		1
+GO:0106139	symbiont cell surface	0	7	11	2083	1		1
+GO:0140139	solid phase of basement membrane	0	7	27	2083	1		1
+GO:0140144	non-collagenous component of basement membrane	0	7	24	2083	1		1
+GO:0140149	non-collagenous component of interstitial matrix	0	7	80	2083	1		1
+GO:0140150	gel phase of interstitial matrix	0	7	14	2083	1		1
+GO:0140151	solid phase of interstitial matrix	0	7	87	2083	1		1
+GO:0140168	nuclear ribonucleoprotein granule	0	7	21	2083	1		1
+GO:0140513	nuclear protein-containing complex	0	7	57	2083	1		1
+GO:0140534	endoplasmic reticulum protein-containing complex	0	7	10	2083	1		1
+GO:0140535	intracellular protein-containing complex	0	7	54	2083	1		1
+GO:0150034	distal axon	0	7	39	2083	1		1
+GO:1902494	catalytic complex	0	7	113	2083	1		1
+GO:1902495	transmembrane transporter complex	0	7	23	2083	1		1
+GO:1902554	serine/threonine protein kinase complex	0	7	10	2083	1		1
+GO:1902911	protein kinase complex	0	7	12	2083	1		1
+GO:1904724	tertiary granule lumen	0	7	34	2083	1		1
+GO:1904813	ficolin-1-rich granule lumen	0	7	32	2083	1		1
+GO:1905286	serine-type peptidase complex	0	7	11	2083	1		1
+GO:1905368	peptidase complex	0	7	27	2083	1		1
+GO:1905369	endopeptidase complex	0	7	22	2083	1		1
+GO:1990204	oxidoreductase complex	0	7	10	2083	1		1
+GO:1990234	transferase complex	0	7	41	2083	1		1
+GO:1990351	transporter complex	0	7	23	2083	1		1
+GO:1990777	lipoprotein particle	0	7	11	2083	1		1

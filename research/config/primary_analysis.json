@@ -1,0 +1,21 @@
+{
+  "status": "post_hoc_corrected_reconstruction_definition",
+  "date": "2026-10-17",
+  "branch": "unique_variant_givw",
+  "MVP_scenario": "CI_Wald",
+  "effect_model": "fixed_effect_generalized_IVW",
+  "rationale": "Continue the already specified common-effect gIVW estimand; do not choose the primary method by the resulting number of targets. Multiplicative dispersion remains a separate sensitivity.",
+  "candidate_rule": "MVP P < 0.05/2709 and nominal P < 0.05 in at least one of FinnGen or Stuart; direction is separately annotated",
+  "testing_denominator": 2709,
+  "external_direction_requirement_added": false,
+  "enrichment_background": "MVP estimable and at least one external outcome estimable, then unique gene identity and annotation coverage; no association P filter",
+  "enrichment_background_sensitivity": "all MVP-estimable proteins, then the same gene/annotation filters",
+  "enrichment_term_size": [10, 500],
+  "enrichment_BH_families": "GO BP, MF, CC and KEGG separately; include zero-overlap eligible terms",
+  "clinical_primary_marker": "retain original 17x22 family BH with n=374",
+  "clinical_secondary_marker": "new candidate_count x 22 family BH, explicitly post hoc exploratory",
+  "MVP_free_control": "FinnGen discovery with the same 2709 denominator; Stuart nominal same-direction support; FE and MRE, both LD branches",
+  "evidence_total_score": "not computed; author score is separate; missing UKB is not filled",
+  "source_uncertainty": "MVP CI confidence level and exported P/CI/SE convention unconfirmed; P-equivalent SE is a diagnostic only",
+  "output": "research/final"
+}

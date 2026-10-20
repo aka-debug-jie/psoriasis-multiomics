@@ -1,0 +1,21 @@
+{
+  "scope_date": "2026-10-16",
+  "ukb_individual_analysis": "omitted_by_user_request",
+  "alternative_evidence": "public_summary_statistics_not_PGS_Cox",
+  "bulk": {
+    "counts": "research/data/raw/GSE54456/GSE54456_raw_counts_GRCh38.p13_NCBI.tsv.gz",
+    "annotation": "research/data/metadata/Homo_sapiens.gene_info.gz",
+    "sample_metadata": "research/results/geo_audit/samples_bulk.tsv",
+    "source_mode": "NCBI_reprocessed_171_of_174",
+    "normalization": "TMM",
+    "design": "~ group",
+    "contrast": "psoriasis - normal",
+    "gene_filter": "remove_all_zero_only",
+    "model": "limma_voom_lmFit_eBayes",
+    "p_adjust": "BH_across_all_tested_genes",
+    "fdr": 0.05,
+    "abs_log2fc": 1,
+    "annotation_format": "ncbi_gene_info_current_symbols"
+  },
+  "random_seed": 20261016
+}

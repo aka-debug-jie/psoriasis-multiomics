@@ -1,0 +1,322 @@
+---
+title: "12｜作者证据评分与候选证据覆盖"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+本课学习如何阅读和核对一张多组学证据表。作者主表包含九个评分槽位，我们按原规则重算 29 行总分，与作者报告的分数逐行比较。随后查看七个重新筛选候选的证据覆盖情况。这些候选缺少 UKB psoriasis 与 PsA PGS 项，因此用 NA 保留缺失，只呈现已有证据和上下文，不把缺失补成零，也不重建与作者总分可比的分数。
+
+本课会得到证据状态表及候选靶点的证据图。
+
+本章默认代码在测试机上约需 4 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('12', root=root)
+data.frame(lesson = "12", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+默认参数完整脚本：[12_evidence.R](../lessons/12_evidence.R)。
+
+正文中的数字来自 R 4.4.2 示例运行，单元格会显示当前会话的结果。运行后可对照两者，检查当前输入下的计算结果。
+
+本章整合的是一份固定的科研重建结果快照。公开版第 05、06、11 章采用不同的教学输入，运行结果不会自动回写本章证据表。课堂 PGS 和 Cox 示例也不提供 UK Biobank 验证证据；汇总时应保留每一列的实际来源。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [author_score_input.tsv](../data/evidence/author_score_input.tsv) | 作者主表的 29 行、PWAS 方向、九个证据槽位原始标记和作者报告 tier 字段。 |
+| [primary_candidates_input.tsv](../data/evidence/primary_candidates_input.tsv) | 七个重新筛选候选的入选信息。 |
+| [candidate_evidence_input.tsv](../data/evidence/candidate_evidence_input.tsv) | 七个候选在各证据组件中的状态记录，共 63 行。 |
+| [candidate_context_input.tsv](../data/evidence/candidate_context_input.tsv) | 候选上下文及 UKB PGS 可用状态；UKB psoriasis、PsA PGS 与重建总分均保留缺失。 |
+
+### 方法说明
+
+作者表一行是一个报告条目，证据表一行是一个候选与证据组件的组合，不能把两种行数当作同一种证据数量。`author` 保存原始标记，`slot_matrix` 保存九槽贡献，`comparison` 核对算术；后面的 `evidence` 只整理候选覆盖状态。
+
+作者的九个槽位采用不同计分方式：colocalization 和 PPI 按勾号计分，常规槽位将正负号与 PWAS 方向匹配，bulk 和 single-cell 则使用上、下箭头。九项算术和与作者报告总分分别保留，用于逐行核对。热图还区分方向冲突、方向混合、未计分和未报告；颜色说明状态，计分仍遵循原规则，包括方向混合的条目。
+
+七个候选的证据覆盖分析另按已记录状态整理，区分已观察到支持、已测试但未支持、覆盖不完整且未观察到支持，以及不可评估。不可评估保留为 NA，不等同于阴性结果。由于缺少 UKB 两类 PGS 项，综合总分也保留 NA。
+
+### 12.1｜定义九个槽位的计分规则
+
+根据 PWAS 方向和证据类型，将各标记编码为 0 或 1。按作者的算术规则，原表未记分项贡献 0，但热图仍会显示其未报告状态。这个计分约定不适用于后面的候选覆盖分析，缺失证据仍保留缺失。
+
+```{r l12_s01}
+source("R/common.R")
+suppressPackageStartupMessages(library(ggplot2))
+output <- lesson_output("12_evidence")
+score_slots <- c("sensitivity", "smr_blood", "smr_skin", "pgs_psoriasis", "pgs_psa", "bulk", 
+    "single_cell", "coloc", "ppi")
+score_slot <- function(value, reference, slot) {
+    value <- trimws(as.character(value))
+    reference <- trimws(as.character(reference))
+    if (is.na(value) || !nzchar(value)) 
+        return(0L)
+    if (slot %in% c("coloc", "ppi")) 
+        return(as.integer(grepl("√", value, fixed = TRUE)))
+    if (reference == "+") {
+        if (slot %in% c("bulk", "single_cell")) 
+            return(as.integer(grepl("↑", value, fixed = TRUE)))
+        return(as.integer(grepl("+", value, fixed = TRUE)))
+    }
+    if (reference == "−") {
+        if (slot %in% c("bulk", "single_cell")) 
+            return(as.integer(grepl("↓", value, fixed = TRUE)))
+        return(as.integer(grepl("−", value, fixed = TRUE)))
+    }
+    stop("Invalid PWAS reference direction: ", reference)
+}
+
+data.frame(slot=score_slots)
+```
+bulk 与 single-cell 使用箭头，其余常规槽位使用正负号；coloc 与 PPI 使用勾号，不按方向符号计分。
+
+<details><summary>展开看：函数参数怎样决定一个槽位得分</summary>
+
+`value` 是原始标记，`reference` 是 PWAS 方向，`slot` 决定查找正负号、箭头还是勾号。`grepl()` 检查字符是否出现，`as.integer()` 把判断转成 1 或 0。这是复现作者约定，不是在估计该证据为真的概率。语法见[函数与参数](assets/reading_guide.html#functions)。
+
+</details>
+
+### 12.2｜核对作者报告总分
+
+读取作者主表的 29 行，解析报告总分，并逐行计算九个槽位之和。若两者不一致，脚本会停止，便于检查计分规则或输入标记。
+
+<details><summary>展开看：用真实的 IL2RA 一行手算九槽</summary>
+
+输入表第一条 IL2RA 的 PWAS 为 `+`。按 `score_slots` 顺序，九个标记是 `+/ −`、`+`、空白、`+/ −`、空白、`↑`、`↑`、`√`、`√`。函数给出 `1+1+0+1+0+1+1+1+1=7`，与 `Tier 1(7)` 中的 7 比较。含正负两个方向的标记也包含所需正号，因此仍贡献 1；空白在这套作者算术中贡献 0。
+
+</details>
+
+```{r l12_s02}
+parse_author_score <- function(value) {
+    match <- regexec("\\(([0-9]+)\\)", as.character(value))
+    parts <- regmatches(as.character(value), match)[[1]]
+    if (length(parts) != 2L) 
+        stop("Could not parse author_tier_score: ", value)
+    as.integer(parts[[2]])
+}
+author <- read_tsv("data/evidence/author_score_input.tsv")
+stopifnot(nrow(author) == 29L, all(author$pwas %in% c("+", "−")))
+slot_matrix <- t(vapply(seq_len(nrow(author)), function(i) {
+    vapply(score_slots, function(slot) score_slot(author[[slot]][i], author$pwas[i], slot), 
+        integer(1))
+}, integer(length(score_slots))))
+colnames(slot_matrix) <- score_slots
+author_reported <- vapply(author$author_tier_score, parse_author_score, integer(1))
+recalculated <- rowSums(slot_matrix)
+difference <- recalculated - author_reported
+if (any(difference != 0L)) {
+    failed <- which(difference != 0L)
+    stop("Author score mismatch: ", paste(author$target[failed], collapse = ", "))
+}
+comparison <- data.frame(target = author$target, pwas = author$pwas, author_reported_tier_score = author$author_tier_score, 
+    author_reported_total = author_reported, recalculated_slot_total = recalculated, difference = difference)
+write_tsv(comparison, file.path(output, "author_score_comparison.tsv"))
+
+course_table(comparison,n=10)
+```
+随包输入的参考结果为 29 行全部算术一致；本次运行先读 `author_reported_total`、`recalculated_slot_total` 和 `difference`。差为 0 只说明按该规则重算一致，不能证明九类证据彼此独立或支持同等强度的结论。
+
+### 12.3｜识别原始标记的方向与状态
+
+保留原始标记，并将其分为方向匹配、方向相反、方向混合、未计分和未报告。
+
+```{r l12_s03}
+direction_class <- function(value, reference, slot) {
+    value <- trimws(as.character(value))
+    if (is.na(value) || !nzchar(value)) 
+        return("Not reported (NA)")
+    if (slot %in% c("coloc", "ppi")) {
+        return(if (grepl("√", value, fixed = TRUE)) "Scored support" else "Not scored")
+    }
+    if (slot %in% c("bulk", "single_cell")) {
+        expected <- if (reference == "+") 
+            "↑"
+        else "↓"
+        opposite <- if (reference == "+") 
+            "↓"
+        else "↑"
+    }
+    else {
+        expected <- if (reference == "+") 
+            "+"
+        else "−"
+        opposite <- if (reference == "+") 
+            "−"
+        else "+"
+    }
+    has_expected <- grepl(expected, value, fixed = TRUE)
+    has_opposite <- grepl(opposite, value, fixed = TRUE)
+    if (has_expected && has_opposite) 
+        return("Mixed directions (scored by rule)")
+    if (has_expected) 
+        return("Scored support")
+    if (has_opposite) 
+        return("Direction conflict")
+    "Not scored"
+}
+
+data.frame(display_states=c("Scored support","Direction conflict","Mixed directions","Not reported"))
+```
+这些类别帮助读图，不改变计分。方向混合的条目仍按原规则计算贡献。
+
+<details><summary>展开看：为什么得 1 分仍可能显示方向混合</summary>
+
+计分函数回答“有没有符合参照的符号”，`direction_class()` 还检查相反符号是否同时出现。读 `slot_rows` 时将 `raw_flag`、`contribution`、`display_class` 一起看；混合方向和单向支持即使同为 1，证据含义仍有差别。
+
+</details>
+
+### 12.4｜绘制作者评分槽位热图
+
+将作者表 29 行的九个槽位转换成矩阵，在每个格子中显示计分贡献和状态类别。
+
+```{r l12_s04}
+slot_rows <- do.call(rbind, lapply(seq_len(nrow(author)), function(i) {
+    data.frame(target = author$target[i], pwas = author$pwas[i], slot = score_slots, raw_flag = vapply(score_slots, 
+        function(slot) as.character(author[[slot]][i]), character(1)), contribution = as.integer(slot_matrix[i, 
+        ]), display_class = vapply(score_slots, function(slot) {
+        direction_class(author[[slot]][i], author$pwas[i], slot)
+    }, character(1)), stringsAsFactors = FALSE)
+}))
+write_tsv(slot_rows, file.path(output, "author_score_slots.tsv"))
+slot_rows$target <- factor(slot_rows$target, levels = rev(author$target))
+slot_rows$slot <- factor(slot_rows$slot, levels = score_slots)
+slot_rows$display_class <- factor(slot_rows$display_class, levels = c("Scored support", "Direction conflict", 
+    "Mixed directions (scored by rule)", "Not scored", "Not reported (NA)"))
+author_plot <- ggplot(slot_rows, aes(x = slot, y = target, fill = display_class)) + geom_tile(colour = "white", 
+    linewidth = 0.35) + geom_text(aes(label = ifelse(display_class == "Not reported (NA)", 
+    "NA", ifelse(display_class == "Direction conflict", "!", ifelse(display_class == "Mixed directions (scored by rule)", 
+        "±", ifelse(contribution == 1L, "1", "0"))))), size = 2.6, colour = "#243746") + scale_fill_manual(values = c(`Scored support` = "#4C9A83", 
+    `Direction conflict` = "#D87955", `Mixed directions (scored by rule)` = "#8873A6", `Not scored` = "#D9E2E7", 
+    `Not reported (NA)` = "#F7F8F8"), drop = FALSE, name = NULL) + labs(title = "Author-reported evidence flags and slot contributions", 
+    subtitle = "Colors classify the flags; the table retains raw values. Mixed signs can score under the source rule", 
+    x = NULL, y = NULL) + theme_course() + theme(axis.text.x = element_text(angle = 35, hjust = 1), 
+    panel.grid = element_blank(), legend.position = "bottom")
+save_plot(author_plot, output, "author_score_heatmap", width = 9, height = 8)
+
+course_table(slot_rows,columns=c("target","slot","raw_flag","contribution","display_class"))
+```
+颜色表示类别，格内符号补充未报告、冲突或混合方向的信息。
+
+*横轴为九个评分槽位，纵轴为 29 个作者条目；颜色区分计分支持、方向冲突、方向混合、未计分和未报告，格内数字或符号显示贡献与标记类别。*
+
+### 12.5｜整理七个候选的证据与上下文
+
+读取七个候选的入选信息、63 条证据组件状态及上下文，确认 UKB PGS 和重建总分的缺失状态后，保存整理结果。
+
+```{r l12_s05}
+candidate_order <- c("IL12B", "SGSH", "TNFAIP3", "DDX58", "IL7R", "PRSS53", "UBLCP1")
+primary <- read_tsv("data/evidence/primary_candidates_input.tsv")
+evidence <- read_tsv("data/evidence/candidate_evidence_input.tsv")
+context <- read_tsv("data/evidence/candidate_context_input.tsv")
+stopifnot(nrow(primary) == 7L, setequal(primary$gene, candidate_order), nrow(evidence) == 63L)
+stopifnot(all(context$UKB_status == "omitted_by_user_not_replaced_by_summary_GWAS"))
+stopifnot(all(is.na(context$UKB_PGS_psoriasis)), all(is.na(context$UKB_PGS_PsA)), all(is.na(context$reconstructed_total_score)))
+primary$gene <- factor(primary$gene, levels = candidate_order)
+evidence$gene <- factor(evidence$gene, levels = rev(candidate_order))
+context$gene <- factor(context$gene, levels = candidate_order)
+write_tsv(evidence, file.path(output, "candidate_evidence.tsv"))
+candidate_context <- merge(primary, context, by = "gene", all.x = TRUE, sort = FALSE)
+candidate_context <- candidate_context[match(candidate_order, candidate_context$gene), ]
+write_tsv(candidate_context, file.path(output, "candidate_context.tsv"))
+
+course_table(candidate_context, columns=c("gene","UKB_status","UKB_PGS_psoriasis","UKB_PGS_PsA","reconstructed_total_score"))
+```
+UKB 项继续保留 NA，不能用其他汇总 GWAS 替代，也不能据此推算与作者可比的综合分。
+
+<details><summary>展开看：这里的 NA 为什么不能沿用作者规则记 0</summary>
+
+前半章的 0 是复现作者总分所用的计分约定；后半章的 NA 表示缺少可评估信息。已测试未支持和未能测试回答不同问题。覆盖表还含共享数据来源，例如细胞级与 pseudobulk 分析，以及可能共享疾病 GWAS 的遗传分析，所以不能简单把支持格数当独立重复次数。
+
+</details>
+
+### 12.6｜绘制候选证据覆盖热图
+
+将证据组件及其状态绘成热图，按证据领域分面，并用符号标出不可评估的单元格。
+
+```{r l12_s06}
+evidence$status <- factor(evidence$status, levels = c("supported", "not_supported_in_tested_data", 
+    "partial_no_observed_support", "not_evaluable"))
+component_labels <- c(Bulk = "Bulk", `Cell Wilcoxon` = "Cells", Pseudobulk = "Pseudobulk", 
+    GTEx_Skin_Not_Sun_Exposed_Suprapubic = "Skin: unexposed", GTEx_Skin_Sun_Exposed_Lower_leg = "Skin: exposed", 
+    GTEx_Whole_Blood = "Blood: GTEx", eQTLGen_Blood = "Blood: eQTLGen", coloc_mRNA = "mRNA", 
+    coloc_protein = "Protein")
+component_order <- names(component_labels)[names(component_labels) %in% unique(as.character(evidence$component))]
+evidence$component <- factor(evidence$component, levels = component_order)
+candidate_plot <- ggplot(evidence, aes(x = component, y = gene, fill = status)) + geom_tile(colour = "white", 
+    linewidth = 0.45) + geom_text(data = evidence[evidence$status == "not_evaluable", ], label = "×", 
+    colour = "#77848D", size = 3) + facet_grid(. ~ domain, scales = "free_x", space = "free_x") + 
+    scale_fill_manual(values = c(supported = "#4C9A83", not_supported_in_tested_data = "#D9E2E7", 
+        partial_no_observed_support = "#B8A9CC", not_evaluable = "#F7F8F8"), labels = c("Observed support", 
+        "No support in tested data", "Partial coverage; no observed support", "Not evaluable (NA)"), 
+        drop = FALSE, name = NULL) + scale_x_discrete(labels = component_labels) + labs(title = "Evidence coverage for the seven reselected candidates", 
+    subtitle = "Recorded evidence statuses; NA remains distinct from tested absence", x = NULL, 
+    y = NULL) + theme_course() + theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 8), 
+    panel.grid = element_blank(), legend.position = "bottom")
+save_plot(candidate_plot, output, "candidate_evidence_heatmap", width = 12, height = 5.2)
+
+course_table(as.data.frame(table(evidence$status)))
+```
+本次记录包括 21 项支持、20 项已测试未支持、19 项不可评估和 3 项覆盖不完整且未观察到支持。
+
+*横轴为证据组件，按领域分面；纵轴为七个重新筛选候选。颜色区分已观察到支持、测试中未支持、覆盖不完整且未见支持、不可评估，叉号标记不可评估。NA 表示缺失，不作零或阴性证据处理。*
+
+### 12.7｜输出覆盖摘要
+
+汇总作者行数、槽位数、算术匹配数、候选数、证据记录数和 UKB PGS 缺失数，可与输入表和图中内容对照。
+
+```{r l12_s07}
+cat(sprintf("author_rows=%d; slots=%d; arithmetic_matches=%d; candidate_genes=%d; evidence_rows=%d; UKB_scores_missing=%d\n", 
+    nrow(author), length(score_slots), sum(difference == 0L), length(candidate_order), nrow(evidence), 
+    sum(is.na(context$UKB_PGS_psoriasis) & is.na(context$UKB_PGS_PsA))))
+```
+这张覆盖表展示各候选有哪些证据、哪些仍缺失，不提供替代作者评分的总分。
+
+原示例输出见 [results/12_evidence/](../results/12_evidence/)。
+
+### 练习与参考答案
+
+本章没有可调的 `settings` 阈值。先预测同一 `↑` 标记在两种参照下的贡献，再运行完 12.1，在 R 控制台分别调用 `score_slot("↑", "+", "bulk")` 和 `score_slot("↑", "−", "bulk")`，实际改变 `reference` 参数并解释输出。此练习不修改作者输入；要重新核对原表，从 12.2 向下重跑即可。
+
+1. **将 PWAS 参考方向从“+”改为“−”，按原规则，同一个 bulk ↑ 标记如何计分？**
+
+   <details><summary>参考答案</summary>
+   
+   正方向参照时计 1，负方向参照时计 0，并显示方向冲突。此题用于理解规则；核对作者发表的分数时，仍使用原始 PWAS 方向。
+   
+   </details>
+
+2. **not_evaluable 与 not_supported_in_tested_data 有何区别？**
+
+   <details><summary>参考答案</summary>
+   
+   前者缺少可评估观测，保留 NA；后者已经接受测试，但未观察到支持。二者需要分别呈现，不能都记为阴性。
+   
+   </details>
+
+3. **为什么七个候选不重建与作者总分可比的综合分？**
+
+   <details><summary>参考答案</summary>
+   
+   这些候选缺少 UKB psoriasis 与 PsA PGS 项，综合表中的重建总分也为 NA。缺失项不能按零补齐，因此目前无法得到与作者总分可比的综合分。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](12_evidence.Rmd)
+
+当前会话结果保存在 `课程资源/work/results/本课目录/`。修改上游参数后，请重跑相应步骤及后续单元格。

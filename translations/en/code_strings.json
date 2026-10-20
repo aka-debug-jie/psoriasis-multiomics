@@ -1,0 +1,754 @@
+{
+  "strings": {
+    "请从教学项目或 notebooks 目录打开课程。": {
+      "translation": "Open the course from the teaching project or the notebooks directory.",
+      "locations": [
+        "R/environment.R:5",
+        "R/notebook_support.R:7"
+      ]
+    },
+    "从对照环境切换到交互教学前，请重启R会话。": {
+      "translation": "Restart the R session before switching from the reference environment to interactive teaching.",
+      "locations": [
+        "R/notebook_support.R:9"
+      ]
+    },
+    "课程依赖不完整，请重新解压完整课程包。": {
+      "translation": "Course dependencies are incomplete. Extract the complete course package again.",
+      "locations": [
+        "R/notebook_support.R:27"
+      ]
+    },
+    "本课缺少 ": {
+      "translation": "This lesson is missing ",
+      "locations": [
+        "R/notebook_support.R:28"
+      ]
+    },
+    "。在起步页运行 setup_interactive(lessons=\"": {
+      "translation": ". On the start page, run setup_interactive(lessons=\"",
+      "locations": [
+        "R/notebook_support.R:29"
+      ]
+    },
+    "\") 后重启会话。": {
+      "translation": "\") and restart the session.",
+      "locations": [
+        "R/notebook_support.R:29"
+      ]
+    },
+    "本课需要匹配系统与架构的 ": {
+      "translation": "This lesson requires the version of ",
+      "locations": [
+        "R/notebook_support.R:42"
+      ]
+    },
+    "。请查看起步页“外部工具”；其他课程可以继续。\\n": {
+      "translation": ". See “External tools” on the start page; other lessons can continue.\\n",
+      "locations": [
+        "R/notebook_support.R:43"
+      ]
+    },
+    "缺少 teaching.root 课程根目录。": {
+      "translation": "Missing the teaching.root course directory.",
+      "locations": [
+        "R/notebook_support.R:52"
+      ]
+    },
+    "lesson 必须是两位课程编号。": {
+      "translation": "lesson must be a two-digit lesson number.",
+      "locations": [
+        "R/notebook_support.R:54"
+      ]
+    },
+    "课程 ": {
+      "translation": "Lesson ",
+      "locations": [
+        "R/notebook_support.R:56",
+        "R/notebook_support.R:80"
+      ]
+    },
+    " 必须且只能匹配一个 notebook_templates 模板；找到 ": {
+      "translation": " must match exactly one notebook_templates template; found ",
+      "locations": [
+        "R/notebook_support.R:56"
+      ]
+    },
+    " 个。": {
+      "translation": " match(es).",
+      "locations": [
+        "R/notebook_support.R:56",
+        "R/notebook_support.R:80"
+      ]
+    },
+    "%s_练习_%s_%03d.ipynb": {
+      "translation": "%s_exercise_%s_%03d.ipynb",
+      "locations": [
+        "R/notebook_support.R:63"
+      ]
+    },
+    "复制 notebook 模板失败。": {
+      "translation": "Failed to copy the notebook template.",
+      "locations": [
+        "R/notebook_support.R:67"
+      ]
+    },
+    "已创建练习 notebook：": {
+      "translation": "Created exercise notebook: ",
+      "locations": [
+        "R/notebook_support.R:69"
+      ]
+    },
+    "label 仅可包含中英文、数字、下划线和横线，且不能包含路径分隔符或 ..。": {
+      "translation": "label may contain only Chinese or English letters, digits, underscores, and hyphens, and must not contain path separators or .. .",
+      "locations": [
+        "R/notebook_support.R:75"
+      ]
+    },
+    "缺少有效的 teaching.root 或 teaching.lesson。": {
+      "translation": "A valid teaching.root or teaching.lesson is missing.",
+      "locations": [
+        "R/notebook_support.R:78"
+      ]
+    },
+    " 必须且只能匹配一个 lessons R 脚本；找到 ": {
+      "translation": " must match exactly one lessons R script; found ",
+      "locations": [
+        "R/notebook_support.R:80"
+      ]
+    },
+    "TEACHING_OUTPUT 未设置。": {
+      "translation": "TEACHING_OUTPUT is not set.",
+      "locations": [
+        "R/notebook_support.R:83"
+      ]
+    },
+    "当前课程没有结果目录：": {
+      "translation": "The current lesson has no results directory: ",
+      "locations": [
+        "R/notebook_support.R:85"
+      ]
+    },
+    "当前课程结果目录为空，未创建快照：": {
+      "translation": "The current lesson results directory is empty; no snapshot was created: ",
+      "locations": [
+        "R/notebook_support.R:87"
+      ]
+    },
+    "创建快照目录失败：": {
+      "translation": "Failed to create the snapshot directory: ",
+      "locations": [
+        "R/notebook_support.R:97"
+      ]
+    },
+    "复制课程结果到快照时失败。": {
+      "translation": "Failed to copy lesson results to the snapshot.",
+      "locations": [
+        "R/notebook_support.R:99"
+      ]
+    },
+    "已保存课程快照：": {
+      "translation": "Saved course snapshot: ",
+      "locations": [
+        "R/notebook_support.R:106"
+      ]
+    },
+    "当前输出目录：课程资源/work/results/": {
+      "translation": "Current output directory: course resources/work/results/",
+      "locations": [
+        "R/notebook_support.R:115"
+      ]
+    },
+    "当前输出目录：": {
+      "translation": "Current output directory: ",
+      "locations": [
+        "R/notebook_support.R:117"
+      ]
+    },
+    "外部程序运行失败；请查看 ": {
+      "translation": "External program failed; see ",
+      "locations": [
+        "R/common.R:32"
+      ]
+    },
+    "未找到 ": {
+      "translation": "Could not find ",
+      "locations": [
+        "R/tool_support.R:31"
+      ]
+    },
+    " 的 ": {
+      "translation": " for ",
+      "locations": [
+        "R/tool_support.R:31"
+      ]
+    },
+    " 程序；请重新解压完整课程包。": {
+      "translation": " executable; extract the complete course package again.",
+      "locations": [
+        "R/tool_support.R:32"
+      ]
+    },
+    "程序与当前系统/架构不匹配：": {
+      "translation": "The program does not match the current operating system/architecture: ",
+      "locations": [
+        "R/tool_support.R:34"
+      ]
+    },
+    "程序校验值不符：": {
+      "translation": "Program checksum mismatch: ",
+      "locations": [
+        "R/tool_support.R:36"
+      ]
+    },
+    "内置包库缺失，请重新解压完整课程包。": {
+      "translation": "The bundled package library is missing. Extract the complete course package again.",
+      "locations": [
+        "R/environment.R:25"
+      ]
+    },
+    "交互课程当前适配 R 4.4–4.6。请另外安装支持的 R，保留现有 R 即可。": {
+      "translation": "Interactive lessons currently support R 4.4–4.6. Install a supported R version separately; you can keep your existing R installation.",
+      "locations": [
+        "R/environment.R:40"
+      ]
+    },
+    "请先安装课程依赖：": {
+      "translation": "Install the course dependencies first: ",
+      "locations": [
+        "lessons/09_cox.R:8",
+        "lessons/10_functional.R:7",
+        "notebooks/09_cox.Rmd:4",
+        "notebooks/10_functional.Rmd:4"
+      ]
+    },
+    "找不到课程数据：": {
+      "translation": "Course data not found: ",
+      "locations": [
+        "lessons/09_cox.R:12",
+        "notebooks/09_cox.Rmd:7"
+      ]
+    },
+    "原始样本": {
+      "translation": "Original samples",
+      "locations": [
+        "lessons/09_cox.R:31",
+        "notebooks/09_cox.Rmd:5"
+      ]
+    },
+    "纳入主模型（完整病例）": {
+      "translation": "Included in the primary model (complete cases)",
+      "locations": [
+        "lessons/09_cox.R:31",
+        "notebooks/09_cox.Rmd:5"
+      ]
+    },
+    "因模型变量缺失而排除": {
+      "translation": "Excluded because of missing model variables",
+      "locations": [
+        "lessons/09_cox.R:31",
+        "notebooks/09_cox.Rmd:5"
+      ]
+    },
+    "数据来源：survival::lung；survival ": {
+      "translation": "Data source: survival::lung; survival ",
+      "locations": [
+        "lessons/09_cox.R:98",
+        "notebooks/09_cox.Rmd:1"
+      ]
+    },
+    "原始样本：": {
+      "translation": "Original samples: ",
+      "locations": [
+        "lessons/09_cox.R:99",
+        "notebooks/09_cox.Rmd:3"
+      ]
+    },
+    "；死亡事件：": {
+      "translation": "; deaths: ",
+      "locations": [
+        "lessons/09_cox.R:99",
+        "notebooks/09_cox.Rmd:3"
+      ]
+    },
+    "；完整病例：": {
+      "translation": "; complete cases: ",
+      "locations": [
+        "lessons/09_cox.R:99",
+        "notebooks/09_cox.Rmd:3"
+      ]
+    },
+    "；完整病例死亡事件：": {
+      "translation": "; deaths among complete cases: ",
+      "locations": [
+        "lessons/09_cox.R:100",
+        "notebooks/09_cox.Rmd:4"
+      ]
+    },
+    "\\nPH 检验（cox.zph）：\\n": {
+      "translation": "\\nPH test (cox.zph):\\n",
+      "locations": [
+        "lessons/09_cox.R:102",
+        "notebooks/09_cox.Rmd:6"
+      ]
+    },
+    "\\n结果目录：": {
+      "translation": "\\nResults directory: ",
+      "locations": [
+        "lessons/09_cox.R:104"
+      ]
+    },
+    "候选基因无法唯一映射：": {
+      "translation": "Candidate gene did not map uniquely: ",
+      "locations": [
+        "lessons/01_bulk.R:90",
+        "notebooks/01_bulk.Rmd:7"
+      ]
+    },
+    "请从课程文件夹或 notebooks 文件夹打开本 Notebook。": {
+      "translation": "Open this notebook from the course folder or the notebooks folder.",
+      "locations": [
+        "notebooks/00_start.Rmd:3"
+      ]
+    },
+    "等待结束，代码已继续运行。": {
+      "translation": "The wait is over; code execution has resumed.",
+      "locations": [
+        "notebooks/00_start.Rmd:2"
+      ]
+    },
+    "请从教学项目或notebooks目录打开": {
+      "translation": "Open this notebook from the teaching project or the notebooks directory.",
+      "locations": [
+        "notebooks/01_bulk.Rmd:3",
+        "notebooks/02_single_mr.Rmd:3",
+        "notebooks/03_proteome_mr.Rmd:3",
+        "notebooks/04_sensitivity.Rmd:3",
+        "notebooks/05_smr.Rmd:3",
+        "notebooks/06_colocalization.Rmd:3",
+        "notebooks/07_single_cell.Rmd:3",
+        "notebooks/08_pgs.Rmd:3",
+        "notebooks/09_cox.Rmd:3",
+        "notebooks/10_functional.Rmd:3",
+        "notebooks/11_clinical_mr.Rmd:3",
+        "notebooks/12_evidence.Rmd:3"
+      ]
+    },
+    "label 最长 24 个字符，仅可包含中英文、数字、下划线和横线，且不能包含路径分隔符或 ..。": {
+      "translation": "Use a label of at most 24 letters, Chinese characters, digits, underscores or hyphens; do not include path separators or .. .",
+      "locations": [
+        "R/notebook_support.R"
+      ]
+    }
+  },
+  "comments": {
+    "Notebook默认使用兼容教学库；对照入口显式选择reference。": {
+      "translation": "The notebook uses the compatible teaching library by default; the reference entry point explicitly selects the reference environment.",
+      "locations": [
+        "R/load_environment.R:1"
+      ]
+    },
+    "Jupyter 和 RStudio 共用初始化与显示；分析步骤保留在每课单元格内。": {
+      "translation": "Jupyter and RStudio share initialization and display helpers; analysis steps remain in each lesson cell.",
+      "locations": [
+        "R/notebook_support.R:1"
+      ]
+    },
+    "knitr 每个 chunk 恢复工作目录，必须在 setup 中设置 root.dir。": {
+      "translation": "knitr restores the working directory for each chunk, so set root.dir in setup.",
+      "locations": [
+        "R/notebook_support.R:15"
+      ]
+    },
+    "在 teaching.Rproj 打开的项目根目录中运行各课脚本。": {
+      "translation": "Run each lesson script from the project root opened with teaching.Rproj.",
+      "locations": [
+        "R/common.R:2"
+      ]
+    },
+    "等位基因方向与广义 IVW。第 03、11 课共用，核心矩阵运算保留在此。": {
+      "translation": "Allele orientation and generalized IVW, shared by Lessons 03 and 11. The core matrix calculations are kept here.",
+      "locations": [
+        "R/genetics.R:1"
+      ]
+    },
+    "先按暴露 F 排序，同一蛋白/实际变异只保留一行，尚未读取疾病效应。": {
+      "translation": "Sort by exposure F first and keep one row per protein/physical variant; disease effects have not yet been read.",
+      "locations": [
+        "R/genetics.R:23"
+      ]
+    },
+    "交互教学库按 R 版本与平台隔离，不更新用户其他项目。": {
+      "translation": "The interactive teaching library is isolated by R version and platform; it does not update other user projects.",
+      "locations": [
+        "R/environment.R:1"
+      ]
+    },
+    "固定的 SMR/HEIDI 阈值；使用 2 个线程。": {
+      "translation": "Fixed SMR/HEIDI thresholds; use 2 threads.",
+      "locations": [
+        "lessons/05_smr.R:10"
+      ]
+    },
+    "1. 使用 SMR 官方 --make-besd 将每个 probe 的 ESD 转成 BESD。": {
+      "translation": "1. Use the official SMR --make-besd command to convert each probe ESD to BESD.",
+      "locations": [
+        "lessons/05_smr.R:27"
+      ]
+    },
+    "2. 主分析使用保留原始二进制数值和 SNP 顺序的两 probe 子集。": {
+      "translation": "2. The primary analysis uses the two-probe subset, preserving original binary values and SNP order.",
+      "locations": [
+        "lessons/05_smr.R:32"
+      ]
+    },
+    "ESD 转换会按位置重新排序；HEIDI 对并列 LD 剪枝顺序敏感。": {
+      "translation": "ESD conversion reorders variants by position; HEIDI is sensitive to the order of LD pruning when values are tied.",
+      "locations": [
+        "lessons/05_smr.R:33"
+      ]
+    },
+    "3. 对照全量研究结果中这两行的对应统计量；HEIDI 缺失保留为 NA。": {
+      "translation": "3. Compare the corresponding statistics for these two rows with the full-study results; retain missing HEIDI values as NA.",
+      "locations": [
+        "lessons/05_smr.R:57"
+      ]
+    },
+    "所有平台都检查数据有效性和本例判定；版本间数值另列。": {
+      "translation": "All platforms check data validity and the decision for this example; differences between versions are reported separately.",
+      "locations": [
+        "lessons/05_smr.R:78"
+      ]
+    },
+    "IL7R 的 UKB-PPP cis 工具；选择完全基于暴露证据。": {
+      "translation": "UKB-PPP cis instruments for IL7R; selection is based entirely on exposure evidence.",
+      "locations": [
+        "lessons/02_single_mr.R:6"
+      ]
+    },
+    "一阶 NOME 标准误": {
+      "translation": "First-order NOME standard error",
+      "locations": [
+        "lessons/02_single_mr.R:14"
+      ]
+    },
+    "一个等位基因编码练习：双方同时换到另一等位基因，ratio 不变。": {
+      "translation": "An allele-coding exercise: switching both effects to the other allele leaves the ratio unchanged.",
+      "locations": [
+        "lessons/02_single_mr.R:22"
+      ]
+    },
+    "第 09 课：Cox 比例风险模型": {
+      "translation": "Lesson 09: Cox proportional-hazards model",
+      "locations": [
+        "lessons/09_cox.R:1"
+      ]
+    },
+    "在教学项目根目录运行：Rscript lessons/09_cox.R": {
+      "translation": "Run from the teaching project root: Rscript lessons/09_cox.R",
+      "locations": [
+        "lessons/09_cox.R:2"
+      ]
+    },
+    "1. 先读懂结局：time 是随访天数；status=2 表示死亡，status=1 表示删失。": {
+      "translation": "1. Understand the outcome first: time is follow-up in days; status=2 means death, and status=1 means censoring.",
+      "locations": [
+        "lessons/09_cox.R:15"
+      ]
+    },
+    "Surv() 的事件变量用 TRUE/1 表示事件发生。不要直接把原始 status 当事件变量。": {
+      "translation": "The event variable in Surv() uses TRUE/1 to indicate that the event occurred. Do not use the raw status directly as the event variable.",
+      "locations": [
+        "lessons/09_cox.R:16"
+      ]
+    },
+    "2. 描述完整病例筛选。模型只使用年龄、性别和医生评定 ECOG。": {
+      "translation": "2. Describe complete-case selection. The model uses only age, sex, and clinician-rated ECOG.",
+      "locations": [
+        "lessons/09_cox.R:22"
+      ]
+    },
+    "3. 构造 Surv(time, event)，拟合多变量 Cox 模型。": {
+      "translation": "3. Construct Surv(time, event) and fit a multivariable Cox model.",
+      "locations": [
+        "lessons/09_cox.R:42"
+      ]
+    },
+    "age 每增加 1 岁；ph.ecog 每增加 1 级；女性相对男性。": {
+      "translation": "Per 1-year increase in age; per 1-level increase in ph.ecog; female relative to male.",
+      "locations": [
+        "lessons/09_cox.R:43"
+      ]
+    },
+    "4. 整理 HR、95% CI 和 Wald P 值；HR = exp(coef)。": {
+      "translation": "4. Organize HR, 95% CI, and Wald P values; HR = exp(coef).",
+      "locations": [
+        "lessons/09_cox.R:52"
+      ]
+    },
+    "5. 画按 ECOG 分组的 Kaplan-Meier 曲线（仅用于描述；模型中的 ECOG 是连续等级）。": {
+      "translation": "5. Plot Kaplan–Meier curves by ECOG group (descriptive only; ECOG remains ordinal and continuous in the model).",
+      "locations": [
+        "lessons/09_cox.R:71"
+      ]
+    },
+    "0、1、2+ 便于展示；3/4 级合并到 2+，并非主模型中重新分组。": {
+      "translation": "Groups 0, 1, and 2+ are for display; levels 3/4 are combined into 2+ and are not regrouped in the primary model.",
+      "locations": [
+        "lessons/09_cox.R:72"
+      ]
+    },
+    "6. 用 Schoenfeld 残差检验比例风险假设。P 值较小提示可能偏离 PH 假设。": {
+      "translation": "6. Use Schoenfeld residuals to test the proportional-hazards assumption. A small P value may indicate a departure from the PH assumption.",
+      "locations": [
+        "lessons/09_cox.R:90"
+      ]
+    },
+    "第 10 课：过度代表分析、蛋白互作网络与药物关联": {
+      "translation": "Lesson 10: over-representation analysis, protein-interaction networks, and drug associations",
+      "locations": [
+        "lessons/10_functional.R:1"
+      ]
+    },
+    "工作目录设为 teaching/ 后运行：Rscript lessons/10_functional.R": {
+      "translation": "Set the working directory to teaching/ and run: Rscript lessons/10_functional.R",
+      "locations": [
+        "lessons/10_functional.R:2"
+      ]
+    },
+    "1. 先定义研究问题中的候选集与机会背景，再看哪些基因有本体注释。": {
+      "translation": "1. Define the candidate set and opportunity background for the research question first, then check which genes have ontology annotations.",
+      "locations": [
+        "lessons/10_functional.R:17"
+      ]
+    },
+    "2. 对每个家族分别用超几何分布计算右尾概率，并在家族内部校正 BH。": {
+      "translation": "2. For each family, calculate the right-tail probability with the hypergeometric distribution and apply BH adjustment within that family.",
+      "locations": [
+        "lessons/10_functional.R:24"
+      ]
+    },
+    "N=该家族有注释的背景基因数；K=term 在注释背景中的基因数；": {
+      "translation": "N = number of annotated background genes in that family; K = number of genes for the term in the annotated background;",
+      "locations": [
+        "lessons/10_functional.R:25"
+      ]
+    },
+    "n=候选集中有该家族任一注释的基因数；k=候选与 term 的交集。": {
+      "translation": "n = number of candidate genes with any annotation in that family; k = intersection of the candidates and the term.",
+      "locations": [
+        "lessons/10_functional.R:26"
+      ]
+    },
+    "3. 每个家族单独统计检验项与显著项；保留零交集 term。": {
+      "translation": "3. Count tested and significant terms separately for each family; retain terms with zero overlap.",
+      "locations": [
+        "lessons/10_functional.R:67"
+      ]
+    },
+    "用 q = k - 1 计算右尾 P(X >= k)，零交集的 P 为 1。": {
+      "translation": "Use q = k - 1 to calculate the right-tail P(X >= k); the P value is 1 when the overlap is zero.",
+      "locations": [
+        "lessons/10_functional.R:71"
+      ]
+    },
+    "每个样本在 QC 前最多取 500 个细胞，所有基因保留；正常/皮损各 8/14 个样本。": {
+      "translation": "Before QC, use at most 500 cells per sample and retain all genes; there are 8 normal and 14 lesional samples.",
+      "locations": [
+        "lessons/07_single_cell.R:6"
+      ]
+    },
+    "仅对 2000 个高变基因 scale，避免生成全基因的稠密矩阵。": {
+      "translation": "Scale only the 2,000 highly variable genes to avoid creating a dense matrix for all genes.",
+      "locations": [
+        "lessons/07_single_cell.R:22"
+      ]
+    },
+    "新的聚类必须依据标记重读，不能移用全量分析的 cluster 编号。": {
+      "translation": "Reinterpret new clusters using their markers; do not reuse cluster numbers from the full analysis.",
+      "locations": [
+        "lessons/07_single_cell.R:28"
+      ]
+    },
+    "逐标记在聚类间标准化后平均，使高表达的单一基因不独占注释。": {
+      "translation": "Normalize each marker across clusters before averaging so that one highly expressed gene does not dominate the annotation.",
+      "locations": [
+        "lessons/07_single_cell.R:37"
+      ]
+    },
+    "原方法的细胞级 Wilcoxon：在每类细胞中比较疾病组，仅作该抽样的描述性计算。": {
+      "translation": "Cell-level Wilcoxon test from the original method: compare disease groups within each cell type; this is descriptive only for this sample.",
+      "locations": [
+        "lessons/07_single_cell.R:62"
+      ]
+    },
+    "检验预先固定的 7 个候选，BH 家族是“7候选 × 可评价细胞类型”，不等同于全基因家族。": {
+      "translation": "Test the seven prespecified candidates. The BH family is “7 candidates × evaluable cell types,” not the full gene family.",
+      "locations": [
+        "lessons/07_single_cell.R:63"
+      ]
+    },
+    "第二类比较：同一个候选在某一细胞类型与所有其余细胞中的表达。": {
+      "translation": "Second comparison: expression of the same candidate in one cell type versus all other cells.",
+      "locations": [
+        "lessons/07_single_cell.R:76"
+      ]
+    },
+    "供体层面：使用全量数据预聚合的 raw counts，每个样本/细胞类型只有一列。": {
+      "translation": "At the donor level, use raw counts pre-aggregated from the full dataset, with one column per sample/cell type.",
+      "locations": [
+        "lessons/07_single_cell.R:87"
+      ]
+    },
+    "这里保留每个生物样本，而不是把成千上万细胞当成独立重复。": {
+      "translation": "This keeps each biological sample as a unit rather than treating thousands of cells as independent replicates.",
+      "locations": [
+        "lessons/07_single_cell.R:88"
+      ]
+    },
+    "2709 是事先固定的受检蛋白家族；不按显著性或结局可得性缩小分母。": {
+      "translation": "The family of 2,709 tested proteins was fixed in advance; do not reduce the denominator based on significance or outcome availability.",
+      "locations": [
+        "lessons/03_proteome_mr.R:6"
+      ]
+    },
+    "权重来自 IL7R 蛋白的同一 UKB-PPP 暴露研究；不使用疾病 beta。": {
+      "translation": "Weights come from the same UKB-PPP exposure study for IL7R protein; disease beta is not used.",
+      "locations": [
+        "lessons/08_pgs.R:5"
+      ]
+    },
+    "数据起点是来源已标注的 cis 条件关联位点。去掉非 SNP / 方向不明回文位点。": {
+      "translation": "Start from cis conditional-association variants with their source labels. Remove non-SNPs and palindromic variants with ambiguous direction.",
+      "locations": [
+        "lessons/08_pgs.R:6"
+      ]
+    },
+    "验证两个评分位点在本批 EUR 基因型中 r² < .01。": {
+      "translation": "Verify that the two score variants have r² < .01 in this EUR genotype set.",
+      "locations": [
+        "lessons/08_pgs.R:15"
+      ]
+    },
+    "每人评分是效应等位基因剂量（0/1/2）乘以蛋白效应，再求和。": {
+      "translation": "For each person, multiply the effect-allele dosage (0/1/2) by the protein effect and sum across variants.",
+      "locations": [
+        "lessons/08_pgs.R:25"
+      ]
+    },
+    "两个位点均完整的样本已选出，因此 PLINK 在这些评分位点不发生均值填补。": {
+      "translation": "Samples with complete data at both variants were selected, so PLINK does not mean-impute these score variants.",
+      "locations": [
+        "lessons/08_pgs.R:29"
+      ]
+    },
+    "PLINK 文本仅输出有限位数；这里对照其打印精度，而非把文本当完整双精度。": {
+      "translation": "PLINK text output uses limited precision; compare at its printed precision rather than treating the text as full double precision.",
+      "locations": [
+        "lessons/08_pgs.R:35"
+      ]
+    },
+    "前五个遗传 PC 来自另外的 5000 个全基因组 LD 修剪 SNP。": {
+      "translation": "The first five genetic PCs come from a separate set of 5,000 genome-wide LD-pruned SNPs.",
+      "locations": [
+        "lessons/08_pgs.R:38"
+      ]
+    },
+    "固定版本的公开 TwoSampleMR 方法原码；许可及出处见 R/vendor/README.md。": {
+      "translation": "Fixed-version public TwoSampleMR method source; see R/vendor/README.md for license and provenance.",
+      "locations": [
+        "lessons/04_sensitivity.R:2"
+      ]
+    },
+    "比较较宽松和严格的 LD 选择；疾病效应不参与工具排序。": {
+      "translation": "Compare more permissive and stricter LD selection; disease effects are not used to rank instruments.",
+      "locations": [
+        "lessons/04_sensitivity.R:9"
+      ]
+    },
+    "Steiger 的人群患病率 K 与 GWAS 抽样病例比例不同；比较四个明确情景。": {
+      "translation": "Steiger population prevalence K differs from the case fraction in the GWAS sample; compare four explicit scenarios.",
+      "locations": [
+        "lessons/04_sensitivity.R:17"
+      ]
+    },
+    "从已经 LD clump 且协调的真实工具表开始，分别计算 cis / cis+trans。": {
+      "translation": "Start from the real instrument table that has already been LD-clumped and harmonized; analyze cis and cis+trans separately.",
+      "locations": [
+        "lessons/04_sensitivity.R:29"
+      ]
+    },
+    "学习重点：加权中位数、众数和 Egger 的不同假设与工具数要求。": {
+      "translation": "Focus: the different assumptions and instrument-count requirements of weighted median, mode, and Egger methods.",
+      "locations": [
+        "lessons/04_sensitivity.R:30"
+      ]
+    },
+    "1. 读取原始整数计数并按样本顺序连接临床分组。": {
+      "translation": "1. Read raw integer counts and align clinical groups in sample order.",
+      "locations": [
+        "lessons/01_bulk.R:18"
+      ]
+    },
+    "2. 只移除全零基因；不增加低表达阈值。": {
+      "translation": "2. Remove only all-zero genes; do not add a low-expression threshold.",
+      "locations": [
+        "lessons/01_bulk.R:35"
+      ]
+    },
+    "3. TMM 标准化、voom 均值-方差建模和 limma 经验贝叶斯检验。": {
+      "translation": "3. TMM normalization, voom mean–variance modeling, and limma empirical Bayes testing.",
+      "locations": [
+        "lessons/01_bulk.R:39"
+      ]
+    },
+    "4. 用当前 NCBI 符号注释结果；候选列表同时支持符号别名。": {
+      "translation": "4. Annotate results with current NCBI symbols; the candidate list also supports symbol aliases.",
+      "locations": [
+        "lessons/01_bulk.R:50"
+      ]
+    },
+    "显式保留 edgeR 4.4 的平滑规则和 QL 离散度来源。": {
+      "translation": "Explicitly retain edgeR 4.4 smoothing rules and the source of QL dispersion.",
+      "locations": [
+        "notebooks/07_single_cell.Rmd:20"
+      ]
+    }
+  },
+  "review_required": [
+    {
+      "source": "男",
+      "locations": [
+        "lessons/09_cox.R:40",
+        "notebooks/09_cox.Rmd:11"
+      ],
+      "reason": "Cox factor level used as a categorical reference/value. Do not auto-replace because this changes a model factor value; main agent review required.",
+      "suggested_display_translation": "Male"
+    },
+    {
+      "source": "女",
+      "locations": [
+        "lessons/09_cox.R:40",
+        "notebooks/09_cox.Rmd:11"
+      ],
+      "reason": "Cox factor level used as a categorical value. Do not auto-replace because this changes a model factor value; main agent review required.",
+      "suggested_display_translation": "Female"
+    },
+    {
+      "source": "正常",
+      "locations": [
+        "notebooks/01_bulk.Rmd:2"
+      ],
+      "reason": "Group value in a sample-alignment demonstration. It is a categorical data value, so keep out of automatic code-string replacement.",
+      "suggested_translation": "normal"
+    },
+    {
+      "source": "皮损",
+      "locations": [
+        "notebooks/01_bulk.Rmd:2"
+      ],
+      "reason": "Group value in a sample-alignment demonstration. It is a categorical data value, so keep out of automatic code-string replacement.",
+      "suggested_translation": "lesional"
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+---
+title: "02｜单靶点 MR：从等位基因到 Wald 比值"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · 多组学课程"
+    language: R
+    name: ir-psoriasis
+---
+
+
+影响 IL7R 蛋白水平的遗传变异，与银屑病结局有什么关系？本章从一个 cis 工具入手，学习统一效应等位基因的方向，并计算 Wald 比值、标准误和优势比。这个单变异例子能帮助我们理解 MR 计算中的方向和单位，也是下一章蛋白组分析的基础。
+
+这章读取的是遗传关联的汇总统计，不是逐个受试者的原始检测值。我们寻找同一个遗传变异的两条信息：它与蛋白水平的关联，以及它与疾病结局的关联。把两条信息放到同一效应等位基因方向后，才能进行本课的比值计算。
+
+可以把本章的对象对应关系记成：`x` 是蛋白关联表，`y` 是疾病关联表，`beta_mr` 是计算得到的效应估计。需要时查阅[代码阅读速查](assets/reading_guide.html)。
+
+本课会得到等位基因协调表、Wald 比值和带置信区间的效应图。
+
+本章默认代码在测试机上约需 3 秒，不含阅读和操作时间。测试机配置见[第 0 章](00_start.ipynb)。
+
+### 准备本课
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('02', root=root)
+data.frame(lesson = "02", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+### 本课参数
+
+默认 confidence 为 0.95。改为 0.90 后可观察区间宽度变化；点估计和标准误不随此项改变。
+
+```{r parameters}
+settings <- list(confidence = 0.95)
+settings
+```
+
+默认参数完整脚本：[02_single_mr.R](../lessons/02_single_mr.R)。
+
+正文中的数值来自 R 4.4.2 下的示例运行，代码单元格会显示你本次运行的结果。第一次学习建议使用默认参数；做练习时另存结果，便于比较参数变化的影响。
+
+### 输入与单位
+
+| 输入 | 内容与单位 |
+|---|---|
+| [exposures.tsv](../data/genetics/exposures.tsv) | 蛋白暴露汇总效应；beta 是效应等位基因对应的蛋白变化，se_exposure 是其标准误。 |
+| [stuart.tsv](../data/genetics/stuart.tsv) | Stuart 银屑病汇总效应；beta 为 log-OR，se 为其报告标准误，EA/OA 分别为效应与另一等位基因。 |
+
+### 方法要点
+
+Wald 比值是 `beta_MR = beta_Y / beta_X`。分子是同一等位基因的疾病效应，分母是蛋白效应；两者必须先统一方向。一阶标准误 `SE_MR = SE_Y / abs(beta_X)` 采用忽略暴露估计误差的 NOME 近似。delta 公式另计入暴露 SE，以便观察该近似的影响。默认置信水平下的区间先在 log-OR 尺度上计算，再对估计和两个端点分别取指数。OR 的无关联值是 1，而 log-OR 的无关联值是 0。双侧 P 值来自 MR 估计及其 SE，和源疾病 GWAS 的 P 值是两种统计量。
+
+### 02.1｜读入两份效应表
+
+本章会用到公共读表、绘图函数和等位基因协调函数。每章都包含完整的初始化代码，因此可以在新的 R 会话中独立运行。代码中的路径均以课程资源中的 course 文件夹为起点。
+
+运行后先读一行：`gene` 指向蛋白的基因符号，`cohort` 是蛋白关联来源，`rsid` 是变异编号，EA/OA 分别记录效应与另一等位基因，beta 和 SE 记录效应及其不确定性。`course_table()` 只展示若干行，不会把输入数据裁剪成这些行。
+
+<details><summary>展开看：读表函数来自哪里</summary>
+
+`read_tsv()` 是课程对 R 读表函数的简单封装；`source("R/common.R")` 载入它。另一份脚本 `R/genetics.R` 定义等位基因协调等统计辅助函数。载入函数并不会自动分析数据，后面的调用才实际执行对应操作。
+
+</details>
+
+```{r l02_s01}
+source("R/common.R")
+source("R/genetics.R")
+out <- lesson_output("02_single_mr")
+x <- read_tsv("data/genetics/exposures.tsv")
+y <- read_tsv("data/genetics/stuart.tsv")
+
+course_table(x, columns = c("gene", "cohort", "rsid", "EA", "OA", "beta", "se_exposure"))
+```
+x 保存蛋白暴露数据，y 保存疾病结局数据。阅读时要区分两者的单位：蛋白 beta 表示蛋白水平的变化，疾病 beta 则是 log-OR。
+
+### 02.2｜选定工具并统一效应等位基因
+
+工具按蛋白和暴露来源筛选；若有多条记录，选用 F 最大的一条。本课输入中只有一条 IL7R/UKB-PPP 记录，对应 rs11742270。match() 按 rsID 对齐两张表，allele_sign() 根据两组等位基因确定方向；完整函数见[统计函数附录](../COURSE.md#appendix-genetics)。
+
+两张表即使包含同一个变异，行序也可能不同。直接拿第 1 行对第 1 行计算，可能把不同变异拼到一起。下面先在蛋白表中找到本课工具，再用 rsID 找到疾病表中的对应行。此后 `x` 和 `y` 都只保留本例使用的记录。
+
+<details><summary>展开看：这几行筛选代码怎样读</summary>
+
+`x$gene == "IL7R"` 逐行判断基因符号；`&` 要求两侧条件同时成立。方括号中的条件用于取行。`which.max()` 返回 F 最大那一行的位置；`match(x$rsid, y$rsid)` 返回目标 rsID 在疾病表中的位置。`stopifnot()` 检查本例要求的记录数、方向和标准误，失败时应回看匹配结果，而不是把缺失值补成零。
+
+</details>
+
+```{r l02_s02}
+x <- read_tsv("data/genetics/exposures.tsv")
+y <- read_tsv("data/genetics/stuart.tsv")
+x <- x[x$gene == "IL7R" & x$cohort == "UKB-PPP", ]
+x <- x[which.max(x$F_statistic), ]
+y <- y[match(x$rsid, y$rsid), ]
+sign <- allele_sign(x$EA, x$OA, y$EA, y$OA)
+stopifnot(nrow(x) == 1, is.finite(sign), y$se > 0)
+
+data.frame(rsid = x$rsid, exposure_EA = x$EA, outcome_EA = y$EA, orientation = sign)
+```
+sign=1 时保留疾病效应的方向，sign=-1 时将其取反。无法唯一确定方向的记录返回 NA，本例会在这里停止，以免把方向不明的效应用于比值计算。
+
+### 02.3｜计算比值、标准误与置信区间
+
+疾病 beta 乘以方向符号后，就可以与暴露 beta 相除。标准误的分母取绝对值，保证蛋白效应为负时，标准误仍为正。结果同时列出一阶和 delta 标准误，主结果与图形采用一阶标准误。
+
+比值的直觉是：同一遗传变异对应的疾病效应，除以它对应的蛋白效应。只有分子分母使用同一方向，正负号才可比较。下面的数字是手算示例，不是 IL7R 的真实估计；先预测只翻转一方和同时翻转两方会发生什么。
+
+```{r demo_ratio_direction}
+demo_protein_beta <- 0.1
+demo_disease_beta <- 0.02
+c(aligned = demo_disease_beta / demo_protein_beta,
+  one_side_flipped = -demo_disease_beta / demo_protein_beta,
+  both_sides_flipped = (-demo_disease_beta) / (-demo_protein_beta))
+```
+
+示例结果应为 0.2、−0.2、0.2。接下来用真实输入计算，`sign` 负责把疾病效应换到与蛋白效应一致的方向。
+
+<details><summary>展开看：SE、abs() 和 qnorm() 怎样进入区间</summary>
+
+SE 是效应估计的标准误，用来表达抽样不确定性。`abs()` 取绝对值，使一阶标准误的分母为正；`qnorm()` 给出标准正态分布的分位数。默认 95% 区间使用约 1.96 个标准误，90% 区间使用更小的倍数，所以会更窄。区间的覆盖率描述反复使用这套估计程序的性质，不能把一个已算出的区间解释成参数随机落入其中的概率。
+
+</details>
+
+```{r l02_s03}
+beta_y <- sign * y$beta
+beta_mr <- beta_y/x$beta
+se_mr <- y$se/abs(x$beta)
+se_delta <- sqrt(y$se^2/x$beta^2 + beta_y^2 * x$se_exposure^2/x$beta^4)
+CI <- beta_mr + c(-1, 1) * qnorm((1+settings$confidence)/2) * se_mr
+
+data.frame(beta = beta_mr, SE = se_mr, delta_SE = se_delta, CI_low = CI[1], CI_high = CI[2])
+```
+beta_mr 约为 0.0667，se_mr 约为 0.0215。CI 仍是 log-OR 区间；下一段统一转换到 OR 尺度。
+
+### 02.4｜整理结果并验证符号关系
+
+结果表保存原始效应、协调后的效应和 MR 估计，方便追溯方向变化。双侧正态 P 根据 beta_mr/se_mr 计算，F 为暴露 beta/SE 的平方。最后一行检查一个重要关系：双方同时改用另一效应等位基因时，Wald 比值应保持不变。
+
+此时 `beta_mr` 与 CI 仍在 log-OR 尺度上。`exp()` 将它们转换为 OR 及其区间；P 值由效应与标准误计算，因此单独修改置信水平不会改变这里的 P 值。读表时先核对 rsID 和方向，再读 beta、OR 与区间。
+
+<details><summary>展开看：OR=1 与 log-OR=0 为什么表示同一个基准</summary>
+
+`exp(0)=1`，所以两种尺度的无关联位置不同。OR 比较的是优势，优势定义为概率 p 除以 1−p；OR 是两个优势的比值，与概率差的统计含义不同。本课效应对应的蛋白变化单位沿用暴露数据，解读时需要保留这一单位。
+
+</details>
+
+```{r l02_s04}
+result <- data.frame(gene = "IL7R", rsid = x$rsid, exposure_EA = x$EA, outcome_EA = y$EA, orientation = sign, 
+    beta_exposure = x$beta, beta_outcome_aligned = beta_y, beta = beta_mr, se = se_mr, se_delta = se_delta, 
+    OR = exp(beta_mr), OR_low = exp(CI[1]), OR_high = exp(CI[2]), p = 2 * pnorm(-abs(beta_mr/se_mr)), 
+    F = (x$beta/x$se_exposure)^2)
+write_tsv(result, file.path(out, "wald_ratio.tsv"))
+stopifnot(isTRUE(all.equal((-beta_y)/(-x$beta), beta_mr)))
+
+course_table(result)
+```
+> 默认参数参考结果：工具 F 约为 16788.6，OR=1.0689，95% CI 约为 1.0249–1.1149，P 约为 1.91×10⁻³。OR 表示每个分析单位蛋白变化对应的结局优势比；本次结果以代码格输出为准。
+
+### 02.5｜画出估计与不确定性
+
+图中的点表示 OR，横线表示按当前置信水平计算的区间，横轴采用对数尺度。多蛋白森林图也使用这种点与区间的表达方式。save_plot() 会同时保存 PNG 和 PDF。
+
+```{r l02_s05}
+p <- ggplot2::ggplot(result, ggplot2::aes(x = OR, y = gene)) + ggplot2::geom_vline(xintercept = 1, 
+    linetype = 2, colour = "#8A969D") + ggplot2::geom_segment(ggplot2::aes(x = OR_low, xend = OR_high, 
+    yend = gene), linewidth = 0.9, colour = "#197D8D") + ggplot2::geom_point(size = 3, colour = "#197D8D") + 
+    ggplot2::scale_x_log10() + ggplot2::labs(x = "Odds ratio per unit genetically predicted protein", 
+    y = NULL, title = "IL7R: one cis instrument", subtitle = paste0("UKB-PPP; Stuart; ", 100*settings$confidence, "% confidence interval")) + 
+    theme_course()
+save_plot(p, out, "wald_ratio", 7, 3.5)
+print(result)
+```
+点位于1的哪一侧，反映估计的方向；区间是否跨1，则帮助判断其不确定性。这张图展示的是该单工具在这一对数据中的估计。
+
+*IL7R 的单工具估计：点为 OR，横线为按当前置信水平计算的区间，虚线为 OR=1。*
+
+原示例输出见 [results/02_single_mr/](../results/02_single_mr/)。
+
+### 练习与参考答案
+
+先预测置信区间改变的方向，再按题目修改参数并从参数格向下重跑。最后用自己的话解释：为什么点估计没有变，而区间宽度变了？下面的参考答案可在完成操作后展开。
+
+1. **把95%区间改成90%区间，应改哪里，哪些结果保持不变？**
+
+   <details><summary>参考答案</summary>
+   
+   将本课参数 settings$confidence 改为题目要求的置信水平，相当于把 qnorm(.975) 对应的分位数改为 qnorm(.95)。区间会变窄；beta、SE、OR 点估计及已按双侧正态公式计算的 P 值不变。
+   
+   </details>
+
+2. **只把疾病 beta 取反和把双方 beta 同时取反，有什么区别？**
+
+   <details><summary>参考答案</summary>
+   
+   只翻转一方会使 MR beta 变号，OR 变成原来的倒数；双方同时翻转时，分子分母的负号抵消，MR beta 不变。
+   
+   </details>
+
+3. **为什么不能将 match() 后缺失的疾病效应补成0？**
+
+   <details><summary>参考答案</summary>
+   
+   缺失表示没有得到对应的疾病效应，无法进行这次计算。补0会把缺失记录误当成无关联观测。应检查变异标识、等位基因及该结局的数据覆盖。
+   
+   </details>
+
+[课程目录](00_start.ipynb) · [R Markdown 源文件](02_single_mr.Rmd)
+
+本次结果保存在 `课程资源/work/results/本课目录/`。修改参数后，请从受影响的步骤继续运行。

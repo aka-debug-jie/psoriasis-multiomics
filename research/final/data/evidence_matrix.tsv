@@ -1,0 +1,64 @@
+gene	domain	component	computed_units	planned_units	support	observed_support	observed_value	MVP_statistics_used	status
+IL12B	Expression	Bulk	1	1	True	True	4.3013882092051103	False	supported
+IL12B	Expression	Cell Wilcoxon	4	6	NA	False	NA	False	partial_no_observed_support
+IL12B	Expression	Pseudobulk	0	6	NA	NA	NA	False	not_evaluable
+IL12B	SMR / HEIDI	GTEx_Skin_Not_Sun_Exposed_Suprapubic	0	1	NA	NA	NA	True	not_evaluable
+IL12B	SMR / HEIDI	GTEx_Skin_Sun_Exposed_Lower_leg	0	1	NA	NA	NA	True	not_evaluable
+IL12B	SMR / HEIDI	GTEx_Whole_Blood	0	1	NA	NA	NA	True	not_evaluable
+IL12B	SMR / HEIDI	eQTLGen_Blood	0	1	NA	NA	NA	True	not_evaluable
+IL12B	Colocalization	coloc_mRNA	0	8	NA	NA	NA	True	not_evaluable
+IL12B	Colocalization	coloc_protein	2	2	False	False	2.2771526884959002e-10	True	not_supported_in_tested_data
+SGSH	Expression	Bulk	1	1	False	False	0.15160436044228301	False	not_supported_in_tested_data
+SGSH	Expression	Cell Wilcoxon	6	6	True	True	NA	False	supported
+SGSH	Expression	Pseudobulk	3	6	NA	False	NA	False	partial_no_observed_support
+SGSH	SMR / HEIDI	GTEx_Skin_Not_Sun_Exposed_Suprapubic	1	1	True	True	NA	True	supported
+SGSH	SMR / HEIDI	GTEx_Skin_Sun_Exposed_Lower_leg	1	1	True	True	NA	True	supported
+SGSH	SMR / HEIDI	GTEx_Whole_Blood	1	1	False	False	NA	True	not_supported_in_tested_data
+SGSH	SMR / HEIDI	eQTLGen_Blood	1	1	False	False	NA	True	not_supported_in_tested_data
+SGSH	Colocalization	coloc_mRNA	8	8	True	True	0.99520823563057004	True	supported
+SGSH	Colocalization	coloc_protein	0	2	NA	NA	NA	True	not_evaluable
+TNFAIP3	Expression	Bulk	1	1	False	False	0.190415635400938	False	not_supported_in_tested_data
+TNFAIP3	Expression	Cell Wilcoxon	6	6	True	True	NA	False	supported
+TNFAIP3	Expression	Pseudobulk	6	6	True	True	NA	False	supported
+TNFAIP3	SMR / HEIDI	GTEx_Skin_Not_Sun_Exposed_Suprapubic	0	1	NA	NA	NA	True	not_evaluable
+TNFAIP3	SMR / HEIDI	GTEx_Skin_Sun_Exposed_Lower_leg	0	1	NA	NA	NA	True	not_evaluable
+TNFAIP3	SMR / HEIDI	GTEx_Whole_Blood	0	1	NA	NA	NA	True	not_evaluable
+TNFAIP3	SMR / HEIDI	eQTLGen_Blood	1	1	True	True	NA	True	supported
+TNFAIP3	Colocalization	coloc_mRNA	8	8	False	False	0.027766954963569401	True	not_supported_in_tested_data
+TNFAIP3	Colocalization	coloc_protein	0	2	NA	NA	NA	True	not_evaluable
+DDX58	Expression	Bulk	1	1	True	True	1.5401344206259	False	supported
+DDX58	Expression	Cell Wilcoxon	6	6	True	True	NA	False	supported
+DDX58	Expression	Pseudobulk	4	6	True	True	NA	False	supported
+DDX58	SMR / HEIDI	GTEx_Skin_Not_Sun_Exposed_Suprapubic	1	1	False	False	NA	True	not_supported_in_tested_data
+DDX58	SMR / HEIDI	GTEx_Skin_Sun_Exposed_Lower_leg	1	1	False	False	NA	True	not_supported_in_tested_data
+DDX58	SMR / HEIDI	GTEx_Whole_Blood	0	1	NA	NA	NA	True	not_evaluable
+DDX58	SMR / HEIDI	eQTLGen_Blood	1	1	False	False	NA	True	not_supported_in_tested_data
+DDX58	Colocalization	coloc_mRNA	8	8	False	False	0.0099001503010760009	True	not_supported_in_tested_data
+DDX58	Colocalization	coloc_protein	2	2	False	False	0.0036409406180264998	True	not_supported_in_tested_data
+IL7R	Expression	Bulk	1	1	True	True	1.9805948140944201	False	supported
+IL7R	Expression	Cell Wilcoxon	6	6	True	True	NA	False	supported
+IL7R	Expression	Pseudobulk	2	6	True	True	NA	False	supported
+IL7R	SMR / HEIDI	GTEx_Skin_Not_Sun_Exposed_Suprapubic	0	1	NA	NA	NA	True	not_evaluable
+IL7R	SMR / HEIDI	GTEx_Skin_Sun_Exposed_Lower_leg	0	1	NA	NA	NA	True	not_evaluable
+IL7R	SMR / HEIDI	GTEx_Whole_Blood	0	1	NA	NA	NA	True	not_evaluable
+IL7R	SMR / HEIDI	eQTLGen_Blood	1	1	False	False	NA	True	not_supported_in_tested_data
+IL7R	Colocalization	coloc_mRNA	8	8	False	False	0.152189266670022	True	not_supported_in_tested_data
+IL7R	Colocalization	coloc_protein	2	2	True	True	0.84665911288363405	True	supported
+PRSS53	Expression	Bulk	1	1	True	True	3.1926342304445199	False	supported
+PRSS53	Expression	Cell Wilcoxon	6	6	True	True	NA	False	supported
+PRSS53	Expression	Pseudobulk	1	6	NA	False	NA	False	partial_no_observed_support
+PRSS53	SMR / HEIDI	GTEx_Skin_Not_Sun_Exposed_Suprapubic	0	1	NA	NA	NA	True	not_evaluable
+PRSS53	SMR / HEIDI	GTEx_Skin_Sun_Exposed_Lower_leg	1	1	True	True	NA	True	supported
+PRSS53	SMR / HEIDI	GTEx_Whole_Blood	1	1	True	True	NA	True	supported
+PRSS53	SMR / HEIDI	eQTLGen_Blood	1	1	False	False	NA	True	not_supported_in_tested_data
+PRSS53	Colocalization	coloc_mRNA	8	8	False	False	0.41904707102007599	True	not_supported_in_tested_data
+PRSS53	Colocalization	coloc_protein	0	2	NA	NA	NA	True	not_evaluable
+UBLCP1	Expression	Bulk	1	1	False	False	0.45392267118100799	False	not_supported_in_tested_data
+UBLCP1	Expression	Cell Wilcoxon	6	6	True	True	NA	False	supported
+UBLCP1	Expression	Pseudobulk	6	6	False	False	NA	False	not_supported_in_tested_data
+UBLCP1	SMR / HEIDI	GTEx_Skin_Not_Sun_Exposed_Suprapubic	1	1	False	False	NA	True	not_supported_in_tested_data
+UBLCP1	SMR / HEIDI	GTEx_Skin_Sun_Exposed_Lower_leg	1	1	True	True	NA	True	supported
+UBLCP1	SMR / HEIDI	GTEx_Whole_Blood	0	1	NA	NA	NA	True	not_evaluable
+UBLCP1	SMR / HEIDI	eQTLGen_Blood	1	1	False	False	NA	True	not_supported_in_tested_data
+UBLCP1	Colocalization	coloc_mRNA	8	8	False	False	0.0076347611052636002	True	not_supported_in_tested_data
+UBLCP1	Colocalization	coloc_protein	0	2	NA	NA	NA	True	not_evaluable

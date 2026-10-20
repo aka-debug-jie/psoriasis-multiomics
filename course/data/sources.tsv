@@ -1,0 +1,19 @@
+data_folder	source	url	version_and_selection
+bulk	GSE54456 NCBI counts GRCh38.p13	https://www.ncbi.nlm.nih.gov/geo/download/?type=rnaseq_counts&acc=GSE54456&format=file&file=GSE54456_raw_counts_GRCh38.p13_NCBI.tsv.gz	NCBI GEO same-study reprocessing
+single_cell	GSE173706	https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE173706	22 normal/lesion samples; preQC per-sample selection seed20261017
+genetics	Eldjarn2023 deCODE and UKB-PPP	https://doi.org/10.1038/s41586-023-06563-x	Published exposure instruments; reconstructed SE recorded
+genetics;coloc	Fenland Olink	https://doi.org/10.5281/zenodo.6787142	Public Fenland Olink substitute; 485 participants
+genetics;smr;coloc;clinical	MVP GCST90476190	https://www.ebi.ac.uk/gwas/studies/GCST90476190	15635 cases /429252 controls; CI-derived SE
+genetics	Stuart psoriasis GWAS	https://www.ebi.ac.uk/gwas/studies/GCST90019016	Published European psoriasis summary association
+pgs;smr;genetics	1000 Genomes Phase3 EUR via IEU	https://mrcieu.github.io/ieugwasr/articles/local_ld.html	503EUR; original reference download http://fileserve.mrcieu.ac.uk/ld/1kg.v3.tgz
+pgs	1000G population panel	https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/integrated_call_samples_v3.20130502.ALL.panel	Downloaded 2026-10-17; EUR503 subset
+pgs	IGSR data conditions	https://www.internationalgenome.org/IGSR_disclaimer/	No disease follow-up; preserve IGSR acknowledgment; no invented CC0 license
+cox	survival cancer.rda	https://raw.githubusercontent.com/therneau/survival/645743ffb18180d16cdba7cb83cb71c4d4cfd448/data/cancer.rda	NCCTG lung; fixed source commit 645743ffb18180d16cdba7cb83cb71c4d4cfd448
+cox	NCCTG lung data documentation	https://www.stat.ethz.ch/R-manual/R-devel/library/survival/html/lung.html	Loprinzi et al. JCO1994;12:601-607; survival3.8-12 LGPL>=2 package
+functional	GO OBO and human GAF	https://geneontology.org/docs/download-ontology/	Downloaded snapshot with is_a/part_of ancestor propagation; NOT/ND excluded
+functional	STRING	https://string-db.org/	Human induced association network; fixed retrieved snapshot
+functional	ChEMBL	https://www.ebi.ac.uk/chembl/	Mechanism/target curation; direct/component/network classes
+evidence	btag347 main Table1	https://doi.org/10.1093/bioinformatics/btag347	29 author reported score flags; 7 reanalysis candidates separately curated
+smr;coloc	eQTL Catalogue GTEx whole blood	https://www.ebi.ac.uk/eqtl/License/	QTS000015/QTD000356; 670 participants, variant an/2 636–670; ERAP2/LIPA; CC BY 4.0
+functional	Reactome92 NCBI all pathway levels	https://download.reactome.org/92/NCBI2Reactome_All_Levels.txt	Reactome release92; CC0; human opportunity-background subset
+clinical	MVP EUR PheCode panel via GWAS Catalog	https://www.ebi.ac.uk/gwas/docs/methods/summary-statistics/	22 exact accessions in clinical/endpoints.tsv; CI-derived SE; phenotype definitions differ from research FinnGen panel

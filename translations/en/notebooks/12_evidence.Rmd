@@ -1,0 +1,329 @@
+---
+title: "12 | Author evidence scores and candidate evidence coverage"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+jupyter:
+  kernelspec:
+    display_name: "R · Multi-omics course"
+    language: R
+    name: ir-psoriasis
+---
+
+
+This lesson shows how to read and check a multi-omics evidence table. The authors' main table has nine scoring slots. We recalculate the total for all 29 rows using the original rules, then compare each result with the score reported by the authors. We then inspect evidence coverage for seven reselected candidates. These candidates lack the UKB psoriasis and PsA PGS entries, so the missing values remain NA. We show the available evidence and context without filling missing values with zero or reconstructing a score comparable to the authors' total.
+
+You will produce an evidence-status table and an evidence plot for the candidate targets.
+
+The default code takes about 4 seconds on the test machine, excluding reading and hands-on time. See [Chapter 0](00_start.ipynb) for the test-machine configuration.
+
+### Prepare the lesson
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), '..'))
+root <- roots[file.exists(file.path(roots, 'teaching.Rproj'))][1]
+if (is.na(root)) stop('请从教学项目或notebooks目录打开')
+source(file.path(root, 'R', 'notebook_support.R'))
+course_init('12', root=root)
+data.frame(lesson = "12", R = as.character(getRversion()), frontend = Sys.getenv("TEACHING_FRONTEND", "rstudio"))
+course_output_path()
+```
+
+Full script with default parameters: [12_evidence.R](../lessons/12_evidence.R).
+
+The values in the text come from an example run with R 4.4.2; cells show results from the current session. After running, compare the two to check calculations for the current inputs.
+
+This chapter integrates a fixed snapshot of the research reconstruction. The public examples in Chapters 05, 06, and 11 use different inputs and do not automatically overwrite this evidence table. The example PGS and Cox datasets supply no UK Biobank validation evidence. Keep the snapshot source attached to every evidence column.
+
+### Inputs and units
+
+| Input | Contents and units |
+|---|---|
+| [author_score_input.tsv](../data/evidence/author_score_input.tsv) | The authors' 29-row main table, PWAS direction, raw flags for nine evidence slots, and author-reported tier field. |
+| [primary_candidates_input.tsv](../data/evidence/primary_candidates_input.tsv) | Selection information for the seven reselected candidates. |
+| [candidate_evidence_input.tsv](../data/evidence/candidate_evidence_input.tsv) | Status records for the evidence components of seven candidates; 63 rows in total. |
+| [candidate_context_input.tsv](../data/evidence/candidate_context_input.tsv) | Candidate context and UKB PGS availability; UKB psoriasis, PsA PGS, and reconstructed total score remain missing. |
+
+### Method notes
+
+A row in the authors' table is a reported entry; a row in the evidence table is a candidate–evidence-component combination. Do not treat these two row counts as the same kind of evidence count. `author` stores the original flags, `slot_matrix` stores each of the nine slot contributions, and `comparison` checks the arithmetic. The later `evidence` table organizes only the candidate coverage status.
+
+The authors' nine slots use different scoring rules: colocalization and PPI score check marks; regular slots match plus/minus signs to the PWAS direction; bulk and single-cell use up/down arrows. Retain both the arithmetic sum across the nine slots and the total reported by the authors for row-by-row checking. The heatmap also distinguishes direction conflicts, mixed directions, unscored entries, and unreported entries. Colors describe status; scoring still follows the original rule, including for mixed-direction entries.
+
+The evidence coverage for the seven candidates is organized separately using the recorded statuses: observed support, tested but not supported, incomplete coverage with no observed support, and not evaluable. Not evaluable is retained as NA and is not equivalent to a negative result. Since the two UKB PGS entries are missing, the combined score also remains NA.
+
+### 12.1 | Define the scoring rules for the nine slots
+
+Encode each flag as 0 or 1 based on the PWAS direction and evidence type. Under the authors' arithmetic rule, an unreported slot in the original table contributes 0, but the heatmap still shows its unreported status. This scoring convention does not apply to the candidate-coverage analysis later in the lesson, where missing evidence remains missing.
+
+```{r l12_s01}
+source("R/common.R")
+suppressPackageStartupMessages(library(ggplot2))
+output <- lesson_output("12_evidence")
+score_slots <- c("sensitivity", "smr_blood", "smr_skin", "pgs_psoriasis", "pgs_psa", "bulk", 
+    "single_cell", "coloc", "ppi")
+score_slot <- function(value, reference, slot) {
+    value <- trimws(as.character(value))
+    reference <- trimws(as.character(reference))
+    if (is.na(value) || !nzchar(value)) 
+        return(0L)
+    if (slot %in% c("coloc", "ppi")) 
+        return(as.integer(grepl("√", value, fixed = TRUE)))
+    if (reference == "+") {
+        if (slot %in% c("bulk", "single_cell")) 
+            return(as.integer(grepl("↑", value, fixed = TRUE)))
+        return(as.integer(grepl("+", value, fixed = TRUE)))
+    }
+    if (reference == "−") {
+        if (slot %in% c("bulk", "single_cell")) 
+            return(as.integer(grepl("↓", value, fixed = TRUE)))
+        return(as.integer(grepl("−", value, fixed = TRUE)))
+    }
+    stop("Invalid PWAS reference direction: ", reference)
+}
+
+data.frame(slot=score_slots)
+```
+
+Bulk and single-cell use arrows; the other regular slots use plus/minus signs. Colocalization and PPI use check marks and are not scored by direction signs.
+
+<details><summary>Expand: how do the function arguments determine a slot's score?</summary>
+
+`value` is the raw flag, `reference` is the PWAS direction, and `slot` determines whether the function looks for a plus/minus sign, arrow, or check mark. `grepl()` checks whether a character occurs, and `as.integer()` converts the result to 1 or 0. This reproduces the authors' convention; it does not estimate the probability that the evidence is true. See [Functions and arguments](assets/reading_guide.html#functions) for the syntax.
+
+</details>
+
+### 12.2 | Check the authors' reported totals
+
+Read the 29 rows in the authors' main table, parse the reported totals, and calculate the sum across the nine slots row by row. If the two values disagree, the script stops so you can check the scoring rules or input flags.
+
+<details><summary>Expand: manually score the first IL2RA row</summary>
+
+The first IL2RA row in the input table has a PWAS direction of `+`. In the order of `score_slots`, its nine flags are `+/ −`, `+`, blank, `+/ −`, blank, `↑`, `↑`, `√`, and `√`. The function returns `1+1+0+1+0+1+1+1+1=7`, which can be compared with the 7 in `Tier 1(7)`. A flag containing both positive and negative directions still contains the required positive sign, so it contributes 1; blanks contribute 0 under this authors' arithmetic convention.
+
+</details>
+
+```{r l12_s02}
+parse_author_score <- function(value) {
+    match <- regexec("\\(([0-9]+)\\)", as.character(value))
+    parts <- regmatches(as.character(value), match)[[1]]
+    if (length(parts) != 2L) 
+        stop("Could not parse author_tier_score: ", value)
+    as.integer(parts[[2]])
+}
+author <- read_tsv("data/evidence/author_score_input.tsv")
+stopifnot(nrow(author) == 29L, all(author$pwas %in% c("+", "−")))
+slot_matrix <- t(vapply(seq_len(nrow(author)), function(i) {
+    vapply(score_slots, function(slot) score_slot(author[[slot]][i], author$pwas[i], slot), 
+        integer(1))
+}, integer(length(score_slots))))
+colnames(slot_matrix) <- score_slots
+author_reported <- vapply(author$author_tier_score, parse_author_score, integer(1))
+recalculated <- rowSums(slot_matrix)
+difference <- recalculated - author_reported
+if (any(difference != 0L)) {
+    failed <- which(difference != 0L)
+    stop("Author score mismatch: ", paste(author$target[failed], collapse = ", "))
+}
+comparison <- data.frame(target = author$target, pwas = author$pwas, author_reported_tier_score = author$author_tier_score, 
+    author_reported_total = author_reported, recalculated_slot_total = recalculated, difference = difference)
+write_tsv(comparison, file.path(output, "author_score_comparison.tsv"))
+
+course_table(comparison,n=10)
+```
+
+The packaged reference inputs give matching arithmetic for all 29 rows. In this run, inspect `author_reported_total`, `recalculated_slot_total`, and `difference` first. A difference of 0 means only that the arithmetic matches under these rules; it does not show that the nine evidence types are independent or support conclusions with equal strength.
+
+### 12.3 | Classify the direction and status of raw flags
+
+Keep the original flags and classify them as direction-matched, direction-opposed, mixed-direction, unscored, or unreported.
+
+```{r l12_s03}
+direction_class <- function(value, reference, slot) {
+    value <- trimws(as.character(value))
+    if (is.na(value) || !nzchar(value)) 
+        return("Not reported (NA)")
+    if (slot %in% c("coloc", "ppi")) {
+        return(if (grepl("√", value, fixed = TRUE)) "Scored support" else "Not scored")
+    }
+    if (slot %in% c("bulk", "single_cell")) {
+        expected <- if (reference == "+") 
+            "↑"
+        else "↓"
+        opposite <- if (reference == "+") 
+            "↓"
+        else "↑"
+    }
+    else {
+        expected <- if (reference == "+") 
+            "+"
+        else "−"
+        opposite <- if (reference == "+") 
+            "−"
+        else "+"
+    }
+    has_expected <- grepl(expected, value, fixed = TRUE)
+    has_opposite <- grepl(opposite, value, fixed = TRUE)
+    if (has_expected && has_opposite) 
+        return("Mixed directions (scored by rule)")
+    if (has_expected) 
+        return("Scored support")
+    if (has_opposite) 
+        return("Direction conflict")
+    "Not scored"
+}
+
+data.frame(display_states=c("Scored support","Direction conflict","Mixed directions","Not reported"))
+```
+
+These categories help you read the plot; they do not change the score. Mixed-direction entries still contribute according to the original rule.
+
+<details><summary>Expand: why can a slot score 1 and still show mixed directions?</summary>
+
+The scoring function asks whether the expected sign is present. `direction_class()` also checks whether the opposite sign appears. Read `raw_flag`, `contribution`, and `display_class` together in `slot_rows`: mixed directions and one-way support can both score 1, but their evidence meanings differ.
+
+</details>
+
+### 12.4 | Plot the authors' scoring slots as a heatmap
+
+Convert the nine slots in the 29-row authors' table into a matrix, then show the score contribution and status class in each cell.
+
+```{r l12_s04}
+slot_rows <- do.call(rbind, lapply(seq_len(nrow(author)), function(i) {
+    data.frame(target = author$target[i], pwas = author$pwas[i], slot = score_slots, raw_flag = vapply(score_slots, 
+        function(slot) as.character(author[[slot]][i]), character(1)), contribution = as.integer(slot_matrix[i, 
+        ]), display_class = vapply(score_slots, function(slot) {
+        direction_class(author[[slot]][i], author$pwas[i], slot)
+    }, character(1)), stringsAsFactors = FALSE)
+}))
+write_tsv(slot_rows, file.path(output, "author_score_slots.tsv"))
+slot_rows$target <- factor(slot_rows$target, levels = rev(author$target))
+slot_rows$slot <- factor(slot_rows$slot, levels = score_slots)
+slot_rows$display_class <- factor(slot_rows$display_class, levels = c("Scored support", "Direction conflict", 
+    "Mixed directions (scored by rule)", "Not scored", "Not reported (NA)"))
+author_plot <- ggplot(slot_rows, aes(x = slot, y = target, fill = display_class)) + geom_tile(colour = "white", 
+    linewidth = 0.35) + geom_text(aes(label = ifelse(display_class == "Not reported (NA)", 
+    "NA", ifelse(display_class == "Direction conflict", "!", ifelse(display_class == "Mixed directions (scored by rule)", 
+        "±", ifelse(contribution == 1L, "1", "0"))))), size = 2.6, colour = "#243746") + scale_fill_manual(values = c(`Scored support` = "#4C9A83", 
+    `Direction conflict` = "#D87955", `Mixed directions (scored by rule)` = "#8873A6", `Not scored` = "#D9E2E7", 
+    `Not reported (NA)` = "#F7F8F8"), drop = FALSE, name = NULL) + labs(title = "Author-reported evidence flags and slot contributions", 
+    subtitle = "Colors classify the flags; the table retains raw values. Mixed signs can score under the source rule", 
+    x = NULL, y = NULL) + theme_course() + theme(axis.text.x = element_text(angle = 35, hjust = 1), 
+    panel.grid = element_blank(), legend.position = "bottom")
+save_plot(author_plot, output, "author_score_heatmap", width = 9, height = 8)
+
+course_table(slot_rows,columns=c("target","slot","raw_flag","contribution","display_class"))
+```
+
+Colors show the class; symbols within the cells add information about unreported, conflicting, or mixed-direction flags.
+
+*The x axis shows the nine scoring slots and the y axis the 29 author entries. Colors distinguish scored support, direction conflict, mixed directions, unscored, and unreported. Numbers or symbols in each cell show the contribution and flag class.*
+
+### 12.5 | Organize evidence and context for the seven candidates
+
+Read the selection information for the seven candidates, the 63 evidence-component status records, and the context table. Confirm the missing status of the UKB PGS fields and reconstructed score, then save the organized results.
+
+```{r l12_s05}
+candidate_order <- c("IL12B", "SGSH", "TNFAIP3", "DDX58", "IL7R", "PRSS53", "UBLCP1")
+primary <- read_tsv("data/evidence/primary_candidates_input.tsv")
+evidence <- read_tsv("data/evidence/candidate_evidence_input.tsv")
+context <- read_tsv("data/evidence/candidate_context_input.tsv")
+stopifnot(nrow(primary) == 7L, setequal(primary$gene, candidate_order), nrow(evidence) == 63L)
+stopifnot(all(context$UKB_status == "omitted_by_user_not_replaced_by_summary_GWAS"))
+stopifnot(all(is.na(context$UKB_PGS_psoriasis)), all(is.na(context$UKB_PGS_PsA)), all(is.na(context$reconstructed_total_score)))
+primary$gene <- factor(primary$gene, levels = candidate_order)
+evidence$gene <- factor(evidence$gene, levels = rev(candidate_order))
+context$gene <- factor(context$gene, levels = candidate_order)
+write_tsv(evidence, file.path(output, "candidate_evidence.tsv"))
+candidate_context <- merge(primary, context, by = "gene", all.x = TRUE, sort = FALSE)
+candidate_context <- candidate_context[match(candidate_order, candidate_context$gene), ]
+write_tsv(candidate_context, file.path(output, "candidate_context.tsv"))
+
+course_table(candidate_context, columns=c("gene","UKB_status","UKB_PGS_psoriasis","UKB_PGS_PsA","reconstructed_total_score"))
+```
+
+The UKB entries remain NA. Do not replace them with another summary GWAS or use them to infer a combined score comparable to the authors' score.
+
+<details><summary>Expand: why can't NA here use the authors' rule for a score of 0?</summary>
+
+In the first part of the lesson, 0 is a scoring convention used to reproduce the authors' total. In the second part, NA means there is no information that can be evaluated. “Tested but not supported” and “not tested” answer different questions. The coverage table also contains shared data sources, such as cell-level and pseudobulk analyses, and genetic analyses that may share disease GWAS. Therefore, do not simply count supported cells as independent replications.
+
+</details>
+
+### 12.6 | Plot candidate evidence coverage as a heatmap
+
+Plot evidence components and their statuses in a heatmap, facet by evidence domain, and mark cells that cannot be evaluated.
+
+```{r l12_s06}
+evidence$status <- factor(evidence$status, levels = c("supported", "not_supported_in_tested_data", 
+    "partial_no_observed_support", "not_evaluable"))
+component_labels <- c(Bulk = "Bulk", `Cell Wilcoxon` = "Cells", Pseudobulk = "Pseudobulk", 
+    GTEx_Skin_Not_Sun_Exposed_Suprapubic = "Skin: unexposed", GTEx_Skin_Sun_Exposed_Lower_leg = "Skin: exposed", 
+    GTEx_Whole_Blood = "Blood: GTEx", eQTLGen_Blood = "Blood: eQTLGen", coloc_mRNA = "mRNA", 
+    coloc_protein = "Protein")
+component_order <- names(component_labels)[names(component_labels) %in% unique(as.character(evidence$component))]
+evidence$component <- factor(evidence$component, levels = component_order)
+candidate_plot <- ggplot(evidence, aes(x = component, y = gene, fill = status)) + geom_tile(colour = "white", 
+    linewidth = 0.45) + geom_text(data = evidence[evidence$status == "not_evaluable", ], label = "×", 
+    colour = "#77848D", size = 3) + facet_grid(. ~ domain, scales = "free_x", space = "free_x") + 
+    scale_fill_manual(values = c(supported = "#4C9A83", not_supported_in_tested_data = "#D9E2E7", 
+        partial_no_observed_support = "#B8A9CC", not_evaluable = "#F7F8F8"), labels = c("Observed support", 
+        "No support in tested data", "Partial coverage; no observed support", "Not evaluable (NA)"), 
+        drop = FALSE, name = NULL) + scale_x_discrete(labels = component_labels) + labs(title = "Evidence coverage for the seven reselected candidates", 
+    subtitle = "Recorded evidence statuses; NA remains distinct from tested absence", x = NULL, 
+    y = NULL) + theme_course() + theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 8), 
+    panel.grid = element_blank(), legend.position = "bottom")
+save_plot(candidate_plot, output, "candidate_evidence_heatmap", width = 12, height = 5.2)
+
+course_table(as.data.frame(table(evidence$status)))
+```
+
+The current records include 21 items with support, 20 tested items without support, 19 not evaluable items, and 3 with incomplete coverage and no observed support.
+
+*The x axis shows evidence components, faceted by domain; the y axis shows the seven reselected candidates. Colors distinguish observed support, no support in tested data, incomplete coverage with no observed support, and not evaluable. A cross marks items that cannot be evaluated. NA means missing and is not treated as zero or as negative evidence.*
+
+### 12.7 | Summarize coverage
+
+Summarize the number of author rows, scoring slots, arithmetic matches, candidates, and evidence records, as well as the number of missing UKB PGS values. Compare these counts with the input tables and plots.
+
+```{r l12_s07}
+cat(sprintf("author_rows=%d; slots=%d; arithmetic_matches=%d; candidate_genes=%d; evidence_rows=%d; UKB_scores_missing=%d\n", 
+    nrow(author), length(score_slots), sum(difference == 0L), length(candidate_order), nrow(evidence), 
+    sum(is.na(context$UKB_PGS_psoriasis) & is.na(context$UKB_PGS_PsA))))
+```
+
+This coverage table shows which evidence is available for each candidate and what is still missing. It does not provide a total score to replace the authors' score.
+
+See the original example output in [results/12_evidence/](../results/12_evidence/).
+
+### Exercises and reference answers
+
+This lesson has no adjustable `settings` threshold. First predict how the same `↑` flag will score under two reference directions. After running section 12.1, call `score_slot("↑", "+", "bulk")` and `score_slot("↑", "−", "bulk")` separately in the R console. Change the `reference` argument and explain the output. This exercise does not modify the authors' input. To recheck the original table, rerun from 12.2 onward.
+
+1. **If the PWAS reference changes from “+” to “−”, how does the same bulk ↑ flag score under the original rule?**
+
+   <details><summary>Reference answer</summary>
+   
+   It scores 1 with the positive reference and 0 with the negative reference, and is shown as a direction conflict. This question illustrates the rule; use the original PWAS direction when checking the authors' published score.
+   
+   </details>
+
+2. **What is the difference between `not_evaluable` and `not_supported_in_tested_data`?**
+
+   <details><summary>Reference answer</summary>
+   
+   The former has no evaluable observation and remains NA; the latter was tested but no support was observed. Show them separately rather than treating both as negative.
+   
+   </details>
+
+3. **Why don't we reconstruct a combined score for the seven candidates that is comparable to the authors' total?**
+
+   <details><summary>Reference answer</summary>
+   
+   These candidates lack the UKB psoriasis and PsA PGS entries, and the reconstructed total score in the context table is NA. Missing entries cannot be filled with zero, so a combined score comparable to the authors' total cannot currently be calculated.
+   
+   </details>
+
+[Course contents](00_start.ipynb) · [R Markdown source](12_evidence.Rmd)
+
+Results from this session are saved under `resources/work/results/chapter-folder/`. After changing an upstream parameter, rerun the relevant steps and subsequent cells.

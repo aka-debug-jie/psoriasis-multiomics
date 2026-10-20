@@ -1,0 +1,178 @@
+---
+title: "00 | Your First Jupyter Session: Run Your First R Code"
+output: html_notebook
+jupyter:
+  kernelspec:
+    display_name: "R Course"
+    language: R
+    name: ir-psoriasis
+---
+
+This introductory lesson takes about **15–20 minutes**. You will open the course in a browser, run a few R code cells, change a plot, and practice saving, reopening, and handling common notebook states. The course package already includes the runtime environment, so you do not need to install R or Jupyter separately.
+
+## 1. Open a runnable Notebook (about 2 minutes)
+
+After extracting the course package, open the “Run Course” launcher (.bat on Windows, .command on Mac). Once Jupyter opens in your browser, open 00_start.ipynb in the course folder. This is an editable Notebook where you can run code.
+
+After opening it, click the initialization code cell below and press **Shift+Enter**. It sets up the course environment and usually does not display a table; a run number appearing on the left means it is done. Later examples use functions and data included with R, so no new packages are needed.
+
+```{r setup}
+roots <- c(getwd(), file.path(getwd(), ".."))
+root <- roots[file.exists(file.path(roots, "teaching.Rproj"))][1]
+if (is.na(root)) stop("请从课程文件夹或 notebooks 文件夹打开本 Notebook。")
+source(file.path(root, "R", "notebook_support.R"))
+course_init("00", root = root)
+```
+
+### Check your course environment
+
+Check the `passed` column after running this cell. The bundle uses R 4.4.2. If a package or tool is missing, extract a fresh complete package. You do not need to change another R installation on your computer.
+
+```{r system_check}
+course_self_check()
+```
+
+
+The course also includes an HTML preview. HTML is useful for reading directly; code and results already shown there are static. To edit code and run it again, open the .ipynb file. By default, each Notebook has its own R kernel; code cells within the same Notebook share variables, while a newly opened Notebook usually has its own variables and run state.
+
+![Annotated screenshot of the actual Jupyter interface used in this course: code cells, Markdown cells, and toolbar](assets/jupyter_interface.png)
+
+The screenshots show an actual English JupyterLab session with course annotations.
+
+## 2. Learn about code cells and Markdown cells (about 3 minutes)
+
+A Notebook consists of individual cells. A **code cell** contains R code, and its output appears below the cell when you run it. A **Markdown cell** contains headings, explanations, and links; it is not executed as R. Use the cell-type selector in the toolbar to set the current cell to Code or Markdown.
+
+Jupyter has two common interaction modes. In **command mode**, the whole cell is selected, and you can move, run, or change its type. Press Enter to enter **edit mode**, where the cursor appears inside the cell and you can change its text. Press Esc to return to command mode. Before inserting or deleting a cell, check which mode you are in.
+
+![Annotated screenshot of the actual Jupyter interface used in this course: command mode, edit mode, and cell execution status](assets/jupyter_states.png)
+
+Select the code cell below, press Enter, change 1 + 1 to 2 + 3 inside the cell, and run it. **Shift+Enter** runs the current cell and selects the next one; **Ctrl+Enter** runs the current cell and stays there. You can also click the Run button in the toolbar. If **Ctrl+Enter** is inconvenient on a Mac keyboard, click the toolbar Run button instead.
+
+```{r}
+1 + 1
+```
+
+The indicator on the left shows the cell's status: [ ] means it has not run, [*] means it is running, and a number such as [1] means it has finished. The number is its run order in the current kernel. Run the 1 + 1 cell above once and watch how the indicator changes.
+
+## 3. Run, edit, and rerun code (about 4 minutes)
+
+R can store a result in a variable and use it in a later code cell. Run the two cells below and confirm that the second one displays 2:
+
+```{r}
+answer <- 1 + 1
+```
+
+```{r}
+answer
+```
+
+A variable exists only in the kernel for its Notebook. If you change upstream code—for example, change answer <- 1 + 1 to answer <- 4 + 1—later cells will not recalculate automatically. Rerun the assignment cell first, then rerun the cell that uses answer. To run the whole Notebook in order, start at the first cell and run them one by one.
+
+## 4. View a table and change a plot color (about 4 minutes)
+
+iris is an example dataset included with R. Run the code cell below to see a few rows of flower measurements:
+
+```{r}
+head(iris)
+```
+
+First run this cell to set three flower colors:
+
+```{r}
+iris_colors <- c("steelblue", "orange", "darkgreen")
+```
+
+Then run the next cell to plot sepal length against petal length. Each point represents one flower; color distinguishes the three iris species:
+
+```{r}
+plot(iris$Sepal.Length, iris$Petal.Length,
+     col = iris_colors[iris$Species], pch = 19,
+     xlab = "Sepal length", ylab = "Petal length")
+legend("topleft", legend = levels(iris$Species),
+       col = iris_colors, pch = 19)
+```
+
+Try changing orange to firebrick in the iris_colors cell. Rerun only that cell, then rerun the plot cell. The colors come from an upstream variable, so you must rerun the plot cell to see the change. You can also change the number in pch = 19 and observe how the point shape changes.
+
+## 5. Save, save a copy, and reopen (about 3 minutes)
+
+Press **Ctrl+S** to save; on a Mac, use **Cmd+S**. To keep your own practice version, use **File → Save Notebook As**, then give the copy a name that is easy to recognize. After saving a copy, check which Notebook Jupyter currently has open.
+
+If you close only the browser tab or Notebook file while its kernel is still running, variables usually remain in the kernel. Closing the Jupyter service or restarting the kernel clears the R memory state. When you reopen a saved Notebook, its saved code and output may still be visible, but the output cannot restore variables. After a kernel restart, run the initialization cell first, then rerun later code as needed. By default, a newly opened Notebook uses a separate kernel; behavior may differ if the course runtime has been manually configured to share a kernel.
+
+## 6. Understand the difference between clearing output, restarting, and interrupting (about 2 minutes)
+
+These three actions solve different problems:
+
+- **Clear Output** removes only the result displayed below a cell. It does not recalculate the cell or clear variables in the current kernel.
+- **Kernel → Restart Kernel** restarts the R kernel for the current Notebook and clears variables. Run the initialization cell and any code you need again. Code saved in the file is not deleted.
+- The square **Stop** button in the toolbar attempts to interrupt code that is running. It stops the current computation; it is not the same as restarting. If the computation changed variables, check their state before deciding whether to rerun related code.
+
+Run the cell below and watch the left indicator change to [*]. It will finish on its own after about five seconds:
+
+```{r}
+Sys.sleep(5)
+"等待结束，代码已继续运行。"
+```
+
+## 7. Try an error and complete the self-check (about 2–3 minutes)
+
+To keep this page's default run order working, the error example below is not an executable cell. To see an error message, **manually create a new code cell**, enter the following line, and run it by itself:
+
+```r
+print(missing_value)
+```
+
+You will see an error similar to object 'missing_value' not found. Then manually create another cell, enter and run missing_value <- 3, and return to the previous cell and run it again; this time it will display 3. The error example is limited to the cell you create manually and will not enter this page's default run sequence.
+
+Complete the self-check:
+
+1. Run answer <- 1 + 1 again, then run the next cell and confirm the result is 2.
+2. Replace orange with firebrick in iris_colors, rerun the color cell and scatterplot cell, and confirm that the plot color changes.
+3. Save the Notebook, close its tab, and reopen it. Confirm that the code and saved output are still there; then distinguish the variable state when the kernel is still running from when the service or kernel has been shut down.
+4. Make sure you can explain what Clear Output, Restart Kernel, and the square Stop button each do.
+
+If an exercise cell you created contains an error output, delete the cell or clear its output. When you are ready to finish, choose **File → Shut Down** in Jupyter to stop the service. If the run window opened by the launcher is still open, you can also switch to it, press **Ctrl+C**, and confirm the exit when prompted. Do not just close the browser tab.
+
+## Where are results saved?
+
+This page does not generate additional files. Later lessons that save practice results will show the directory returned by lesson_output(). You can also use the code below to check this page's output directory. In course-package mode, results are in 课程资源/work/results/00_start/.
+
+```{r}
+out <- lesson_output("00_start")
+out
+```
+
+## Result snapshots and fresh course copies
+
+The following two helper functions are provided for later lessons or instructor demonstrations. This section is for explanation only; do not run them: course_fresh_notebook('01') returns the path to a newly created copy and does not overwrite the original Notebook; course_snapshot('baseline',settings=list()) returns the path to a result snapshot. The introductory lesson does not need to use them to create another Notebook.
+
+## How to read R code in later lessons
+
+Later chapters first explain the analysis goal, then provide code and guidance on reading the results. If you encounter an unfamiliar symbol, open the [quick guide to reading code](assets/reading_guide.html): first identify whether an object is a table, matrix, or vector, then see which part of the data the code selects, and finally check what result it returns.
+
+Explanations labeled “Expand” are collapsed by default and cover syntax or additional concepts; open them as needed. Runnable code cells always appear outside these explanations, and you can run them in their original order.
+
+## Runtime for later chapters
+
+Each chapter lists the runtime of its default code on the test machine to help you plan for waiting. The test machine uses an Intel(R) Xeon(R) Platinum 8336C CPU @ 2.30GHz, Linux, and R 4.4.2, with 2 computing threads. These times exclude reading, interaction, and the first extraction of the environment.
+
+## Course navigation
+
+Preview pages can be read directly. To run a lesson, open the corresponding .ipynb in Jupyter. The .Rmd source file is also available in the same directory.
+
+| Lesson | Topic | Notebook | R Markdown | Preview |
+|---|---|---|---|---|
+| 01 | Bulk RNA-seq | [ipynb](01_bulk.ipynb) | [Rmd](01_bulk.Rmd) | [HTML](01_bulk.nb.html) |
+| 02 | Single-target MR | [ipynb](02_single_mr.ipynb) | [Rmd](02_single_mr.Rmd) | [HTML](02_single_mr.nb.html) |
+| 03 | Proteomics discovery and validation | [ipynb](03_proteome_mr.ipynb) | [Rmd](03_proteome_mr.Rmd) | [HTML](03_proteome_mr.nb.html) |
+| 04 | Sensitivity analysis | [ipynb](04_sensitivity.ipynb) | [Rmd](04_sensitivity.Rmd) | [HTML](04_sensitivity.nb.html) |
+| 05 | SMR and HEIDI | [ipynb](05_smr.ipynb) | [Rmd](05_smr.Rmd) | [HTML](05_smr.nb.html) |
+| 06 | Colocalization | [ipynb](06_colocalization.ipynb) | [Rmd](06_colocalization.Rmd) | [HTML](06_colocalization.nb.html) |
+| 07 | Single-cell analysis | [ipynb](07_single_cell.ipynb) | [Rmd](07_single_cell.Rmd) | [HTML](07_single_cell.nb.html) |
+| 08 | Target genetic score | [ipynb](08_pgs.ipynb) | [Rmd](08_pgs.Rmd) | [HTML](08_pgs.nb.html) |
+| 09 | Cox survival analysis | [ipynb](09_cox.ipynb) | [Rmd](09_cox.Rmd) | [HTML](09_cox.nb.html) |
+| 10 | Functional and drug associations | [ipynb](10_functional.ipynb) | [Rmd](10_functional.Rmd) | [HTML](10_functional.nb.html) |
+| 11 | MR of related diseases | [ipynb](11_clinical_mr.ipynb) | [Rmd](11_clinical_mr.Rmd) | [HTML](11_clinical_mr.nb.html) |
+| 12 | Integrated evidence | [ipynb](12_evidence.ipynb) | [Rmd](12_evidence.Rmd) | [HTML](12_evidence.nb.html) |

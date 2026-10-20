@@ -1,0 +1,104 @@
+name: Native course packages
+run-name: v4 native validation · ${{ inputs.platform }}
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Standard hosted runner to build and validate
+        type: choice
+        options: [windows-x64, macos-intel, macos-arm64]
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: native-v4-${{ inputs.platform }}
+  cancel-in-progress: false
+jobs:
+  native:
+    runs-on: ${{ fromJSON('{"windows-x64":"windows-2022","macos-intel":"macos-15-intel","macos-arm64":"macos-15"}')[inputs.platform] }}
+    timeout-minutes: 180
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      COURSE_PUBLIC_BUILD: '1'
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Fetch reviewed course data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import subprocess,sys
+          subprocess.run([sys.executable,'scripts/fetch_course_data.py'],check=True)
+      - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3
+        with:
+          miniforge-version: latest
+          activate-environment: base
+          auto-activate-base: true
+          channels: conda-forge
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        if: ${{ inputs.platform == 'windows-x64' }}
+        with:
+          r-version: '4.4.2'
+          use-public-rspm: false
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        if: ${{ inputs.platform == 'windows-x64' }}
+        id: msys2
+        with:
+          msystem: UCRT64
+          update: false
+          cache: false
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-libgomp
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+      - name: Build both editions and collect corresponding sources
+        env:
+          MSYS2_ROOT: ${{ steps.msys2.outputs.msys2-location }}
+        shell: python
+        run: |
+          import subprocess,sys
+          # The controller prepares blank workbooks after the bundled runtime is removed.
+          subprocess.run([sys.executable,'-m','pip','install','nbformat==5.11.1'],check=True)
+          subprocess.run([sys.executable,'scripts/build_native.py','--platform','${{ inputs.platform }}'],check=True)
+      - name: Execute both editions offline as an ordinary user
+        shell: python
+        run: |
+          import subprocess,sys
+          for language in ['zh-CN','en']:
+              subprocess.run([sys.executable,'scripts/test_bundle.py','--platform','${{ inputs.platform }}','--language',language],check=True)
+      - name: Store validated candidates in the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import subprocess,sys
+          from pathlib import Path
+          for language in ['zh-CN','en']:
+              subprocess.run([sys.executable,'scripts/publish_release.py','--platform','${{ inputs.platform }}','--language',language],check=True)
+          import json
+          assert json.loads(subprocess.check_output(['gh','release','view','v4.0.0','--json','isDraft']))['isDraft']
+          subprocess.run(['gh','release','upload','v4.0.0',*map(str,Path('.artifacts/sources').glob('*')),'--clobber'],check=True)
+      - name: Save component review files in the draft
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import subprocess,zipfile
+          from pathlib import Path
+          folder=Path('.build/notices-${{ inputs.platform }}')
+          if folder.exists():
+              out=Path('.build/notices-${{ inputs.platform }}.zip')
+              with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
+                  for f in folder.rglob('*'):
+                      if f.is_file():z.write(f,f.relative_to(folder).as_posix())
+              import json
+              assert json.loads(subprocess.check_output(['gh','release','view','v4.0.0','--json','isDraft']))['isDraft']
+              subprocess.run(['gh','release','upload','v4.0.0',str(out),'--clobber'],check=True)
