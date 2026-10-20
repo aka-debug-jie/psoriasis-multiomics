@@ -1,10 +1,14 @@
 """Collect exact-version source offers and archives; never infer a release approval."""
 from pathlib import Path
 import argparse,json,hashlib,urllib.request,urllib.error,urllib.parse,tarfile,concurrent.futures,subprocess,shutil,re,threading
-import yaml
 from collect_component_metadata import collect,sha256_file,safe_part
-p=argparse.ArgumentParser();p.add_argument('--runtime',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--sources',type=Path,required=True);a=p.parse_args()
-a.sources.mkdir(parents=True,exist_ok=True);manifest=collect(a.runtime,a.output)
+from conda_recipe_sources import recipe_sources
+p=argparse.ArgumentParser();input_group=p.add_mutually_exclusive_group(required=True);input_group.add_argument('--runtime',type=Path);input_group.add_argument('--metadata',type=Path,help='Previously collected components.json; retain its notices directory as --output');p.add_argument('--output',type=Path,required=True);p.add_argument('--sources',type=Path,required=True);a=p.parse_args()
+a.sources.mkdir(parents=True,exist_ok=True)
+if a.metadata:
+ assert a.metadata.parent.resolve()==a.output.resolve(),'Keep the captured notices with their metadata'
+ manifest=json.loads(a.metadata.read_text())
+else:manifest=collect(a.runtime,a.output)
 ROOT=Path(__file__).resolve().parents[1]
 lock=json.loads((ROOT/'course/renv.lock').read_text())['Packages']
 _locks={};_locks_guard=threading.Lock()
@@ -26,10 +30,12 @@ def first(urls,destination):
   try:return acquire(url,destination)
   except (urllib.error.HTTPError,urllib.error.URLError,TimeoutError)as e:errors.append(str(e))
  raise RuntimeError('; '.join(errors))
-base_r={'base','compiler','datasets','graphics','grDevices','grid','methods','parallel','splines','stats','stats4','tcltk','tools','utils'}
+base_r={'base','compiler','datasets','graphics','grDevices','grid','methods','parallel','splines','stats','stats4','tcltk','tools','translations','utils'}
 R_SOURCE='https://cran.r-project.org/src/base/R-4/R-4.4.2.tar.gz'
 def process(c):
  sources=[]
+ for field in ('sources','source_offer','source_offers','collection_error'):
+  c.pop(field,None)
  try:
   name,version=c['name'],c['version']
   if c['ecosystem']=='r':
@@ -59,12 +65,8 @@ def process(c):
     else:c['source_offer']={'url':info['info'].get('project_url'),'status':'No sdist; review installed wheel and upstream licence'}
   elif c['ecosystem']=='conda':
    directory=a.output/'conda'/(safe_part(name)+'-'+safe_part(version)+'-'+safe_part(c['build']))/'info/recipe'
-   recipes=list(directory.glob('meta.yaml'))+list(directory.glob('recipe.yaml'))
-   if recipes:
-    try:recipe=yaml.safe_load(recipes[0].read_text())
-    except yaml.YAMLError:recipe={}
-    entries=recipe.get('source',[])if isinstance(recipe,dict)else[]
-    if isinstance(entries,dict):entries=[entries]
+   entries,recipe_path=recipe_sources(directory)
+   if recipe_path:
     for i,item in enumerate(entries):
      if not isinstance(item,dict):continue
      urls=item.get('url',[])
@@ -77,7 +79,7 @@ def process(c):
        if entry['sha256']!=item['sha256']:raise ValueError('Conda source checksum mismatch')
       sources.append(entry)
      elif item.get('git_url')and item.get('git_rev'):
-      c.setdefault('source_offers',[]).append({'git_url':item['git_url'],'git_rev':str(item['git_rev']),'recipe':recipes[0].relative_to(a.output).as_posix()})
+      c.setdefault('source_offers',[]).append({'git_url':item['git_url'],'git_rev':str(item['git_rev']),'recipe':recipe_path.relative_to(a.output).as_posix()})
    if not sources and 'source_offers'not in c:c['source_offer']={'artifact_url':c['artifact_url'],'status':'Review recipe, metapackage or binary redistribution terms'}
   elif c['ecosystem']=='jupyter':
    c['source_offer']={'component':'python:jupyterlab','note':'Frontend dependency notices accompany the JupyterLab source archive.'}
@@ -87,7 +89,7 @@ def process(c):
  return c
 # R core is shared by its standard-library components.
 core=acquire(R_SOURCE,a.sources/'R-4.4.2.tar.gz')
-for path in [a.runtime/'R/COPYING',a.runtime/'lib/R/COPYING']:
+for path in ([a.runtime/'R/COPYING',a.runtime/'lib/R/COPYING']if a.runtime else[]):
  if path.exists():
   (a.output/'r-core').mkdir(exist_ok=True);shutil.copy2(path,a.output/'r-core/COPYING')
 with concurrent.futures.ThreadPoolExecutor(max_workers=6)as pool:

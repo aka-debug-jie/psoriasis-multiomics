@@ -102,7 +102,7 @@ shutil.copy2(ROOT/'scripts/patch_smr_platform.py',sources/'SMR_windows_port.py')
 if win:
  # Record the exact installed MSYS2 package owning each distributed DLL.
  from collect_msys_sources import collect_msys_sources
- collect_msys_sources(Path(os.environ['MSYS2_ROOT']),smr.parent,notices,sources)
+ collect_msys_sources(Path(os.environ['MSYS2_ROOT']),smr.parent,notices,sources,smrbuild/'_deps')
 if runtime_archive is None:runtime_archive=save(ROOT,a.platform,RUNTIME,conda)
 for language in ['zh-CN','en']:
  course=BUILD/'editions'/language
