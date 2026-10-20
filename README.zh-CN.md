@@ -7,7 +7,7 @@
 ## 选择入口
 
 - **在线课程：**[中文课程网站](https://aka-debug-jie.github.io/psoriasis-multiomics/zh/)。打开即可阅读讲解、代码和运行结果。
-- **学生课程包：**[Releases 页面](https://github.com/aka-debug-jie/psoriasis-multiomics/releases)。v4 课程包正在准备并进行原生系统验收，暂未提供下载。
+- **学生课程包：**在下方按电脑类型和语言选择下载。
 - **科研源码：**从 [research/execute.R](research/execute.R) 开始，分析材料位于 [research/](research/)。这是独立的科研重建，与课程教学示例分开。
 
 ## 课程一览
@@ -30,15 +30,26 @@
 | 11 | 相关疾病 MR |
 | 12 | 综合证据 |
 
-中文课程源文件位于 [course/notebooks/](course/notebooks/)；英文 Notebook 译文位于 [translations/en/notebooks/](translations/en/notebooks/)。课程网站和学生包发布后，会分别从网站与 Releases 页面提供入口。
+中文课程源文件位于 [course/notebooks/](course/notebooks/)；英文 Notebook 译文位于 [translations/en/notebooks/](translations/en/notebooks/)。网页适合先看讲解和结果，学生包用于逐格运行和修改代码。
 
-## 首次运行
+## 下载与使用
 
-v4 学生包完成后，请按操作系统和处理器选择压缩包，并解压到较短的目录路径。计划提供 Windows、Intel Mac、Apple silicon Mac 三种系统版本，并分别提供中文和英文包。每个包都将自带 R 4.4.2 和 Jupyter，无需另行安装 R 或 Jupyter。
+课程包已包含 R 4.4.2、JupyterLab、所需 R 包和教学数据，无需另外安装软件。
 
-Windows 双击 **Run course.bat**，Mac 双击 **Run course.command**。只想查看课程时，打开 **View course.html**；要运行和编辑课程，请在 Jupyter 中打开 Notebook，并从第 00 章开始。
+| 电脑类型 | 中文版 | 英文版 |
+|---|---|---|
+| Windows x64 | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-zh-CN-windows-x64.zip) | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-en-windows-x64.zip) |
+| Mac · Intel | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-zh-CN-macos-intel.zip) | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-en-macos-intel.zip) |
+| Mac · Apple Silicon | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-zh-CN-macos-arm64.zip) | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-en-macos-arm64.zip) |
 
-课程包仍在进行原生系统验收；完成后会在 Releases 页面列出下载。
+1. 完整解压 ZIP，放到本地可写的文件夹。Mac 可在“关于本机”中查看芯片，再选择 Intel 或 Apple Silicon 版。
+2. 只阅读时打开 **View course.html**；动手练习时，Windows 打开 **Run course.bat**，Mac 打开 **Run course.command**。首次启动会自动准备内置环境，需要稍等片刻。
+3. 从第 **00** 章开始，按 **Shift+Enter** 逐格运行。练习本初次打开没有输出；展示页已经带有运行结果，方便对照。
+4. 用 **Ctrl+S** 或 **Cmd+S** 保存 Notebook，结束时在 Jupyter 中选择 **File → Shut Down**。计算结果保存在 `resources/work/results/`。
+
+请保留入口旁的完整 `resources/` 文件夹。课程固定使用内置 R，无需调整电脑上已有的 R 或 Python。Mac 首次打开下载文件时，可能需要按系统提示确认打开。
+
+[发行页面](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/tag/v4.0.0)提供校验值、运行记录、组件许可和对应源码。每个平台的中英文版都已运行全部 13 章，并检查普通用户权限下的断网启动和移动目录后重启。具体测试系统见[运行验证与兼容性](docs/release-validation.md)。
 
 ## 科研重建与范围
 

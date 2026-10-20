@@ -7,7 +7,7 @@ This repository brings together an independent reconstruction of the research re
 ## Choose an entry point
 
 - **Online course:** [Open the course website](https://aka-debug-jie.github.io/psoriasis-multiomics/).
-- **Student package:** [Release page](https://github.com/aka-debug-jie/psoriasis-multiomics/releases). The v4 packages are being prepared and are undergoing native-platform acceptance; downloads are not ready yet.
+- **Student package:** Choose your computer and language in the download table below.
 - **Research source:** Start with [research/execute.R](research/execute.R) and the analysis materials under [research/](research/). This is the independent research reconstruction, separate from the teaching examples.
 
 ## Course at a glance
@@ -30,15 +30,26 @@ The course has 13 chapters, numbered 00–12, covering the methods from project 
 | 11 | MR of related diseases |
 | 12 | Integrated evidence |
 
-Chinese course sources are in [course/notebooks/](course/notebooks/); English notebook translations are in [translations/en/notebooks/](translations/en/notebooks/). The rendered course is available on the course website. Student bundles will appear on the Releases page after native validation.
+Chinese course sources are in [course/notebooks/](course/notebooks/); English notebook translations are in [translations/en/notebooks/](translations/en/notebooks/). The rendered course is available on the course website. Portable student packages are available below.
 
-## First run
+## Download and start
 
-When the v4 student packages are ready, choose the archive matching your operating system and processor, then extract it to a short folder path. The planned package set includes Windows, Intel Mac, and Apple silicon Mac, with Chinese and English editions. Each package will include R 4.4.2 and Jupyter, so no separate R or Jupyter installation will be needed.
+Each package includes R 4.4.2, JupyterLab, the required R packages, and teaching data. No separate software installation is needed.
 
-Open **Run course.bat** on Windows or **Run course.command** on Mac. For a read-only preview, open **View course.html**. To run and edit lessons, open the course Notebook in Jupyter and follow Chapter 00.
+| Computer | 中文 | English |
+|---|---|---|
+| Windows x64 | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-zh-CN-windows-x64.zip) | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-en-windows-x64.zip) |
+| Mac · Intel | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-zh-CN-macos-intel.zip) | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-en-macos-intel.zip) |
+| Mac · Apple Silicon | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-zh-CN-macos-arm64.zip) | [ZIP](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/download/v4.0.0/pmo-en-macos-arm64.zip) |
 
-The packages are still undergoing native-platform acceptance. The release page will list the downloads after that work is complete.
+1. Extract the complete ZIP to a writable local folder. On Mac, choose the package that matches the chip shown in **About This Mac**.
+2. Open **View course.html** to read the worked examples, or **Run course.bat** (Windows) / **Run course.command** (Mac) to start Jupyter. The first launch prepares the bundled environment automatically.
+3. Open Chapter **00**, then use **Shift+Enter** to run one cell at a time. Exercise notebooks start without outputs; the reading pages already contain worked results.
+4. Save your notebook with **Ctrl+S** or **Cmd+S**. When finished, choose **File → Shut Down** in Jupyter. Analysis outputs are stored in `resources/work/results/`.
+
+Keep the `resources/` folder beside the two entry files. The launcher uses the bundled R, so your existing R or Python installation does not need to change. On the first Mac launch, macOS may ask you to approve opening the downloaded file.
+
+The [release page](https://github.com/aka-debug-jie/psoriasis-multiomics/releases/tag/v4.0.0) provides checksums, validation records, component notices, and corresponding sources. Each platform and language was tested with all 13 chapters, an ordinary user account, networking blocked, and a move of the course folder after first use. See [validation and compatibility](docs/release-validation.md) for the systems actually tested.
 
 ## Research reconstruction and scope
 

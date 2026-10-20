@@ -1,1 +1,72 @@
-{"version":"4.0.0","repository":"aka-debug-jie/psoriasis-multiomics","assets":[]}
+{
+  "version": "4.0.0",
+  "repository": "aka-debug-jie/psoriasis-multiomics",
+  "assets": [
+    {
+      "name": "pmo-en-macos-arm64.zip",
+      "platform": "macos-arm64",
+      "language": "en",
+      "status": "ready",
+      "bytes": 803333209,
+      "sha256": "1ca92f30da5a0475e03fe72233ddd37675cc858c596cb3f24daa6d750f6ae379",
+      "tested_os": "macOS-15.7.9-arm64-arm-64bit",
+      "validation_manifest": "en-macos-arm64-manifest.json",
+      "source_commit": "14da69d16b71fa5ac2b835b5417a7bb2d7a9d332"
+    },
+    {
+      "name": "pmo-en-macos-intel.zip",
+      "platform": "macos-intel",
+      "language": "en",
+      "status": "ready",
+      "bytes": 828260182,
+      "sha256": "da7810d57c34bc4ac248b62d6ee793720b365a488b8f9e78c86fb56b2be828cb",
+      "tested_os": "macOS-15.7.9-x86_64-i386-64bit",
+      "validation_manifest": "en-macos-intel-manifest.json",
+      "source_commit": "14da69d16b71fa5ac2b835b5417a7bb2d7a9d332"
+    },
+    {
+      "name": "pmo-en-windows-x64.zip",
+      "platform": "windows-x64",
+      "language": "en",
+      "status": "ready",
+      "bytes": 614487242,
+      "sha256": "33f0f38bb42d59e523a96f0fe5f02d0ef6d85a226feda674414a456916dfffd0",
+      "tested_os": "Windows-2022Server-10.0.20348-SP0",
+      "validation_manifest": "en-windows-x64-manifest.json",
+      "source_commit": "14da69d16b71fa5ac2b835b5417a7bb2d7a9d332"
+    },
+    {
+      "name": "pmo-zh-CN-macos-arm64.zip",
+      "platform": "macos-arm64",
+      "language": "zh-CN",
+      "status": "ready",
+      "bytes": 803387409,
+      "sha256": "ff4a1ff23b09dbb3462015199437481a06d0345c51592a1b8ec3f1f34e675ec3",
+      "tested_os": "macOS-15.7.9-arm64-arm-64bit",
+      "validation_manifest": "zh-CN-macos-arm64-manifest.json",
+      "source_commit": "14da69d16b71fa5ac2b835b5417a7bb2d7a9d332"
+    },
+    {
+      "name": "pmo-zh-CN-macos-intel.zip",
+      "platform": "macos-intel",
+      "language": "zh-CN",
+      "status": "ready",
+      "bytes": 828315334,
+      "sha256": "55a45218e59692c9b79a10a613f7d66763f94178fa1cf5db020aa8f3f93ddf13",
+      "tested_os": "macOS-15.7.9-x86_64-i386-64bit",
+      "validation_manifest": "zh-CN-macos-intel-manifest.json",
+      "source_commit": "14da69d16b71fa5ac2b835b5417a7bb2d7a9d332"
+    },
+    {
+      "name": "pmo-zh-CN-windows-x64.zip",
+      "platform": "windows-x64",
+      "language": "zh-CN",
+      "status": "ready",
+      "bytes": 614540524,
+      "sha256": "55d31f15c1e41977fe0be799bd3dfbf6d7b29b9721b6f2f6c90938e7c4edc206",
+      "tested_os": "Windows-2022Server-10.0.20348-SP0",
+      "validation_manifest": "zh-CN-windows-x64-manifest.json",
+      "source_commit": "14da69d16b71fa5ac2b835b5417a7bb2d7a9d332"
+    }
+  ]
+}
