@@ -41,6 +41,7 @@ jobs:
           ))['isDraft'], 'This operation is limited to the unpublished draft'
           platform = os.environ['COURSE_PLATFORM']
           extra_args = []
+          shared_runtime = None
           if os.environ['COURSE_DOCUMENTATION_KIND'] == 'windows-licences':
               assert platform == 'windows-x64'
               config = json.loads(Path('config/windows_notice_asset.json').read_text())
@@ -71,6 +72,18 @@ jobs:
               assert validation['numeric_comparison'] == 'passed'
               assert validation['network_isolation'] == 'passed'
               assert validation['ordinary_user'] and validation['offline_first_initialization']
+              if extra_args:
+                  with zipfile.ZipFile(folder / archive) as bundle:
+                      prefix = Path(archive).stem + '/resources/'
+                      identity = json.loads(bundle.read(prefix + 'bundle.json'))
+                      with bundle.open(prefix + 'runtime/seed.zip') as seed:
+                          runtime_sha256 = hashlib.file_digest(seed, 'sha256').hexdigest()
+                      assert runtime_sha256 == identity['runtime_sha256']
+                  assert shared_runtime is None or shared_runtime == runtime_sha256
+                  shared_runtime = runtime_sha256
+                  record = json.loads((folder / manifest).read_text())
+                  record['runtime_sha256_verified'] = runtime_sha256
+                  (folder / manifest).write_text(json.dumps(record, indent=2) + '\n')
               subprocess.run([sys.executable, 'scripts/add_source_links.py',
                               str(folder / archive), str(folder / manifest), *extra_args], check=True)
               subprocess.run(['gh', 'release', 'upload', 'v4.0.0',
