@@ -51,6 +51,7 @@ jobs:
           command=[sys.executable,'scripts/build_native.py','--platform','${{ inputs.platform }}','--smr-diagnostic']
           subprocess.run(command,check=True)
           subprocess.run(command+['--trace-heidi'],check=True)
+          subprocess.run(command+['--stable-heidi-order'],check=True)
       - name: Save diagnostic tables and traces
         if: always()
         env:
@@ -61,7 +62,7 @@ jobs:
           import subprocess,zipfile,json
           folder=Path('.build/smr-diagnostics/${{ inputs.platform }}')
           if folder.exists():
-              archive=Path('.build/smr-diagnostics-${{ inputs.platform }}.zip')
+              archive=Path('.build/smr-diagnostics-${{ inputs.platform }}-${{ github.run_id }}.zip')
               with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as z:
                   for file in folder.rglob('*'):
                       if file.is_file():z.write(file,file.relative_to(folder).as_posix())

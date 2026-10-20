@@ -4,13 +4,14 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import platform
 import subprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--smr', type=Path, required=True)
 parser.add_argument('--platform', required=True)
-parser.add_argument('--label', choices=['baseline', 'trace'], required=True)
+parser.add_argument('--label', choices=['baseline', 'trace', 'stable'], required=True)
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[1]
 data = root / 'course/data/smr'
@@ -20,6 +21,7 @@ smr = args.smr.resolve()
 inputs = ['EUR_two_regions.bed', 'EUR_two_regions.bim', 'EUR_two_regions.fam',
           'public_eqtl.besd', 'public_eqtl.epi', 'public_eqtl.esi', 'mvp_regional.ma', 'probes.txt']
 record = {'platform': platform.platform(), 'label': args.label,
+          'repository_commit': os.environ.get('GITHUB_SHA', 'local'),
           'binary_sha256': hashlib.sha256(smr.read_bytes()).hexdigest(),
           'inputs': {name: hashlib.sha256((data / name).read_bytes()).hexdigest() for name in inputs},
           'status': 'running', 'runs': []}

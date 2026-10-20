@@ -7,6 +7,29 @@ source = path.read_text()
 start = source.index('double heidi_test_new(bInfo*')
 end = source.index('int get_num_probes(', start)
 section = source[start:end]
+anchor500 = '  update_snidx(smrwk, sn_ids, MAX_NUM_LD, "LD pruning");'
+assert section.count(anchor500) == 1
+section = section.replace(anchor500, anchor500 + r'''
+  for (int j = 0; j < sn_ids.size(); ++j)
+    fprintf(stderr, "TRACE_TOP500\t%d\t%d\t%s\t%.17g\n",
+            (int)smrwk->cur_prbidx, j, smrwk->rs[sn_ids[j]].c_str(), smrwk->zxz[sn_ids[j]]);
+''')
+anchor_prune = '  if (ld_top < 1) rm_cor_sbat(C, ld_top, m, rm_ID1);'
+assert section.count(anchor_prune) == 1
+section = section.replace(anchor_prune, r'''
+  for (int i = 0; i < m; ++i) {
+    fprintf(stderr, "TRACE_PRUNE_MAP\t%d\t%d\t%s\n",
+            (int)smrwk_heidi.cur_prbidx, i, smrwk_heidi.rs[i].c_str());
+    for (int j = 0; j < i; ++j)
+      if (fabs(C(i, j)) > ld_top)
+        fprintf(stderr, "TRACE_PRUNE_EDGE\t%d\t%d\t%d\t%.17g\n",
+                (int)smrwk_heidi.cur_prbidx, j, i, C(i, j));
+  }
+''' + anchor_prune + r'''
+  for (int k : rm_ID1)
+    fprintf(stderr, "TRACE_REMOVED\t%d\t%d\t%s\n",
+            (int)smrwk_heidi.cur_prbidx, k, smrwk_heidi.rs[k].c_str());
+''')
 anchor = '  nsnp = sn_ids.size();\n  double pdev = -9;'
 assert section.count(anchor) == 1
 trace = r'''

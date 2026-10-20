@@ -1,8 +1,8 @@
 """Build on the target OS; the output is still a candidate until test_bundle passes."""
 from pathlib import Path
 import argparse,os,subprocess,sys,shutil,urllib.request,zipfile,json,re,tarfile,hashlib
-p=argparse.ArgumentParser();p.add_argument('--platform',required=True);p.add_argument('--smr-diagnostic',action='store_true');p.add_argument('--trace-heidi',action='store_true');a=p.parse_args()
-assert not a.trace_heidi or a.smr_diagnostic
+p=argparse.ArgumentParser();p.add_argument('--platform',required=True);p.add_argument('--smr-diagnostic',action='store_true');p.add_argument('--trace-heidi',action='store_true');p.add_argument('--stable-heidi-order',action='store_true');a=p.parse_args()
+assert not(a.trace_heidi or a.stable_heidi_order)or a.smr_diagnostic
 ROOT=Path(__file__).resolve().parents[1];os.chdir(ROOT)
 BUILD=ROOT/'.build';BUILD.mkdir(exist_ok=True);RUNTIME=BUILD/('runtime' if sys.platform=='win32' else 'runtime-'+('p'*120))
 conda=os.environ.get('CONDA_EXE')
@@ -33,13 +33,14 @@ if runtime_archive is None and not(a.smr_diagnostic and RUNTIME.is_dir()):
     elif not win:rscript=RUNTIME/'bin/Rscript'
     if not a.smr_diagnostic:run([conda,'run','--no-capture-output','-p',RUNTIME,rscript,'--vanilla','scripts/install_r_packages.R',RUNTIME])
     runtime_archive=None
-source=BUILD/'smr-source';commit='eedb1a62ba4c66ab0b09acd0205876955a803f18'
+source=BUILD/('smr-diagnostic-source'if a.smr_diagnostic else'smr-source');commit='eedb1a62ba4c66ab0b09acd0205876955a803f18'
 if not source.exists():
  source.mkdir();run(['git','-C',source,'init']);run(['git','-C',source,'fetch','--depth','1','https://github.com/JianYang-Lab/SMR.git',commit]);run(['git','-C',source,'checkout','--detach','FETCH_HEAD'])
 assert subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()==commit
-if win and not a.trace_heidi:run([sys.executable,'scripts/patch_smr_platform.py',source])
+if win and not(a.trace_heidi or a.stable_heidi_order):run([sys.executable,'scripts/patch_smr_platform.py',source])
 if a.trace_heidi:run([sys.executable,'scripts/trace_smr_heidi.py',source])
-smrbuild=BUILD/'smr-build';install=BUILD/'smr'
+if a.stable_heidi_order:run([sys.executable,'scripts/patch_smr_order.py',source])
+smrbuild=BUILD/('smr-diagnostic-build'if a.smr_diagnostic else'smr-build');install=BUILD/('smr-diagnostic-install'if a.smr_diagnostic else'smr')
 cmake=['cmake','-S',source,'-B',smrbuild,'-G','Ninja'if win else'Unix Makefiles','-DCMAKE_BUILD_TYPE=Release',f'-DCMAKE_INSTALL_PREFIX={install}','-DSMR_BLAS_BACKEND=none','-DBUILD_WITH_MIMALLOC=OFF','-DSMR_HAS_MARCH_X86_64_V3=FALSE','-DSMR_HAS_MARCH_ARMV85A=FALSE']
 if win:
  ucrt=Path(os.environ['MSYS2_ROOT'])/'ucrt64/bin';env=os.environ.copy();env['PATH']=str(ucrt)+os.pathsep+env['PATH']
@@ -80,7 +81,7 @@ else:
    run(['install_name_tool','-change',dep,'@loader_path/'+path.name,binary])
  for item in [smr,*smr.parent.glob('*.dylib')]:run(['codesign','--force','--sign','-',item])
 if a.smr_diagnostic:
- run([sys.executable,'scripts/diagnose_smr.py','--smr',smr,'--platform',a.platform,'--label','trace'if a.trace_heidi else'baseline'])
+ run([sys.executable,'scripts/diagnose_smr.py','--smr',smr,'--platform',a.platform,'--label','stable'if a.stable_heidi_order else'trace'if a.trace_heidi else'baseline'])
  sys.exit(0)
 url='https://s3.amazonaws.com/plink1-assets/'+('plink_win64_20260927.zip'if win else'plink_mac_20260927.zip')
 archive=BUILD/'plink.zip';urllib.request.urlretrieve(url,archive)
