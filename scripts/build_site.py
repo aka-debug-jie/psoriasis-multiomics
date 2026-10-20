@@ -1,6 +1,7 @@
 """Build a static bilingual course site from validated, executed reading pages."""
 from pathlib import Path
-import argparse,json,shutil,html,re
+import argparse,json,shutil,html,re,os
+from urllib.parse import unquote,urlsplit,urlunsplit
 from bs4 import BeautifulSoup
 ROOT=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--courses',type=Path,required=True);p.add_argument('--output',type=Path,default=ROOT/'site-output');a=p.parse_args()
@@ -8,6 +9,57 @@ release=json.loads((ROOT/'config/release.json').read_text());a.output.mkdir(pare
 (a.output/'.nojekyll').touch()
 (a.output/'index.html').write_text('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Psoriasis multi-omics</title><meta http-equiv="refresh" content="0;url=en/"><p><a href="en/">English</a> · <a href="zh/">简体中文</a></p></html>')
 repo='https://github.com/'+release['repository']
+
+def rewrite_markdown_links(page, site_root):
+ soup=BeautifulSoup(page.read_text(), 'html.parser')
+ for link in soup.find_all('a', href=True):
+  parts=urlsplit(link['href'])
+  if parts.scheme or parts.netloc or not parts.path.lower().endswith('.md'):
+   continue
+  decoded=unquote(parts.path)
+  target=(site_root/decoded.lstrip('/')) if decoded.startswith('/') else (page.parent/decoded)
+  if target.is_file():
+   link['href']=urlunsplit((parts.scheme,parts.netloc,parts.path+'.html',parts.query,parts.fragment))
+ page.write_text(str(soup))
+
+def render_markdown_files(destination, language, stylesheet):
+ from nbconvert.filters.markdown_mistune import markdown2html_mistune
+ for source in destination.rglob('*.md'):
+  body=markdown2html_mistune(source.read_text())
+  relative=os.path.relpath(stylesheet, source.parent)
+  title=html.escape(source.stem)
+  document=(f'<!doctype html><html lang="{language}"><head><meta charset="utf-8">'
+            f'<meta name="viewport" content="width=device-width,initial-scale=1">'
+            f'<title>{title}</title><link rel="stylesheet" href="{html.escape(relative)}">'
+            '<style>body{max-width:72rem;margin:2rem auto;padding:0 1.25rem;line-height:1.7} '
+            'pre{overflow:auto;padding:1rem;background:#f3f7f3} img{max-width:100%}</style>'
+            f'</head><body><main class="markdown-page">{body}</main></body></html>')
+  source.with_suffix('.md.html').write_text(document)
+
+def create_directory_indexes(destination, language, stylesheet):
+ directories=[destination]+[p for p in destination.rglob('*') if p.is_dir()]
+ for directory in sorted(directories, key=lambda p:len(p.parts), reverse=True):
+  index=directory/'index.html'
+  if index.exists():
+   continue
+  items=[]
+  for child in sorted(directory.iterdir(), key=lambda p:(p.name.casefold(),p.name)):
+   if child.name.endswith('.md') and child.with_suffix('.md.html').is_file():
+    continue
+   href=child.name+'/' if child.is_dir() else child.name
+   if child.is_file() and child.suffix.lower()=='.md' and child.with_suffix('.md.html').is_file():
+    href=child.name+'.html'
+   label=child.name+'/' if child.is_dir() else child.name
+   items.append(f'<li><a href="{html.escape(href, quote=True)}">{html.escape(label)}</a></li>')
+  relative=os.path.relpath(stylesheet, directory)
+  title=html.escape(directory.name or 'Course files')
+  document=(f'<!doctype html><html lang="{language}"><head><meta charset="utf-8">'
+            f'<meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>'
+            f'<link rel="stylesheet" href="{html.escape(relative)}">'
+            '<style>body{max-width:72rem;margin:2rem auto;padding:0 1.25rem;line-height:1.7}</style>'
+            f'</head><body><main><h1>{title}</h1><ul>{"".join(items)}</ul></main></body></html>')
+  index.write_text(document)
+
 for language,slug in [('en','en'),('zh-CN','zh')]:
  course=a.courses/language;target=a.output/slug;target.mkdir(exist_ok=True)
  destination=target/'course'
@@ -15,6 +67,7 @@ for language,slug in [('en','en'),('zh-CN','zh')]:
  for file in destination.rglob('*.nb.html'):
   s=file.read_text();s=re.sub(r'href="([0-9]{2}_[^"/]+)\.ipynb"',r'href="\1.nb.html"',s);file.write_text(s)
  shutil.copy2(ROOT/'site/style.css',target/'style.css')
+ render_markdown_files(destination, language, target/'style.css')
  en=language=='en'
  title='Learn multi-omics, one R cell at a time'if en else'逐格运行 R，学会多组学分析'
  intro=('<p>A practical course built around psoriasis research. Read the worked examples, run the code, and learn to explain what each result supports.</p>'if en else'<p>以银屑病研究为线索，从读懂输入、逐格运行代码，到解释统计结果。先看已运行的示例，再亲手完成分析与参数练习。</p>')
@@ -52,6 +105,9 @@ for language,slug in [('en','en'),('zh-CN','zh')]:
   if node.get_text(strip=True)=='/':node.decompose()
  for link in soup.select('.language-nav a'):link['href']='../en/'if link.get('lang')=='en'else'../zh/'
  (target/'index.html').write_text(str(soup))
+ create_directory_indexes(destination, language, target/'style.css')
+ for page in target.rglob('*.html'):
+  rewrite_markdown_links(page, a.output)
 size=sum(f.stat().st_size for f in a.output.rglob('*')if f.is_file())
 assert size<950*1024**2, 'Static site is too large for Pages'
 print('Static bilingual site:',size,'bytes')
