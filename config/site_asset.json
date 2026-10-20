@@ -1,0 +1,10 @@
+{
+  "asset": "site-v4.zip",
+  "bytes": 246689700,
+  "sha256": "353b37095a2030af665d54acb68503aad496c03a726f69786c32bf50219a58f4",
+  "course_languages": [
+    "en",
+    "zh-CN"
+  ],
+  "download_state": "native_validation_in_progress"
+}

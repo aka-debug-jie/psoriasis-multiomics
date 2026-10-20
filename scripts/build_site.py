@@ -78,6 +78,8 @@ for language,slug in [('en','en'),('zh-CN','zh')]:
  cards=[]
  for file in sorted((destination/'notebooks').glob('[0-9][0-9]_*.nb.html')):
   soup=BeautifulSoup(file.read_text(),'html.parser');heading=soup.find('h1')
+  if heading:
+   for anchor in heading.select('a.anchor-link'):anchor.decompose()
   label=heading.get_text(' ',strip=True)if heading else file.stem
   label=re.sub(r'^[0-9]{2}[\s｜|:：]*','',label)
   cards.append(f'<a class="course-card" href="course/notebooks/{file.name}"><span class="chapter-number">{file.name[:2]}</span><h3>{html.escape(label)}</h3></a>')
@@ -86,14 +88,15 @@ for language,slug in [('en','en'),('zh-CN','zh')]:
   assets=[x for x in release['assets']if x['platform']==platform and x['language']==language and x.get('status')=='ready']
   if assets:
    asset=assets[0];url=repo+'/releases/download/v'+release['version']+'/'+asset['name']
-   button=f'<a class="download-button" href="{url}">{"Download ZIP"if en else"下载 ZIP"}</a>'
+   button=f'<a class="button" href="{url}">{"Download ZIP"if en else"下载 ZIP"}</a>'
    note=f"v{release['version']} · {asset['bytes']/1e6:.1f} MB · "+('Native tests passed'if en else'原生运行检查通过')
    checksum=f'<details><summary>SHA256</summary><code>{asset["sha256"]}</code></details>'
   else:
-   button=f'<span class="download-button is-disabled" aria-disabled="true">{"Preparing release"if en else"正在准备发布"}</span>'
+   button=f'<span class="button" aria-disabled="true">{"Preparing release"if en else"正在准备发布"}</span>'
    note='Download will open after native validation.'if en else'完成该系统的原生运行验收后开放下载。';checksum=''
-  downloads.append(f'<article class="download-card"><div><h3>{label}</h3><p>{note}</p>{checksum}</div>{button}</article>')
+  downloads.append(f'<article class="download-row"><div class="download-label">{label}<span class="download-detail">{note}</span>{checksum}</div><div class="download-actions">{button}</div></article>')
  extra=('<p>Extract the complete ZIP, then open <code>Run course.bat</code> on Windows or <code>Run course.command</code> on Mac. The package includes R 4.4.2 and Jupyter. Choose the correct Mac chip; check About This Mac if unsure. Use <code>View course.html</code> to read without starting R.</p>'if en else'<p>完整解压 ZIP 后，Windows 打开 <code>Run course.bat</code>，Mac 打开 <code>Run course.command</code>。课程已含 R 4.4.2 和 Jupyter。Mac 请按“关于本机”中的芯片选择版本。只阅读时打开 <code>View course.html</code>。</p>')
+ extra=extra.replace('<p>','<p style="grid-column:1/-1">',1)
  research=('<p>The research code independently reconstructs the analyses in <a href="https://doi.org/10.1093/bioinformatics/btag347">btag347</a>. Its seven-candidate result uses documented substitute inputs and method adjustments; it is not an exact reproduction of the paper’s 29 candidates. UK Biobank individual-level PGS and survival analyses were not reproduced.</p><p>The public course uses separately documented teaching inputs where needed. The 1000 Genomes scoring exercise and the survival::lung example are independent datasets. Source versions, licences, and changes are recorded with the course.</p>'if en else'<p>科研代码独立重建了 <a href="https://doi.org/10.1093/bioinformatics/btag347">btag347</a> 的分析流程。七个候选来自已记录的替代输入和方法修正，与论文的 29 个候选分别对照；UK Biobank 个体层面的遗传评分和生存分析未复现。</p><p>公开课程在必要环节采用另行说明的教学输入。1000 Genomes 遗传评分和 survival::lung 生存分析使用独立数据，不能拼成同一队列。数据版本、许可和变化均随课程记录。</p>')
  footer=f'<p><a href="{repo}">GitHub</a> · <a href="{repo}/blob/main/LICENSE">MIT code</a> · <a href="{repo}/blob/main/LICENSE-CONTENT.md">CC BY 4.0 content</a> · <a href="{repo}/blob/main/DATA_LICENSES.tsv">Data sources & licences</a></p>'
  source=(ROOT/'site/home.html').read_text()

@@ -13,6 +13,7 @@ if a.language=='en':
  shutil.copytree(overlay/'assets',target/'notebooks/assets',dirs_exist_ok=True)
  shutil.copy2(overlay/'COURSE.md',target/'COURSE.md')
  shutil.copytree(overlay/'data',target/'data',dirs_exist_ok=True)
+ shutil.copytree(overlay/'R',target/'R',dirs_exist_ok=True)
 translations=json.loads((ROOT/'translations/en/code_strings.json').read_text())
 strings={k:v['translation'] for k,v in translations['strings'].items()}
 comments={k:v['translation'] for k,v in translations['comments'].items()}
