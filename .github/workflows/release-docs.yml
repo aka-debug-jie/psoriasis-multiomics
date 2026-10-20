@@ -1,0 +1,57 @@
+name: Add source links to validated packages
+run-name: Source download notes · ${{ inputs.platform }}
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform whose full native validation has passed
+        type: choice
+        options: [windows-x64, macos-intel, macos-arm64]
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: release-docs-${{ inputs.platform }}
+  cancel-in-progress: false
+jobs:
+  documentation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Append source locations and verify unchanged tested members
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COURSE_PLATFORM: ${{ inputs.platform }}
+        shell: python
+        run: |
+          import json, os, subprocess, sys
+          from pathlib import Path
+          assert json.loads(subprocess.check_output(
+              ['gh', 'release', 'view', 'v4.0.0', '--json', 'isDraft']
+          ))['isDraft'], 'This operation is limited to the unpublished draft'
+          platform = os.environ['COURSE_PLATFORM']
+          for language in ['zh-CN', 'en']:
+              folder = Path('.release-docs') / language
+              folder.mkdir(parents=True)
+              archive = f'pmo-{language}-{platform}.zip'
+              manifest = f'{language}-{platform}-manifest.json'
+              subprocess.run(['gh', 'release', 'download', 'v4.0.0',
+                              '--pattern', archive, '--pattern', manifest,
+                              '--dir', str(folder)], check=True)
+              validation = json.loads((folder / manifest).read_text())['validation']
+              assert validation['platform'] == platform
+              assert validation['language'] == language
+              assert len(validation['lessons']) == 13
+              assert all(x['status'] == 'passed' for x in validation['lessons'])
+              assert validation['numeric_comparison'] == 'passed'
+              assert validation['network_isolation'] == 'passed'
+              assert validation['ordinary_user'] and validation['offline_first_initialization']
+              subprocess.run([sys.executable, 'scripts/add_source_links.py',
+                              str(folder / archive), str(folder / manifest)], check=True)
+              subprocess.run(['gh', 'release', 'upload', 'v4.0.0',
+                              str(folder / archive), str(folder / manifest),
+                              '--clobber'], check=True)
+              (folder / archive).unlink()
