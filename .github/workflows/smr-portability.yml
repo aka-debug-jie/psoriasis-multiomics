@@ -1,0 +1,69 @@
+name: Diagnose SMR portability
+run-name: SMR diagnostics · ${{ inputs.platform }}
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        type: choice
+        options: [macos-intel, macos-arm64, windows-x64]
+        required: true
+permissions:
+  contents: write
+jobs:
+  diagnose:
+    runs-on: ${{ fromJSON('{"windows-x64":"windows-2022","macos-intel":"macos-15-intel","macos-arm64":"macos-15"}')[inputs.platform] }}
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      COURSE_PUBLIC_BUILD: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Fetch reviewed inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import subprocess,sys
+          subprocess.run([sys.executable,'scripts/fetch_course_data.py'],check=True)
+      - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167
+        with:
+          miniforge-version: latest
+          activate-environment: base
+          auto-activate-base: true
+          channels: conda-forge
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e
+        if: ${{ inputs.platform == 'windows-x64' }}
+        id: msys2
+        with:
+          msystem: UCRT64
+          update: false
+          cache: false
+          install: mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-libgomp mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja
+      - name: Compare original and diagnostic-only builds
+        env:
+          MSYS2_ROOT: ${{ steps.msys2.outputs.msys2-location }}
+        shell: python
+        run: |
+          import subprocess,sys
+          command=[sys.executable,'scripts/build_native.py','--platform','${{ inputs.platform }}','--smr-diagnostic']
+          subprocess.run(command,check=True)
+          subprocess.run(command+['--trace-heidi'],check=True)
+      - name: Save diagnostic tables and traces
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess,zipfile,json
+          folder=Path('.build/smr-diagnostics/${{ inputs.platform }}')
+          if folder.exists():
+              archive=Path('.build/smr-diagnostics-${{ inputs.platform }}.zip')
+              with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as z:
+                  for file in folder.rglob('*'):
+                      if file.is_file():z.write(file,file.relative_to(folder).as_posix())
+              assert json.loads(subprocess.check_output(['gh','release','view','v4.0.0','--json','isDraft']))['isDraft']
+              subprocess.run(['gh','release','upload','v4.0.0',str(archive),'--clobber'],check=True)

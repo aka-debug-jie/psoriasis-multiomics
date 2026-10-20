@@ -1,7 +1,8 @@
 """Build on the target OS; the output is still a candidate until test_bundle passes."""
 from pathlib import Path
 import argparse,os,subprocess,sys,shutil,urllib.request,zipfile,json,re,tarfile,hashlib
-p=argparse.ArgumentParser();p.add_argument('--platform',required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--platform',required=True);p.add_argument('--smr-diagnostic',action='store_true');p.add_argument('--trace-heidi',action='store_true');a=p.parse_args()
+assert not a.trace_heidi or a.smr_diagnostic
 ROOT=Path(__file__).resolve().parents[1];os.chdir(ROOT)
 BUILD=ROOT/'.build';BUILD.mkdir(exist_ok=True);RUNTIME=BUILD/('runtime' if sys.platform=='win32' else 'runtime-'+('p'*120))
 conda=os.environ.get('CONDA_EXE')
@@ -15,26 +16,29 @@ assert sys.platform==expected[a.platform][0] and platform.machine().lower()==exp
 def run(argv,**kw):print('Run:',argv[0],flush=True);return subprocess.run([str(x)for x in argv],check=True,**kw)
 from runtime_cache import restore,save
 runtime_archive=restore(ROOT,a.platform,RUNTIME)
-if runtime_archive is None:
+if runtime_archive is None and not(a.smr_diagnostic and RUNTIME.is_dir()):
     packages=['python=3.12','pip','conda-pack','zlib','libuv','zeromq','libpng','pkg-config']
-    if not win:packages+=['r-base=4.4.2','c-compiler','cxx-compiler','fortran-compiler','make','cmake','llvm-openmp','libxml2','libcurl','openssl']
+    if not win:
+     packages+=['c-compiler','cxx-compiler','make','cmake','llvm-openmp']
+     if not a.smr_diagnostic:packages+=['r-base=4.4.2','fortran-compiler','libxml2','libcurl','openssl']
     run([conda,'create','-y','-p',RUNTIME,'--override-channels','-c','conda-forge',*packages])
     python=RUNTIME/('python.exe'if win else'bin/python')
-    run([python,'-m','pip','install','-r','requirements-build.txt'])
-    if win:
+    if not a.smr_diagnostic:run([python,'-m','pip','install','-r','requirements-build.txt'])
+    if win and not a.smr_diagnostic:
      rscript=shutil.which('Rscript')or shutil.which('Rscript.exe')
      if not rscript:raise RuntimeError('Build runner requires R 4.4.2 from setup-r')
      rhome=subprocess.check_output([rscript,'--vanilla','-e','cat(R.home())'],text=True).strip()
      shutil.copytree(rhome,RUNTIME/'R',dirs_exist_ok=True)
      rscript=RUNTIME/'R/bin/Rscript.exe'
-    else:rscript=RUNTIME/'bin/Rscript'
-    run([conda,'run','--no-capture-output','-p',RUNTIME,rscript,'--vanilla','scripts/install_r_packages.R',RUNTIME])
+    elif not win:rscript=RUNTIME/'bin/Rscript'
+    if not a.smr_diagnostic:run([conda,'run','--no-capture-output','-p',RUNTIME,rscript,'--vanilla','scripts/install_r_packages.R',RUNTIME])
     runtime_archive=None
 source=BUILD/'smr-source';commit='eedb1a62ba4c66ab0b09acd0205876955a803f18'
 if not source.exists():
  source.mkdir();run(['git','-C',source,'init']);run(['git','-C',source,'fetch','--depth','1','https://github.com/JianYang-Lab/SMR.git',commit]);run(['git','-C',source,'checkout','--detach','FETCH_HEAD'])
 assert subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()==commit
-if win:run([sys.executable,'scripts/patch_smr_platform.py',source])
+if win and not a.trace_heidi:run([sys.executable,'scripts/patch_smr_platform.py',source])
+if a.trace_heidi:run([sys.executable,'scripts/trace_smr_heidi.py',source])
 smrbuild=BUILD/'smr-build';install=BUILD/'smr'
 cmake=['cmake','-S',source,'-B',smrbuild,'-G','Ninja'if win else'Unix Makefiles','-DCMAKE_BUILD_TYPE=Release',f'-DCMAKE_INSTALL_PREFIX={install}','-DSMR_BLAS_BACKEND=none','-DBUILD_WITH_MIMALLOC=OFF','-DSMR_HAS_MARCH_X86_64_V3=FALSE','-DSMR_HAS_MARCH_ARMV85A=FALSE']
 if win:
@@ -57,7 +61,7 @@ if win:
    if key in candidates:
     dst=smr.parent/candidates[key].name;shutil.copy2(candidates[key],dst);queue.append(dst)
 else:
- cmake+=['-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0']
+ cmake+=['-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0','-DCMAKE_AR=/usr/bin/ar','-DCMAKE_RANLIB=/usr/bin/ranlib']
  run([conda,'run','--no-capture-output','-p',RUNTIME,*cmake]);run([conda,'run','--no-capture-output','-p',RUNTIME,'cmake','--build',smrbuild,'--parallel','2']);run(['cmake','--install',smrbuild])
  smr=install/'bin/smr'
  # Bundle non-system dylibs so SMR does not depend on Homebrew or the build prefix.
@@ -75,6 +79,9 @@ else:
     seen.add(path.name);shutil.copy2(path,target);target.chmod(0o755);queue.append(target)
    run(['install_name_tool','-change',dep,'@loader_path/'+path.name,binary])
  for item in [smr,*smr.parent.glob('*.dylib')]:run(['codesign','--force','--sign','-',item])
+if a.smr_diagnostic:
+ run([sys.executable,'scripts/diagnose_smr.py','--smr',smr,'--platform',a.platform,'--label','trace'if a.trace_heidi else'baseline'])
+ sys.exit(0)
 url='https://s3.amazonaws.com/plink1-assets/'+('plink_win64_20260927.zip'if win else'plink_mac_20260927.zip')
 archive=BUILD/'plink.zip';urllib.request.urlretrieve(url,archive)
 with zipfile.ZipFile(archive)as z:z.extractall(BUILD/'plink')

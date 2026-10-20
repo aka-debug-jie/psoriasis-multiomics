@@ -102,3 +102,21 @@ jobs:
               import json
               assert json.loads(subprocess.check_output(['gh','release','view','v4.0.0','--json','isDraft']))['isDraft']
               subprocess.run(['gh','release','upload','v4.0.0',str(out),'--clobber'],check=True)
+      - name: Save numerical diagnostics
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import subprocess,zipfile,json
+          from pathlib import Path
+          selected=[]
+          for folder in Path('.build').glob('*/pmo-*/resources/work/results'):
+              for pattern in ['*comparison.tsv','05_smr/*.smr','05_smr/reference_comparison.tsv','05_smr/smr_heidi.log']:
+                  selected.extend(folder.glob(pattern))
+          if selected:
+              out=Path('.build/native-diagnostics-${{ inputs.platform }}.zip')
+              with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
+                  for f in sorted(set(selected)):z.write(f,f.relative_to('.build').as_posix())
+              assert json.loads(subprocess.check_output(['gh','release','view','v4.0.0','--json','isDraft']))['isDraft']
+              subprocess.run(['gh','release','upload','v4.0.0',str(out),'--clobber'],check=True)
