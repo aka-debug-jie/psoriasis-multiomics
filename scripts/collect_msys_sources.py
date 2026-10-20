@@ -24,6 +24,12 @@ def collect_msys_sources(msys_root,dll_directory,notices,sources,dependency_buil
    with urllib.request.urlopen(url,timeout=60)as response:page=response.read().decode()
    links=[urllib.parse.urljoin(url,s)for s in re.findall(r'href=["\']([^"\']+\.src\.tar\.(?:zst|gz|xz))["\']',page)]
    links=[s for s in links if version in urllib.parse.unquote(s)]
+   # The package page follows the latest release; installed historical versions
+   # still have source-only archives under their source-package name.
+   source_names={'mingw-w64-ucrt-x86_64-'+part:base for part,base in
+                 [('libgcc','gcc'),('libgomp','gcc'),('libstdc++','gcc'),('libwinpthread','winpthreads')]}
+   if not links and name in source_names:
+    links=['https://repo.msys2.org/mingw/sources/mingw-w64-'+source_names[name]+'-'+version+'.src.tar.zst']
    item={'package':name,'version':version,'official_page':url,'source_status':'source_package_unresolved','package_info':info}
    if links:
     source_url=links[0];dest=sources/'msys2'/Path(urllib.parse.urlsplit(source_url).path).name;dest.parent.mkdir(exist_ok=True)

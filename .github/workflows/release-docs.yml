@@ -8,6 +8,12 @@ on:
         type: choice
         options: [windows-x64, macos-intel, macos-arm64]
         required: true
+      kind:
+        description: Documentation to append without changing tested members
+        type: choice
+        options: [source-links, windows-licences]
+        default: source-links
+        required: true
 permissions:
   contents: write
 concurrency:
@@ -25,14 +31,30 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           COURSE_PLATFORM: ${{ inputs.platform }}
+          COURSE_DOCUMENTATION_KIND: ${{ inputs.kind }}
         shell: python
         run: |
-          import json, os, subprocess, sys
+          import hashlib, json, os, subprocess, sys, zipfile
           from pathlib import Path
           assert json.loads(subprocess.check_output(
               ['gh', 'release', 'view', 'v4.0.0', '--json', 'isDraft']
           ))['isDraft'], 'This operation is limited to the unpublished draft'
           platform = os.environ['COURSE_PLATFORM']
+          extra_args = []
+          if os.environ['COURSE_DOCUMENTATION_KIND'] == 'windows-licences':
+              assert platform == 'windows-x64'
+              config = json.loads(Path('config/windows_notice_asset.json').read_text())
+              download = Path('.notice-download')
+              subprocess.run(['gh', 'release', 'download', 'v4.0.0',
+                              '--pattern', config['asset'], '--dir', str(download)], check=True)
+              payload = download / config['asset']
+              assert payload.stat().st_size == config['bytes']
+              assert hashlib.sha256(payload.read_bytes()).hexdigest() == config['sha256']
+              with zipfile.ZipFile(payload) as archive:
+                  assert len(archive.namelist()) == len(set(archive.namelist()))
+                  assert all(name == Path(name).name for name in archive.namelist())
+                  archive.extractall(download / 'files')
+              extra_args = ['--supplement-dir', str(download / 'files')]
           for language in ['zh-CN', 'en']:
               folder = Path('.release-docs') / language
               folder.mkdir(parents=True)
@@ -50,7 +72,7 @@ jobs:
               assert validation['network_isolation'] == 'passed'
               assert validation['ordinary_user'] and validation['offline_first_initialization']
               subprocess.run([sys.executable, 'scripts/add_source_links.py',
-                              str(folder / archive), str(folder / manifest)], check=True)
+                              str(folder / archive), str(folder / manifest), *extra_args], check=True)
               subprocess.run(['gh', 'release', 'upload', 'v4.0.0',
                               str(folder / archive), str(folder / manifest),
                               '--clobber'], check=True)

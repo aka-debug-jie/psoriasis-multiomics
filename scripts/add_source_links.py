@@ -72,7 +72,7 @@ def _source_text(platform, source_commit):
     ).encode("utf-8")
 
 
-def add_source_links(archive_path, manifest_path):
+def _load_verified_manifest(archive_path, manifest_path):
     archive_path = Path(archive_path)
     manifest_path = Path(manifest_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -92,22 +92,46 @@ def add_source_links(archive_path, manifest_path):
     original_sha256 = _sha256_file(archive_path)
     if manifest.get("sha256") != original_sha256:
         raise ValueError("archive SHA256 does not match manifest")
+    return archive_path, manifest_path, manifest, original_sha256
 
-    added_name = f"{archive_path.stem}/resources/licenses/SOURCE_DOWNLOAD.txt"
-    added_bytes = _source_text(platform, source_commit)
+
+def append_documents(archive_path, manifest_path, documents, record_key):
+    """Append license documents and update their provenance in the manifest."""
+    archive_path, manifest_path, manifest, original_sha256 = _load_verified_manifest(
+        Path(archive_path), Path(manifest_path)
+    )
+    if not documents or not isinstance(documents, dict):
+        raise ValueError("documents must be a non-empty filename-to-bytes mapping")
+    if not isinstance(record_key, str) or not record_key:
+        raise ValueError("record_key must be non-empty")
+    member_bytes = {}
+    prefix = f"{archive_path.stem}/resources/licenses/"
+    for filename, content in documents.items():
+        if (
+            not isinstance(filename, str)
+            or filename in ("", ".", "..")
+            or "/" in filename
+            or "\\" in filename
+        ):
+            raise ValueError(f"document name must be a plain filename: {filename!r}")
+        if not isinstance(content, bytes):
+            raise ValueError(f"document content must be bytes: {filename}")
+        member_bytes[prefix + filename] = content
+
     with zipfile.ZipFile(archive_path, "r") as original:
         infos = original.infolist()
         names = [info.filename for info in infos]
         if len(names) != len(set(names)):
             raise ValueError("archive contains duplicate member names")
-        if added_name in names:
-            raise ValueError(f"archive already contains {added_name}")
+        existing = set(names).intersection(member_bytes)
+        if existing:
+            raise ValueError(f"archive already contains {sorted(existing)[0]}")
         original_members = {
             info.filename: (_member_hash(original, info.filename), _zip_info_signature(info))
             for info in infos
         }
 
-    temp_dir = Path(tempfile.mkdtemp(prefix=".source-links-", dir=archive_path.parent))
+    temp_dir = Path(tempfile.mkdtemp(prefix=".append-documents-", dir=archive_path.parent))
     temp_archive = temp_dir / archive_path.name
     temp_manifest = temp_dir / manifest_path.name
     backup_archive = temp_dir / "original.zip"
@@ -117,9 +141,10 @@ def add_source_links(archive_path, manifest_path):
     try:
         shutil.copy2(archive_path, temp_archive)
         with zipfile.ZipFile(temp_archive, "a") as output:
-            info = zipfile.ZipInfo(added_name)
-            info.compress_type = zipfile.ZIP_DEFLATED
-            output.writestr(info, added_bytes)
+            for member_name, content in member_bytes.items():
+                info = zipfile.ZipInfo(member_name)
+                info.compress_type = zipfile.ZIP_DEFLATED
+                output.writestr(info, content)
 
         with zipfile.ZipFile(temp_archive, "r") as updated:
             updated_infos = updated.infolist()
@@ -128,30 +153,38 @@ def add_source_links(archive_path, manifest_path):
                 raise ValueError("updated archive contains duplicate member names")
             if updated.testzip() is not None:
                 raise ValueError("updated archive failed ZIP integrity testing")
-            if set(updated_names) != set(names) | {added_name}:
+            if set(updated_names) != set(names) | set(member_bytes):
                 raise ValueError("updated archive member names differ from expected")
             for info in updated_infos:
-                if info.filename == added_name:
+                if info.filename in member_bytes:
                     continue
                 if (_member_hash(updated, info.filename), _zip_info_signature(info)) != original_members[info.filename]:
                     raise ValueError(f"existing ZIP member changed: {info.filename}")
-            if _member_hash(updated, added_name) != hashlib.sha256(added_bytes).hexdigest():
-                raise ValueError("added documentation content failed SHA256 verification")
+            for member_name, content in member_bytes.items():
+                if _member_hash(updated, member_name) != hashlib.sha256(content).hexdigest():
+                    raise ValueError(f"added documentation content failed SHA256 verification: {member_name}")
 
         updated_sha256 = _sha256_file(temp_archive)
         updated_bytes = temp_archive.stat().st_size
         updated_manifest = dict(manifest)
         updated_manifest["bytes"] = updated_bytes
         updated_manifest["sha256"] = updated_sha256
-        updated_manifest["documentation_addition"] = {
+        record = {
             "original_bytes": archive_path.stat().st_size,
             "original_sha256": original_sha256,
-            "file": added_name,
-            "file_sha256": hashlib.sha256(added_bytes).hexdigest(),
+            "files": {
+                member_name: hashlib.sha256(content).hexdigest()
+                for member_name, content in member_bytes.items()
+            },
             "original_member_count": len(infos),
             "unchanged": True,
             "unchanged_evidence": "All original member names, streamed SHA256 values, and ZIP metadata were verified after append.",
         }
+        if record_key == "documentation_addition" and len(member_bytes) == 1:
+            member_name, content = next(iter(member_bytes.items()))
+            record["file"] = member_name
+            record["file_sha256"] = hashlib.sha256(content).hexdigest()
+        updated_manifest[record_key] = record
         temp_manifest.write_text(json.dumps(updated_manifest, indent=2) + "\n", encoding="utf-8")
 
         shutil.copy2(archive_path, backup_archive)
@@ -170,13 +203,56 @@ def add_source_links(archive_path, manifest_path):
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+def add_source_links(archive_path, manifest_path):
+    archive_path = Path(archive_path)
+    manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError("manifest must be a JSON object")
+    validation = manifest.get("validation")
+    if not isinstance(validation, dict):
+        raise ValueError("manifest validation must be an object")
+    platform = validation.get("platform")
+    source_commit = validation.get("source_commit")
+    if not isinstance(platform, str) or not platform or not isinstance(source_commit, str) or not source_commit:
+        raise ValueError("manifest validation must contain platform and source_commit")
+    append_documents(
+        archive_path,
+        manifest_path,
+        {"SOURCE_DOWNLOAD.txt": _source_text(platform, source_commit)},
+        "documentation_addition",
+    )
+
+
+def _supplement_documents(directory):
+    directory = Path(directory)
+    if directory.is_symlink() or not directory.is_dir():
+        raise ValueError("supplement directory must exist")
+    documents = {}
+    for path in sorted(directory.iterdir()):
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("supplement directory must contain only flat regular files")
+        documents[path.name] = path.read_bytes()
+    if not documents:
+        raise ValueError("supplement directory must not be empty")
+    return documents
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", help="release ZIP archive to update")
     parser.add_argument("manifest", help="companion JSON manifest")
+    parser.add_argument("--supplement-dir", help="append flat license documents from this directory")
     args = parser.parse_args()
     try:
-        add_source_links(args.archive, args.manifest)
+        if args.supplement_dir:
+            append_documents(
+                args.archive,
+                args.manifest,
+                _supplement_documents(args.supplement_dir),
+                "licence_supplement",
+            )
+        else:
+            add_source_links(args.archive, args.manifest)
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, json.JSONDecodeError) as error:
         parser.error(str(error))
 

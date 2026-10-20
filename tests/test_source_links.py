@@ -1,6 +1,8 @@
 import hashlib
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 import zipfile
@@ -91,6 +93,55 @@ class SourceLinksTests(unittest.TestCase):
             add_source_links(self.archive_path, self.manifest_path)
         self.assertEqual(self.archive_path.read_bytes(), first_archive)
         self.assertEqual(self.manifest_path.read_bytes(), first_manifest)
+
+    def test_cli_supplement_preserves_source_provenance_and_rejects_repeat(self):
+        add_source_links(self.archive_path, self.manifest_path)
+        first_manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        first_sha256 = hashlib.sha256(self.archive_path.read_bytes()).hexdigest()
+        first_bytes = self.archive_path.stat().st_size
+        supplement_dir = self.root / "license-documents"
+        supplement_dir.mkdir()
+        documents = {
+            "LICENSE.txt": b"DLL licence text\n",
+            "NOTICE.txt": b"DLL attribution\n",
+        }
+        for name, content in documents.items():
+            (supplement_dir / name).write_bytes(content)
+
+        script = Path(__file__).resolve().parents[1] / "scripts" / "add_source_links.py"
+        command = [sys.executable, str(script), str(self.archive_path), str(self.manifest_path),
+                   "--supplement-dir", str(supplement_dir)]
+        completed = subprocess.run(command, capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+
+        updated = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        self.assertEqual(updated["documentation_addition"], first_manifest["documentation_addition"])
+        self.assertEqual(updated["validation"], first_manifest["validation"])
+        supplement = updated["licence_supplement"]
+        self.assertEqual(supplement["original_sha256"], first_sha256)
+        self.assertEqual(supplement["original_bytes"], first_bytes)
+        self.assertEqual(supplement["original_member_count"], 3)
+        self.assertTrue(supplement["unchanged"])
+        expected_files = {
+            f"pmo-en-macos/resources/licenses/{name}": hashlib.sha256(content).hexdigest()
+            for name, content in documents.items()
+        }
+        self.assertEqual(supplement["files"], expected_files)
+        with zipfile.ZipFile(self.archive_path) as archive:
+            self.assertIsNone(archive.testzip())
+            self.assertEqual((archive.getinfo("launch.command").external_attr >> 16) & 0o777, 0o755)
+            self.assertIn("pmo-en-macos/resources/licenses/SOURCE_DOWNLOAD.txt", archive.namelist())
+            for name, content in documents.items():
+                self.assertEqual(
+                    archive.read(f"pmo-en-macos/resources/licenses/{name}"), content
+                )
+
+        supplemented_archive = self.archive_path.read_bytes()
+        supplemented_manifest = self.manifest_path.read_bytes()
+        repeated = subprocess.run(command, capture_output=True, text=True)
+        self.assertNotEqual(repeated.returncode, 0)
+        self.assertEqual(self.archive_path.read_bytes(), supplemented_archive)
+        self.assertEqual(self.manifest_path.read_bytes(), supplemented_manifest)
 
 
 if __name__ == "__main__":
